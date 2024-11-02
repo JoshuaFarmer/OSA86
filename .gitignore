@@ -5,3 +5,4 @@ diskutil.c
 diskutil.o
 example.asm
 example.bin
+.vscode
