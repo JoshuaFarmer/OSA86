@@ -212,5 +212,7 @@ void osa86() {
 
 	write_file_system();
 	free(kbbuff);
-	puts("it is now safe to turn of your computer\n");
+	clearScreen(termCol);
+	mode(0x2);
+	puts_at("It is now safe to turn of your computer\n", 20, 11);
 }
