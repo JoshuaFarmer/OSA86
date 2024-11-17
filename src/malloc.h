@@ -17,7 +17,7 @@ typedef struct {
 	uint32_t next_free;		// The index of the next free block
 } Heap_t;
 
-Heap_t* heap = (Heap_t*)(0x100000);
+Heap_t* heap = (Heap_t*)(0xF00000);
 
 void init_heap() {
 	Block_t* initial_block = (Block_t*)heap->raw;

@@ -162,12 +162,12 @@ void osa86() {
 	super_block = malloc(sizeof(Super_Block_t));
 	initialize_super_block(super_block);
 
-	create("Null", false);
 	create("link.lnk", false);
+	create("ExampleDir", true);
 	create("ExampleDir/hello.txt", false);
 	create("example.prg", false);
 
-	for (int i = 0; i < 64; ++i) {
+	for (int i = 0; i < 16; ++i) {
 		char num[32];
 		itoa(i, num, 16);
 		char* str = strcat(num, ".txt");
@@ -175,14 +175,13 @@ void osa86() {
 		free(str);
 	}
 
-	write_file("Null", "no", 3);
-	write_file("link.lnk", "ExampleDir/hello.txt", 22);
-	write_file("ExampleDir/hello.txt", "Hello, World!\n", 15);
+	write_file("link.lnk", "ExampleDir/hello.txt\0", 22);
+	write_file("ExampleDir/hello.txt", "Hello, World!\n\0", 16);
 
 	char* example_expr = ">++++++[<++++++++++>-]<+++++>+[<[>>+>+<<<-]>>>[<<<+>>>-]<+>>+++++++++[<++++++++++>-]<>+[<+>-]>+<<<[>>+<<-]>>[>-]>[><<<<+>[-]>>->]<+<<[>-[>-]>[><<<<+>[-]+>>->]<+<<-]>[-]>-<<<[<<[>>>+>+<<<<-]>>>>[<<<<+>>>>-]<.[-]<<<[>>>+>+<<<<-]>>>>[<<<<+>>>>-]+[<+>-]<<<<[-]>>>[<<<+>>>-]<[-]<+>]<-]<[-]>=10.";
 	write_file("example.prg", (uint8_t*)example_expr, strlen(example_expr)+1);
 
-	for (int i = 0; i < 64; ++i) {
+	for (int i = 0; i < 16; ++i) {
 		char num[32];
 		itoa(i, num, 16);
 		char* str = strcat(num, ".txt");
