@@ -80,7 +80,7 @@ switch32:
 	jmp clear_prefetch
 	nop
 	nop
-	clear_prefetch:
+clear_prefetch:
 	mov ax, 0x10
 	mov ds, ax
 	mov ss, ax 

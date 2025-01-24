@@ -10,7 +10,7 @@
 #define FS_MAX_FILES			 512
 #define FS_MAX_PATH_DEPTH	 64
 #define FS_MAX_NAME_LENGTH	 16
-#define FS_START				 128
+#define FS_START				 256
 #define FS_ROOT_DIR_IDX 	-1
 
 typedef uint16_t index_t;
@@ -557,7 +557,16 @@ uint32_t exec_file(const char* path) {
 		free(buff);
 		return 4;
 	} else if (strcmp(ext, ExeFileType.FILE_TYPE) == 0) { // program
-		//execute_binary_file(path);
+		int len = file_length(path);
+		char *buff = malloc(len);
+		read_file(path, buff, len);
+
+		bool valid = parse_upsa_header((ExeHeader_t*)buff, len);
+		if (valid) {
+			add_program_to_list(buff, len);
+		}
+
+		free(buff);
 		return 5;
 	}
 

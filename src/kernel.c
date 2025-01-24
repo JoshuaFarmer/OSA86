@@ -9,33 +9,11 @@
 #define NULL (void*)(0)
 #define cli() asm ("cli")
 #define sti() asm ("sti")
-#define __VER__ "0.16"
-
-// INLINE ASM PROTOTYPES
-unsigned char inb(unsigned short port);
-void outb(unsigned short port, unsigned char value);
-
-// TEXT FUNCTIONS PROTOTYPES
-char getch();
-void gets(char *buffer, int buffer_size);
-
-void putc(char c);
-void putc_at(char c, uint16_t x, uint16_t y);
-void puts(const char* s);
-void putsn(const char* s, uint32_t n);
-void printh(uint8_t a);
-
-int strlen(const char* str);
-int strcmp(const char *s1, const char *s2);
+#define __VER__ "0.17"
 
 // SYSTEM FUNCTIONS
 void osa86();
 void clearScreen(uint8_t c);
-
-// MISC
-int  strhex(char* s);
-int  chex(unsigned char c);
-void clsbuf(char* buf, int size);
 
 // CODE
 void init() {
@@ -44,14 +22,16 @@ void init() {
 
 void send_eoi(uint8_t irq);
 
+#include "io.h"
+#include "string.h"
+#include "terminal.h"
+
 // PIC, GDT & IDT
 #include "pic.h"
 #include "idt.h"
 #include "gdt.h"
 
 // STRING, TERMINAL & STRING
-#include "string.h"
-#include "terminal.h"
 #include "malloc.h"
 
 // PIT & SOUND
@@ -59,7 +39,6 @@ void send_eoi(uint8_t irq);
 #include "sound.h"
 
 // FILE SYSTEM
-#include "io.h"
 #include "fs.h"
 
 // ed
@@ -69,6 +48,7 @@ void send_eoi(uint8_t irq);
 #include "video.h"
 #include "user.h"
 #include "gui.h"
+#include "UpsaCPUEmu/cpu.h"
 
 // FUNCTIONS
 void system(char* _syscmd) {
@@ -166,6 +146,7 @@ void osa86() {
 	create("ExampleDir", true);
 	create("ExampleDir/hello.txt", false);
 	create("example.prg", false);
+	create("example2.exe", false);
 
 	for (int i = 0; i < 16; ++i) {
 		char num[32];
@@ -181,6 +162,12 @@ void osa86() {
 	char* example_expr = ">++++++[<++++++++++>-]<+++++>+[<[>>+>+<<<-]>>>[<<<+>>>-]<+>>+++++++++[<++++++++++>-]<>+[<+>-]>+<<<[>>+<<-]>>[>-]>[><<<<+>[-]>>->]<+<<[>-[>-]>[><<<<+>[-]+>>->]<+<<-]>[-]>-<<<[<<[>>>+>+<<<<-]>>>>[<<<<+>>>>-]<.[-]<<<[>>>+>+<<<<-]>>>>[<<<<+>>>>-]+[<+>-]<<<<[-]>>>[<<<+>>>-]<[-]<+>]<-]<[-]>=10.";
 	write_file("example.prg", (uint8_t*)example_expr, strlen(example_expr)+1);
 
+	char example_prog[] = {
+		MV_A_I, 'A', 0x00, HLT,
+	};
+
+	write_file("example2.exe", (uint8_t*)example_prog, sizeof(example_prog));
+
 	for (int i = 0; i < 16; ++i) {
 		char num[32];
 		itoa(i, num, 16);
@@ -191,7 +178,7 @@ void osa86() {
 		free(text);
 	}
 
-	write_file_system();
+	//write_file_system();
 
 	char* kbbuff = malloc(128);
 
@@ -201,13 +188,22 @@ void osa86() {
 	
 	// OS MAINLOOP
 	while (active) {
-		putc(Drive_Letter);
-		putc(':');
-		puts(STR_PATH);
-		puts("> ");
+		if (root.nxt != NULL && root.nxt->cpu != NULL && root.nxt->cpu->HLT != true) {
+			execute_next(root.nxt->cpu);
+		} else if (root.nxt != NULL && root.nxt->cpu != NULL) {
+			PRINT_DWORD(root.nxt->cpu->A);
+			remove_program(root.nxt);
+		}
+		
+		else {
+			putc(Drive_Letter);
+			putc(':');
+			puts(STR_PATH);
+			puts("> ");
 
-		gets(kbbuff, 128);
-		system(kbbuff);
+			gets(kbbuff, 128);
+			system(kbbuff);
+		}
 	}
 
 	write_file_system();

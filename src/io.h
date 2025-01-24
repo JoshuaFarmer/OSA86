@@ -2,6 +2,26 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+uint16_t inw(uint16_t port) {
+	uint16_t ret;
+	asm volatile("inw %1, %0" : "=a"(ret) : "Nd"(port));
+	return ret;
+}
+
+void outw(uint16_t port, uint16_t value) {
+	asm volatile ("outw %0, %1" : : "a"(value), "Nd"(port));
+}
+
+unsigned char inb(unsigned short port) {
+	unsigned char ret;
+	asm("inb %1, %0" : "=a"(ret) : "Nd"(port));
+	return ret;
+}
+
+void outb(unsigned short port, unsigned char value) {
+	asm("outb %0, %1" : : "a"(value), "Nd"(port));
+}
+
 extern void __ata_lba_read();
 extern void __ata_lba_write();
 
@@ -61,27 +81,6 @@ void ata_lba_write(uint32_t sector, uint8_t sector_count, void* buffer) {
 
 #define ATA_MASTER 0xA0
 #define ATA_SLAVE  0xB0
-
-static inline uint16_t inw(uint16_t port) {
-	uint16_t ret;
-	asm volatile("inw %1, %0" : "=a"(ret) : "Nd"(port));
-	return ret;
-}
-
-static inline void outw(uint16_t port, uint16_t value) {
-	asm volatile ("outw %0, %1" : : "a"(value), "Nd"(port));
-}
-
-// Define functions for hardware I/O access
-inline unsigned char inb(unsigned short port) {
-	unsigned char ret;
-	asm("inb %1, %0" : "=a"(ret) : "Nd"(port));
-	return ret;
-}
-
-inline void outb(unsigned short port, unsigned char value) {
-	asm("outb %0, %1" : : "a"(value), "Nd"(port));
-}
 
 static void ata_io_wait(uint16_t base) {
 	// Introduce a small delay (400ns) by reading the status port

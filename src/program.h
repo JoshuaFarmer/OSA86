@@ -1,8 +1,10 @@
 #pragma once
+#include "UpsaCPUEmu/cpu.h"
 
 #define MEMORY_SIZE 4096
 #define isdigit(c) (c >= '0' && c <= '9')
 
+// for simple programs
 void BrainFuck(const char *code) {
 	char memory[MEMORY_SIZE] = {0};
 	int ptr = 0;
@@ -86,10 +88,63 @@ void BrainFuck(const char *code) {
 	}
 }
 
-const char _MAGIC[] = "86";
+// for more complex programs, use an UPSA emulator (Custom CPU)
+
+#define MIN_SUPPORTED_VERSION 0x00
+#define MAX_SUPPORTED_VERSION 0x01
+
+const char _MAGIC[] = "86U";
 
 typedef struct {
 	uint8_t magic[3];
 	uint8_t version;
-	uint32_t entryPoint; // offset
 } ExeHeader_t;
+
+typedef struct _ProgramS {
+	Cpu_t*            cpu;
+	struct _ProgramS* nxt;
+} Program_t;
+
+Program_t root = {NULL, NULL};
+
+bool parse_upsa_header(ExeHeader_t* header, size_t fileLen) {
+	if (fileLen < sizeof(ExeHeader_t))     return false;
+	if (strncmp((char*)header->magic, _MAGIC, 3)) return false;
+	if (header->version >= MIN_SUPPORTED_VERSION && header->version <= MAX_SUPPORTED_VERSION) {
+		return true;
+	}
+
+	return false;
+}
+
+Program_t* add_program_to_list(char* data, size_t fileLen) {
+	Program_t* linked = malloc(sizeof(Program_t));
+	linked->nxt = root.nxt;
+	root.nxt = linked;
+
+	Cpu_t* cpu = malloc(sizeof(Cpu_t)); // emulator
+	linked->cpu = cpu;
+	init_memory_map(cpu);
+
+	for (size_t i = sizeof(ExeHeader_t); i < fileLen; ++i) {
+		cpu->memory_map.Rom[BASE+(i-sizeof(ExeHeader_t))] = data[i];
+	}
+
+	return linked;
+}
+
+void remove_program(Program_t* prog) {
+	free(prog->cpu->memory_map.DeviceMemory[0].dat);
+	free(prog->cpu);
+
+	Program_t* linked = &root;
+	while (linked->nxt != NULL && linked->nxt != prog) {
+		linked = linked->nxt;
+	}
+
+	if (linked) {
+		linked->nxt = prog->nxt;
+	}
+
+	free(prog);
+}

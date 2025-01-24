@@ -70,23 +70,6 @@ const uint16_t keyboard_map_shifted[256] = {
 	KEY_ALT, '\\', KEY_F11, KEY_F12
 };
 
-
-void PRINT_DWORD(int X) {
-	puts("0x");
-	printh((X >> 24) & 255);
-	printh((X >> 16) & 255);
-	printh((X >> 8) & 255);
-	printh(X & 255);
-	putc('\n');
-}
-
-void PRINT_WORD(int X) {
-	puts("0x");
-	printh((X >> 8) & 255);
-	printh(X & 255);
-	putc('\n');
-}
-
 char getch() {
 	char status;
 	static int shift_pressed = 0;
@@ -234,6 +217,12 @@ void putc(char c) {
 	update_cursor(txtx, txty);
 }
 
+void puts(const char* s) {
+	for (int i = 0; s[i] != '\0'; i++) {
+		putc(s[i]);
+	}
+}
+
 void putc_at(char c, uint16_t x, uint16_t y) {
 	if (x < 0) x = 0;
 	if (x < 0) x = 0;
@@ -328,12 +317,6 @@ void getsf(char *buffer, int buffer_size, uint16_t x, uint16_t y, char end) {
 
 	// Null-terminate in case buffer fills up
 	buffer[index] = '\0';
-}
-
-void puts(const char* s) {
-	for (int i = 0; s[i] != '\0'; i++) {
-		putc(s[i]);
-	}
 }
 
 void putsn(const char* s, uint32_t n) {
@@ -461,4 +444,21 @@ void put_int_at(int value, int x, int y) {
 	while (--i >= 0) {
 		putc_at(buffer[i], x+i, y);
 	}
+}
+
+
+void PRINT_DWORD(int X) {
+	puts("0x");
+	printh((X >> 24) & 255);
+	printh((X >> 16) & 255);
+	printh((X >> 8) & 255);
+	printh(X & 255);
+	putc('\n');
+}
+
+void PRINT_WORD(int X) {
+	puts("0x");
+	printh((X >> 8) & 255);
+	printh(X & 255);
+	putc('\n');
 }
