@@ -6,7 +6,7 @@
 #include "string.h"
 #define CLUSTSZ 503
 #define MFC 32
-#define MCC 16
+#define MCC 32
 #define EOF -1
 
 char STR_PATH[64*16] = "";
@@ -14,6 +14,7 @@ char STR_PATH[64*16] = "";
 typedef struct
 {
         char Name[16];
+        char padd[2];
         bool Exists;
         bool HasChildren;
         int  FFAT;
