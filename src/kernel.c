@@ -50,7 +50,7 @@ void system(char* _syscmd) {
         if (strncmp(syscmd, "./", 2) == 0) {
                 char* path = strcat(STR_PATH, syscmd+2);
                 while(path[0] == '/')path++;
-                int res = ExecuteF("test.exe",-1);
+                int res = ExecuteF(path,-1);
                 puts("RES: ");
                 PRINT_DWORD(res);
         } else if (strcmp(syscmd, "info") == 0) { 
@@ -151,6 +151,7 @@ void osa86() {
         InitRamFS();
         CreateF("test.txt",-1);
         CreateF("test.exe",-1);
+        CreateF("test2.exe",-1);
         WriteF("test.txt",-1,"Hellorld!\n",11);
 
         FILE fp = fgetf("test.exe",-1);
@@ -161,6 +162,17 @@ void osa86() {
         fputc(0x00,fp);
         fputc(0xC3,fp);
         int res = ExecuteF("test.exe",-1);
+        puts("RES: ");
+        PRINT_DWORD(res);
+
+        fp = fgetf("test2.exe",-1);
+        fputc(0xb8,fp);
+        fputc(0x30,fp);
+        fputc(0x00,fp);
+        fputc(0x00,fp);
+        fputc(0x00,fp);
+        fputc(0xC3,fp);
+        res = ExecuteF("test2.exe",-1);
         puts("RES: ");
         PRINT_DWORD(res);
 /*

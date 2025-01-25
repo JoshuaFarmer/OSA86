@@ -392,6 +392,9 @@ int ftell(FILE fp)
 
 int ExecuteF(const char *filename, int parentidx)
 {
+        puts("Running File: ");
+        puts(filename);
+        putc('\n');
         int idx = Exists(filename, parentidx) - 1;
         if (idx == -1) {
                 return 2;
