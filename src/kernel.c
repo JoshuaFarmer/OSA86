@@ -72,13 +72,13 @@ void system(char* _syscmd) {
 	} else if (strcmp(syscmd, "expr") == 0) {
 		BrainFuck(syscmd1);
 	} else if (strcmp(syscmd, "view") == 0) {
-                FILE fp = fgetf(syscmd1,0);
+                FILE fp = fgetf(syscmd1,-1);
                 fseek(fp,0,SEEK_END);
 		int len = ftell(fp);
 		char* data = malloc(len);
 		char* path = strcat(STR_PATH, syscmd1);
                 
-                ReadF(path,0,data,len);
+                ReadF(path,-1,data,len);
 		putsn((const char*)data, len);
 		free(data);
 		free(path);
@@ -140,6 +140,7 @@ void osa86() {
 	//create("example2.exe", false);
         InitRamFS();
         CreateF("test.txt",-1);
+        WriteF("test.txt",-1,"Hellorld!\n",11);
 /*
 	for (int i = 0; i < 16; ++i) {
 		char num[32];
