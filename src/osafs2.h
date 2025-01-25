@@ -5,9 +5,10 @@
 #include <stdbool.h>
 #include <string.h>
 #define CLUSTSZ 500
-#define MFC 8
+#define MFC 32
+#define MCC 16
+#define EOF -1
 
-// we will start with a RAM_FS and then move to disk FS (32 bytes)
 typedef struct
 {
         char Name[16];
@@ -15,7 +16,7 @@ typedef struct
         bool HasChildren;
         int  FFAT;
         int  ParentIdx;
-        int  Padd;
+        int  Size;
 } FileDescriptor;
 
 typedef struct
@@ -26,7 +27,7 @@ typedef struct
         char Cluster[CLUSTSZ];
 } FAE; // fat allocation entry, part of the FAT.
 
-FAE            FAT0[MFC];
+FAE            FAT0[MCC];
 FileDescriptor FDS0[MFC];
 
 int ffefae()
@@ -130,11 +131,12 @@ void CreateF(const char * name, int parent_idx)
                 return;
         }
 
+        FDS0[parent_idx].HasChildren = true;
         FDS0[fefd].Exists = true;
         FDS0[fefd].ParentIdx=parent_idx;
         FDS0[fefd].FFAT=-1;
         FDS0[fefd].HasChildren=false;
-        FDS0[fefd].Padd=0;
+        FDS0[fefd].Size=0;
         strncpy(FDS0[fefd].Name,name,16);
 }
 
@@ -186,6 +188,7 @@ void Write(const char *name, int parent_idx, const char *data, int data_length)
         }
 
         Empty(idx);
+        FDS0[idx].Size = data_length;
 
         int clusters_needed = (data_length + CLUSTSZ - 1) / CLUSTSZ; // Calculate the number of clusters needed
         const char *data_ptr = data;
@@ -197,7 +200,7 @@ void Write(const char *name, int parent_idx, const char *data, int data_length)
 
                 if (last_cluster == -1)
                 {
-                        return; // Allocation failed
+                        return;
                 }
 
                 int bytcpy = (data_length > CLUSTSZ) ? CLUSTSZ : data_length;
@@ -208,16 +211,147 @@ void Write(const char *name, int parent_idx, const char *data, int data_length)
         }
 }
 
-/*
-void debug()
+typedef int FILE;
+
+FILE fgetf(const char * name, int parent_idx)
 {
-        for (int i = 0; i < MFC; ++i)
+        int f = Exists(name,parent_idx);
+        return f;
+}
+
+int fputc(char c, FILE fp)
+{
+    if (fp <= 0 || fp > MFC)
+        return -1;
+
+    int fileIdx = fp-1;
+    if (!FDS0[fileIdx].Exists)
+        return -1;
+
+    int pos = FDS0[fileIdx].Size;
+    int clusterIdx = FDS0[fileIdx].FFAT;
+    int br = 0;
+
+    while (clusterIdx != -1 && br + CLUSTSZ <= pos)
+    {
+        br += CLUSTSZ;
+        clusterIdx = FAT0[clusterIdx].NextFAEIdx;
+    }
+
+    if (clusterIdx == -1) // Allocate a new cluster if needed
+    {
+        AllocFAE(fileIdx);
+        clusterIdx = FlFAE(fileIdx);
+        if (clusterIdx == -1)
+            return -1;
+    }
+
+    int clusterOffset = pos - br;
+    FAT0[clusterIdx].Cluster[clusterOffset] = c;
+    FDS0[fileIdx].Size++; // Increment the file size
+
+    return 0;
+}
+
+static int pos[MFC] = {0};
+
+enum    SEEK_T
+{
+        SEEK_SET,
+        SEEK_CUR,
+        SEEK_END,
+};
+
+void fseek(FILE fp, int p, int t)
+{
+        if (fp <= 0 || fp > MFC)
+                return;
+        int fileIdx = fp-1;
+        if (!FDS0[fileIdx].Exists || FDS0[fileIdx].FFAT == -1)
+                return;
+        
+        if (t == (int)SEEK_SET)
         {
-                if (FDS0[i].Exists)
-                {
-                        printf("%d, %.16s: %d %c %d; SIZE=500*%d\n",i,FDS0[i].Name,FDS0[i].FFAT,FDS0[i].HasChildren ? 'T' : 'F', FDS0[i].ParentIdx,ClusterCount(i));
-                }
+                pos[fileIdx] = p;
         }
-}*/
+        else if (t == (int)SEEK_CUR)
+        {
+                pos[fileIdx] += p;
+        }
+        else if (t == (int)SEEK_END)
+        {
+                pos[fileIdx]  = FDS0[fileIdx].Size;
+                pos[fileIdx] += p;
+        }
+}
+
+inline void rewind(FILE fp)
+{
+        fseek(fp,0,SEEK_END);
+}
+
+char fgetc(FILE fp)
+{
+        if (fp <= 0 || fp > MFC)
+                return -1;
+
+        int fileIdx = fp-1;
+        if (!FDS0[fileIdx].Exists || FDS0[fileIdx].FFAT == -1)
+                return -1;
+
+        int ci = FDS0[fileIdx].FFAT;
+        int p = pos[fileIdx];
+        if (p>FDS0[fileIdx].Size)
+        {
+                return -1;
+        }
+        int br = 0;
+
+        while (ci != -1 && br + CLUSTSZ <= p)
+        {
+                br += CLUSTSZ;
+                ci = FAT0[ci].NextFAEIdx;
+        }
+
+        if (ci == -1 || p - br >= CLUSTSZ)
+                return -1;
+
+        char ch = FAT0[ci].Cluster[p - br];
+        pos[fileIdx]++;
+
+        return ch;
+}
+
+void DeleteF(const char *name, int parent_idx);
+
+static void DeleteChildren(int parent_idx)
+{
+        if ((FDS0[parent_idx].Exists && FDS0[parent_idx].HasChildren) || parent_idx == -1)
+        {
+                for (int i = 0; i < MFC; ++i)
+                {
+                        if (FDS0[i].Exists && FDS0[i].ParentIdx == parent_idx)
+                        {
+                                DeleteF(FDS0[i].Name, parent_idx);
+                        }
+                }
+
+                if (parent_idx != -1) // root
+                        FDS0[parent_idx].HasChildren = false;
+        }
+}
+
+void DeleteF(const char *name, int parent_idx)
+{
+        int idx = Exists(name, parent_idx) - 1;
+        if (idx == -1)
+        {
+                return;
+        }
+
+        DeleteChildren(idx);
+        Empty(idx);
+        FDS0[idx].Exists = false;
+}
 
 #endif
