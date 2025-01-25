@@ -39,7 +39,7 @@ void send_eoi(uint8_t irq);
 #include "sound.h"
 
 // FILE SYSTEM
-#include "fs.h"
+#include "osafs.h"
 
 // ed
 #include "ed.h"

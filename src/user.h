@@ -1,7 +1,7 @@
 #pragma once
 
 #include "malloc.h"
-#include "fs.h"
+#include "osafs.h"
 
 typedef enum {
 	ROOT_LEVEL,

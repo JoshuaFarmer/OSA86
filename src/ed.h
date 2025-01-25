@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "terminal.h"
-#include "fs.h"
+#include "osafs.h"
 
 typedef struct LChar_s {
 	uint16_t value;
