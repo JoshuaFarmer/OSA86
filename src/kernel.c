@@ -40,10 +40,12 @@ void send_eoi(uint8_t irq);
 #include "program.h"
 //#include "UpsaCPUEmu/cpu.h"
 
-// FUNCTIONS
 void system(char* _syscmd) {
-	char* syscmd  = strtok(_syscmd, " \0");
-	char* syscmd1 = strtok(NULL, " \0");
+	char* syscmd  = strtok(_syscmd, " \"\0");
+	char* ignore = strtok(NULL, "\"\0");
+	char* syscmd1 = strtok(NULL, "\"\0");
+	ignore = strtok(NULL, "\"\0");
+	char* syscmd2 = strtok(NULL, "\"\0");
 
 	if (strncmp(syscmd, "./", 2) == 0) {
 		char* path = strcat(STR_PATH, syscmd+2);
@@ -82,6 +84,13 @@ void system(char* _syscmd) {
 		putsn((const char*)data, len);
 		free(data);
 		free(path);
+	} else if (strcmp(syscmd, "write") == 0) {
+                if (syscmd1 && syscmd2)
+                {
+                        FILE fp = fgetf(syscmd1,-1);
+                        fseek(fp,0,SEEK_SET);
+                        WriteF(syscmd2,-1,syscmd1,strlen(syscmd1));
+                }
 	} else {
 		if (syscmd[1] == ':') {
 			//switch_drive(syscmd[0] - 'A');
