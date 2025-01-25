@@ -378,10 +378,9 @@ void ListF()
                         PRINT_DWORD_NE(FDS0[i].ParentIdx);
                         puts(" SIZE=503*");
                         PRINT_DWORD_NE(ClusterCount(i));
+                        putc('\n');
                 }
         }
-
-        putc('\n');
 }
 
 int ftell(FILE fp)
