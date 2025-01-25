@@ -48,9 +48,9 @@ void system(char* _syscmd) {
 	if (strncmp(syscmd, "./", 2) == 0) {
 		char* path = strcat(STR_PATH, syscmd+2);
 		while(path[0] == '/')path++;
-		//if(exec_file(path) == 0) {
-		//	puts("File \""); puts(path); puts("\" Not Found\n");
-		//}
+		int res = ExecuteF("test.exe",-1);
+                puts("RES: ");
+                PRINT_DWORD(res);
 	} else if (strcmp(syscmd, "info") == 0) { 
 		puts("OSA86 VERSION "); puts(__VER__); puts("\n(C) JOSHUA F. 2024-2025\n");
 	} else if (strcmp(syscmd, "cls") == 0) { 
