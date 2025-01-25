@@ -2,30 +2,35 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-uint16_t inw(uint16_t port) {
+uint16_t inw(uint16_t port)
+{
         uint16_t ret;
         asm volatile("inw %1, %0" : "=a"(ret) : "Nd"(port));
         return ret;
 }
 
-void outw(uint16_t port, uint16_t value) {
+void outw(uint16_t port, uint16_t value)
+{
         asm volatile ("outw %0, %1" : : "a"(value), "Nd"(port));
 }
 
-unsigned char inb(unsigned short port) {
+unsigned char inb(unsigned short port)
+{
         unsigned char ret;
         asm("inb %1, %0" : "=a"(ret) : "Nd"(port));
         return ret;
 }
 
-void outb(unsigned short port, unsigned char value) {
+void outb(unsigned short port, unsigned char value)
+{
         asm("outb %0, %1" : : "a"(value), "Nd"(port));
 }
 
 extern void __ata_lba_read();
 extern void __ata_lba_write();
 
-void ata_lba_read(uint32_t sector, uint8_t sector_count, void* buffer) {
+void ata_lba_read(uint32_t sector, uint8_t sector_count, void* buffer) 
+{
         asm volatile (
                 "movl %0, %%eax\n"
                 "movb %1, %%cl\n"
@@ -38,7 +43,8 @@ void ata_lba_read(uint32_t sector, uint8_t sector_count, void* buffer) {
         __ata_lba_read();
 }
 
-void ata_lba_write(uint32_t sector, uint8_t sector_count, void* buffer) {
+void ata_lba_write(uint32_t sector, uint8_t sector_count, void* buffer)
+{
         asm volatile (
                 "movl %0, %%eax\n"
                 "movb %1, %%cl\n"
@@ -82,13 +88,15 @@ void ata_lba_write(uint32_t sector, uint8_t sector_count, void* buffer) {
 #define ATA_MASTER 0xA0
 #define ATA_SLAVE  0xB0
 
-static void ata_io_wait(uint16_t base) {
+static void ata_io_wait(uint16_t base)
+{
         // Introduce a small delay (400ns) by reading the status port
         for (int i = 0; i < 4; i++)
                 inb(base + ATA_REG_ALT_STATUS);
 }
 
-static int ata_polling(uint16_t base) {
+static int ata_polling(uint16_t base)
+{
         ata_io_wait(base);
 
         while (inb(base + ATA_REG_STATUS) & ATA_STATUS_BSY);
@@ -101,7 +109,8 @@ static int ata_polling(uint16_t base) {
         return 0;
 }
 
-void ata_select_drive(uint16_t base, uint8_t drive) {
+void ata_select_drive(uint16_t base, uint8_t drive)
+{
         outb(base + ATA_REG_DRIVE, drive);
         ata_io_wait(base);
 }

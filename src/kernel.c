@@ -91,6 +91,11 @@ void system(char* _syscmd) {
                         fseek(fp,0,SEEK_SET);
                         WriteF(syscmd2,-1,syscmd1,strlen(syscmd1));
                 }
+        } else if (strcmp(syscmd, "create") == 0) {
+                if (syscmd1)
+                {
+                        CreateF(syscmd1,-1);
+                }
         } else {
                 if (syscmd[1] == ':') {
                         //switch_drive(syscmd[0] - 'A');
