@@ -92,7 +92,8 @@ void system(char* _syscmd) {
 
 void mode(int mod) {
 	int x=0;
-	switch (mod) {
+	switch (mod)
+        {
 		case 0x00:
 			write_regs(g_320x200x256);
 			break;
@@ -140,7 +141,19 @@ void osa86() {
 	//create("example2.exe", false);
         InitRamFS();
         CreateF("test.txt",-1);
+        CreateF("test.exe",-1);
         WriteF("test.txt",-1,"Hellorld!\n",11);
+
+        FILE fp = fgetf("test.exe",-1);
+        fputc(0xb8,fp);
+        fputc(0x20,fp);
+        fputc(0x00,fp);
+        fputc(0x00,fp);
+        fputc(0x00,fp);
+        fputc(0xC3,fp);
+        int res = ExecuteF("test.exe",-1);
+        puts("RES: ");
+        PRINT_DWORD(res);
 /*
 	for (int i = 0; i < 16; ++i) {
 		char num[32];

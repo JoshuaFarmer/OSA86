@@ -256,8 +256,7 @@ int fputc(char c, FILE fp)
 
     int clusterOffset = pos - br;
     FAT0[clusterIdx].Cluster[clusterOffset] = c;
-    FDS0[fileIdx].Size++; // Increment the file size
-
+    FDS0[fileIdx].Size++;
     return 0;
 }
 
@@ -390,6 +389,31 @@ int ftell(FILE fp)
         if (fp <= 0 || fp > MFC)
                 return 0;
         return pos[fp-1];
+}
+
+int ExecuteF(const char *filename, int parentidx)
+{
+        int idx = Exists(filename, parentidx) - 1;
+        if (idx == -1) {
+                return 2;
+        }
+
+        int file_size = FDS0[idx].Size;
+        if (file_size <= 0) {
+                return 0;
+        }
+
+        char *buffer = malloc(file_size);
+        if (!buffer) {
+                return -1;
+        }
+
+        ReadF(filename, parentidx, buffer, file_size);
+
+        int (*func_ptr)() = (int (*)())buffer;
+        int res = func_ptr();
+        free(buffer);
+        return res;
 }
 
 #endif
