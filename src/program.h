@@ -1,5 +1,5 @@
 #pragma once
-#include "UpsaCPUEmu/cpu.h"
+//#include "UpsaCPUEmu/cpu.h"
 
 #define MEMORY_SIZE 4096
 #define isdigit(c) (c >= '0' && c <= '9')
@@ -89,7 +89,7 @@ void BrainFuck(const char *code) {
 }
 
 // for more complex programs, use an UPSA emulator (Custom CPU)
-
+/*
 #define MIN_SUPPORTED_VERSION 0x00
 #define MAX_SUPPORTED_VERSION 0x01
 
@@ -148,3 +148,4 @@ void remove_program(Program_t* prog) {
 
 	free(prog);
 }
+*/

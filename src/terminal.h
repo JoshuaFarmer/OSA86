@@ -446,7 +446,6 @@ void put_int_at(int value, int x, int y) {
 	}
 }
 
-
 void PRINT_DWORD(int X) {
 	puts("0x");
 	printh((X >> 24) & 255);
@@ -454,6 +453,14 @@ void PRINT_DWORD(int X) {
 	printh((X >> 8) & 255);
 	printh(X & 255);
 	putc('\n');
+}
+
+void PRINT_DWORD_NE(int X) {
+	puts("0x");
+	printh((X >> 24) & 255);
+	printh((X >> 16) & 255);
+	printh((X >> 8) & 255);
+	printh(X & 255);
 }
 
 void PRINT_WORD(int X) {

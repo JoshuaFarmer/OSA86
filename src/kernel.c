@@ -11,11 +11,11 @@
 #define sti() asm ("sti")
 #define __VER__ "0.17"
 
-// SYSTEM FUNCTIONS
+uint8_t Drive_Letter = 'A';
+
 void osa86();
 void clearScreen(uint8_t c);
 
-// CODE
 void init() {
 	osa86();
 }
@@ -31,13 +31,14 @@ void send_eoi(uint8_t irq);
 #include "malloc.h"
 #include "pit.h"
 #include "sound.h"
-#include "osafs.h"
+//#include "osafs.h"
 #include "osafs2.h"
-#include "ed.h"
+//#include "ed.h"
 #include "video.h"
 #include "user.h"
 #include "gui.h"
-#include "UpsaCPUEmu/cpu.h"
+#include "program.h"
+//#include "UpsaCPUEmu/cpu.h"
 
 // FUNCTIONS
 void system(char* _syscmd) {
@@ -47,41 +48,43 @@ void system(char* _syscmd) {
 	if (strncmp(syscmd, "./", 2) == 0) {
 		char* path = strcat(STR_PATH, syscmd+2);
 		while(path[0] == '/')path++;
-		if(exec_file(path) == 0) {
-			puts("File \""); puts(path); puts("\" Not Found\n");
-		}
+		//if(exec_file(path) == 0) {
+		//	puts("File \""); puts(path); puts("\" Not Found\n");
+		//}
 	} else if (strcmp(syscmd, "info") == 0) { 
 		puts("OSA86 VERSION "); puts(__VER__); puts("\n(C) JOSHUA F. 2024-2025\n");
 	} else if (strcmp(syscmd, "cls") == 0) { 
 		clearScreen(termCol);
 	} else if (strcmp(syscmd, "ed") == 0) {
-		int EdError = ed();
-		puts("EdExitCode : ");
-		printh(EdError);
+		//int EdError = ed();
+		//puts("EdExitCode : ");
+		//printh(EdError);
 		putc('\n');
 	} else if (strcmp(syscmd, "ls") == 0) {
-		fs_list(super_block);
+		//fs_list(super_block);
+                ListF();
 	} else if (strcmp(syscmd, "cd") == 0) {
 		char* path = strcat(STR_PATH, syscmd1);
-		change_active_dir(syscmd1);
+		//change_active_dir(syscmd1);
 		free(path);
 	} else if (strcmp(syscmd, "shutdown") == 0) {
 		active = false;
 	} else if (strcmp(syscmd, "expr") == 0) {
 		BrainFuck(syscmd1);
 	} else if (strcmp(syscmd, "view") == 0) {
-		int len = file_length(syscmd1);
+                FILE fp = fgetf(syscmd1,0);
+                fseek(fp,0,SEEK_END);
+		int len = ftell(fp);
 		char* data = malloc(len);
 		char* path = strcat(STR_PATH, syscmd1);
-
-		read_file(path, data, len);
+                
+                ReadF(path,0,data,len);
 		putsn((const char*)data, len);
 		free(data);
-
 		free(path);
 	} else {
 		if (syscmd[1] == ':') {
-			switch_drive(syscmd[0] - 'A');
+			//switch_drive(syscmd[0] - 'A');
 		}
 		else if (syscmd[0]) { puts(syscmd); puts(", What?\n"); }
 	}
@@ -128,15 +131,16 @@ void osa86() {
 	mode(0x01);
 	system("info");
 
-	super_block = malloc(sizeof(Super_Block_t));
-	initialize_super_block(super_block);
-
-	create("link.lnk", false);
-	create("ExampleDir", true);
-	create("ExampleDir/hello.txt", false);
-	create("example.prg", false);
-	create("example2.exe", false);
-
+	//super_block = malloc(sizeof(Super_Block_t));
+	//initialize_super_block(super_block);
+	//create("link.lnk", false);
+	//create("ExampleDir", true);
+	//create("ExampleDir/hello.txt", false);
+	//create("example.prg", false);
+	//create("example2.exe", false);
+        InitRamFS();
+        CreateF("test.txt",-1);
+/*
 	for (int i = 0; i < 16; ++i) {
 		char num[32];
 		itoa(i, num, 16);
@@ -166,36 +170,27 @@ void osa86() {
 		free(str);
 		free(text);
 	}
-
+*/
 	//write_file_system();
 
 	char* kbbuff = malloc(128);
 
 	uint32_t remainingSpace = remaining_heap_space();
 	puts("Heap Size Is "); PRINT_DWORD(remainingSpace);
-	puts("File Entry Size "); PRINT_WORD(sizeof(FileEntry_t));
+	puts("File Descriptor Size "); PRINT_WORD(sizeof(FileDescriptor));
 	
 	// OS MAINLOOP
 	while (active) {
-		if (root.nxt != NULL && root.nxt->cpu != NULL && root.nxt->cpu->HLT != true) {
-			execute_next(root.nxt->cpu);
-		} else if (root.nxt != NULL && root.nxt->cpu != NULL) {
-			PRINT_DWORD(root.nxt->cpu->A);
-			remove_program(root.nxt);
-		}
-		
-		else {
-			putc(Drive_Letter);
-			putc(':');
-			puts(STR_PATH);
-			puts("> ");
+                putc(Drive_Letter);
+                putc(':');
+                puts(STR_PATH);
+                puts("> ");
 
-			gets(kbbuff, 128);
-			system(kbbuff);
-		}
+                gets(kbbuff, 128);
+                system(kbbuff);
 	}
 
-	write_file_system();
+	//write_file_system();
 	free(kbbuff);
 	clearScreen(termCol);
 	mode(0x2);

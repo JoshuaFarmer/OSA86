@@ -1,7 +1,7 @@
 #pragma once
 
 #include "malloc.h"
-#include "osafs.h"
+//#include "osafs.h"
 
 typedef enum {
 	ROOT_LEVEL,
@@ -31,12 +31,12 @@ void create_user(const char name[], PermLevel perms) {
 	x.perms = perms;
 	strcpy((char*)x.name, name);
 
-	if (create(nam, true)) {
-		create(hom, false);
-		char* data = create_info(&x);
-		write_file(hom, (const uint8_t*)data, strlen(data));
-		free(data);
-	}
+	//if (create(nam, true)) {
+	//	create(hom, false);
+	//	char* data = create_info(&x);
+	//	//write_file(hom, (const uint8_t*)data, strlen(data));
+	//	free(data);
+	//}
 
 	free(nam);
 	free(hom);

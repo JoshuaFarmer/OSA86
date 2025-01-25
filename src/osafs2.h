@@ -4,10 +4,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "string.h"
-#define CLUSTSZ 500
+#define CLUSTSZ 503
 #define MFC 32
 #define MCC 16
 #define EOF -1
+
+char STR_PATH[64*16] = "";
 
 typedef struct
 {
@@ -27,8 +29,14 @@ typedef struct
         char Cluster[CLUSTSZ];
 } FAE; // fat allocation entry, part of the FAT.
 
-FAE            FAT0[MCC];
-FileDescriptor FDS0[MFC];
+FAE            * FAT0=(FAE*)0x1000;
+FileDescriptor * FDS0=(FileDescriptor*)(0x1000+(sizeof(FAE)*MCC));
+
+void InitRamFS()
+{
+        memset(FAT0,0,sizeof(FAE)*MCC);
+        memset(FDS0,0,sizeof(FileDescriptor)*MFC);
+}
 
 int ffefae()
 {
@@ -153,7 +161,7 @@ int ClusterCount(int fileIDX)
         return c;
 }
 
-void Read(const char *name, int parent_idx, char *buff, int len)
+void ReadF(const char *name, int parent_idx, char *buff, int len)
 {
         int idx = Exists(name, parent_idx) - 1;
         if (idx == -1 || len <= 0)
@@ -179,7 +187,7 @@ void Read(const char *name, int parent_idx, char *buff, int len)
         }
 }
 
-void Write(const char *name, int parent_idx, const char *data, int data_length)
+void WriteF(const char *name, int parent_idx, const char *data, int data_length)
 {
         int idx = Exists(name, parent_idx) - 1;
         if (idx == -1 || data_length <= 0)
@@ -322,7 +330,7 @@ char fgetc(FILE fp)
         return ch;
 }
 
-void DeleteF(const char *name, int parent_idx);
+void DeleteF(const char * name, int parent_idx);
 
 static void DeleteChildren(int parent_idx)
 {
@@ -352,6 +360,36 @@ void DeleteF(const char *name, int parent_idx)
         DeleteChildren(idx);
         Empty(idx);
         FDS0[idx].Exists = false;
+}
+
+void ListF()
+{
+        for (int i = 0; i < MFC; ++i)
+        {
+                if (FDS0[i].Exists)
+                {
+                        PRINT_DWORD_NE(i);
+                        puts(", ");
+                        putsn(FDS0[i].Name,16);
+                        puts(" : ");
+                        PRINT_DWORD_NE(FDS0[i].FFAT);
+                        putc(' ');
+                        putc(FDS0[i].HasChildren ? 'T' : 'F');
+                        putc(' ');
+                        PRINT_DWORD_NE(FDS0[i].ParentIdx);
+                        puts(" SIZE=503*");
+                        PRINT_DWORD_NE(ClusterCount(i));
+                }
+        }
+
+        putc('\n');
+}
+
+int ftell(FILE fp)
+{
+        if (fp <= 0 || fp > MFC)
+                return 0;
+        return pos[fp-1];
 }
 
 #endif

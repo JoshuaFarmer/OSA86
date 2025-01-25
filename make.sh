@@ -6,13 +6,13 @@ nasm src/boot.asm -o bin/raw/boot.bin
 # Compile kernel.c
 cd src
 clang -m32 -c -ffreestanding kernel.c -o ../bin/raw/kernel.o -Wall -Wextra
-clang -m32 -c -ffreestanding UpsaCPUEmu/main.c -o ../bin/raw/upsa.o -Wall -Wextra
+#clang -m32 -c -ffreestanding UpsaCPUEmu/main.c -o ../bin/raw/upsa.o -Wall -Wextra
 nasm -felf32 "int.s" -o "../bin/raw/int.o"
 nasm -felf32 "disk.s" -o "../bin/raw/disk.o"
 cd ..
 
 # Link kernel object file
-ld -m elf_i386 -T linker.ld bin/raw/kernel.o bin/raw/int.o bin/raw/disk.o bin/raw/upsa.o -o bin/raw/kernel.elf -Os
+ld -m elf_i386 -T linker.ld -o bin/raw/kernel.elf -Os bin/raw/kernel.o bin/raw/int.o bin/raw/disk.o #bin/raw/upsa.o
 
 # Convert ELF to binary
 llvm-objcopy -O binary bin/raw/kernel.elf bin/raw/kernel.bin
