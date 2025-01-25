@@ -25,26 +25,15 @@ void send_eoi(uint8_t irq);
 #include "io.h"
 #include "string.h"
 #include "terminal.h"
-
-// PIC, GDT & IDT
 #include "pic.h"
 #include "idt.h"
 #include "gdt.h"
-
-// STRING, TERMINAL & STRING
 #include "malloc.h"
-
-// PIT & SOUND
 #include "pit.h"
 #include "sound.h"
-
-// FILE SYSTEM
 #include "osafs.h"
-
-// ed
+#include "osafs2.h"
 #include "ed.h"
-
-// MISC
 #include "video.h"
 #include "user.h"
 #include "gui.h"

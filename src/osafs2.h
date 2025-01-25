@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
+#include "string.h"
 #define CLUSTSZ 500
 #define MFC 32
 #define MCC 16
