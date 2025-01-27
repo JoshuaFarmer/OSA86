@@ -249,23 +249,23 @@ void gets(char *buffer, int buffer_size) {
         int index = 0;
         char c;
 
-        while (index < buffer_size - 1) { // Ensure space for null-terminator
+        while (index < buffer_size - 1) {
                 c = getch();
 
-                if (c == '\n') { // Check for Enter key
-                        buffer[index] = '\0'; // Null-terminate the string
+                if (c == '\n') {
+                        buffer[index] = '\0';
                         putc('\n');
                         return;
-                } else if (c == '\b') { // Check for backspace
-                        if (index > 0) { // Ensure there are characters to delete
+                } else if (c == '\b') {
+                        if (index > 0) {
                                 index--;
-                                putc('\b'); // Move cursor back
-                                putc(' '); // Erase character
-                                putc('\b'); // Move cursor back again
+                                putc('\b');
+                                putc(' ');
+                                putc('\b');
                         }
-                } else if (c >= ' ' && c <= '~') { // Check if printable ASCII character
-                        buffer[index++] = c; // Store printable character in buffer
-                        putc(c); // Echo the character to the screen
+                } else if (c >= ' ' && c <= '~') {
+                        buffer[index++] = c;
+                        putc(c);
                 }
         }
 
@@ -324,7 +324,7 @@ void puts_at(const char* s, uint16_t x, uint16_t y) {
         }
 }
 
-void printh(uint8_t a) {
+void PrintByte(uint8_t a) {
         char c = hchar(a>>4);
         putc(c);
         c = hchar(a&15);
@@ -429,10 +429,10 @@ void put_int_at(int value, int x, int y) {
 
 void PRINT_DWORD_NE(int X) {
         puts("0x");
-        printh((X >> 24) & 255);
-        printh((X >> 16) & 255);
-        printh((X >> 8) & 255);
-        printh(X & 255);
+        PrintByte((X >> 24) & 255);
+        PrintByte((X >> 16) & 255);
+        PrintByte((X >> 8) & 255);
+        PrintByte(X & 255);
 }
 
 void PRINT_DWORD(int X) {
@@ -442,8 +442,8 @@ void PRINT_DWORD(int X) {
 
 void PRINT_WORD(int X) {
         puts("0x");
-        printh((X >> 8) & 255);
-        printh(X & 255);
+        PrintByte((X >> 8) & 255);
+        PrintByte(X & 255);
         putc('\n');
 }
 

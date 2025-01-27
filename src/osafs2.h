@@ -19,7 +19,7 @@ typedef struct
 {
         char Name[16];
         char padd[2];
-        bool _Exists;
+        bool Exists;
         bool HasChildren;
         int  FFAT;
         int  ParentIdx;
@@ -60,7 +60,7 @@ int ffefd() // find first _Empty file desc
 {
         for (int i = 0; i < MFC; ++i)
         {
-                if (FDS0[i]._Exists == false)
+                if (FDS0[i].Exists == false)
                 {
                         return i;
                 }
@@ -170,7 +170,7 @@ void _CreateF(const char * name, int parent_idx)
         }
 
         FDS0[parent_idx].HasChildren = true;
-        FDS0[fefd]._Exists = true;
+        FDS0[fefd].Exists = true;
         FDS0[fefd].ParentIdx=parent_idx;
         FDS0[fefd].FFAT=-1;
         FDS0[fefd].HasChildren=false;
@@ -261,7 +261,7 @@ int fputc(char c, FILE * fp)
         return -1;
 
     int fileIdx = *fp-1;
-    if (!FDS0[fileIdx]._Exists)
+    if (!FDS0[fileIdx].Exists)
         return -1;
 
     int pos = FDS0[fileIdx].Size;
@@ -302,7 +302,7 @@ void fseek(FILE fp, int p, int t)
         if (fp <= 0 || fp > MFC)
                 return;
         int fileIdx = fp-1;
-        if (!FDS0[fileIdx]._Exists || FDS0[fileIdx].FFAT == -1)
+        if (!FDS0[fileIdx].Exists || FDS0[fileIdx].FFAT == -1)
                 return;
         
         if (t == (int)SEEK_SET)
@@ -331,7 +331,7 @@ char fgetc(FILE fp)
                 return -1;
 
         int fileIdx = fp-1;
-        if (!FDS0[fileIdx]._Exists || FDS0[fileIdx].FFAT == -1)
+        if (!FDS0[fileIdx].Exists || FDS0[fileIdx].FFAT == -1)
                 return -1;
 
         int ci = FDS0[fileIdx].FFAT;
@@ -361,11 +361,11 @@ void _DeleteF(const char * name, int parent_idx);
 
 static void _DeleteChildren(int parent_idx)
 {
-        if ((FDS0[parent_idx]._Exists && FDS0[parent_idx].HasChildren) || parent_idx == -1)
+        if ((FDS0[parent_idx].Exists && FDS0[parent_idx].HasChildren) || parent_idx == -1)
         {
                 for (int i = 0; i < MFC; ++i)
                 {
-                        if (FDS0[i]._Exists && FDS0[i].ParentIdx == parent_idx)
+                        if (FDS0[i].Exists && FDS0[i].ParentIdx == parent_idx)
                         {
                                 _DeleteF(FDS0[i].Name, parent_idx);
                         }
@@ -386,14 +386,14 @@ void _DeleteF(const char *name, int parent_idx)
 
         _DeleteChildren(idx);
         _Empty(idx);
-        FDS0[idx]._Exists = false;
+        FDS0[idx].Exists = false;
 }
 
 void ListF()
 {
         for (int i = 0; i < MFC; ++i)
         {
-                if (FDS0[i]._Exists && FDS0[i].ParentIdx == current_path_idx)
+                if (FDS0[i].Exists && FDS0[i].ParentIdx == current_path_idx)
                 {
                         putsn(FDS0[i].Name,16);
                         FDS0[i].HasChildren ? putc('/') : 0;
@@ -441,6 +441,11 @@ void CreateF(const char * name)
         _CreateF(name,current_path_idx);
 }
 
+void DeleteF(const char * name)
+{
+        _DeleteF(name,current_path_idx);
+}
+
 void WriteF(const char * name, void * data, int size)
 {
         _WriteF(name,current_path_idx,data,size);
@@ -454,6 +459,11 @@ void ReadF(const char * name, void * data, int size)
 int ExecuteF(const char * name)
 {
         return _ExecuteF(name,current_path_idx);
+}
+
+int Exists(const char * name)
+{
+        return _Exists(name,current_path_idx);
 }
 
 const char * ActiveDir()

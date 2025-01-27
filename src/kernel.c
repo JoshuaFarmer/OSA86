@@ -37,6 +37,85 @@ void send_eoi(uint8_t irq);
 #include "gui.h"
 #include "program.h"
 
+void mlmon(char * filename)
+{
+        if (Exists(filename)==0)
+        {
+                CreateF(filename);
+        }
+
+        uint8_t mem[8192];
+        ReadF(filename,mem,8192);
+        char input = 0;
+        int x=0;
+        int y=0;
+        char buff[3];
+        int page=0;
+        while (input != 'q')
+        {
+                int pos=x+(y*16);
+                clearScreen(0x1F);
+                printf("Page: "); PrintByte(page); putc('\n');
+                for (int i = 1; i <= 256; ++i)
+                {
+                        PrintByte(mem[(i-1)+(256*page)]); putc(' ');
+                        if ((i % 16) == 0)
+                        {
+                                putc('\n');
+                        }
+                }
+                update_cursor(x*3,y+1);
+                switch (input)
+                {
+                        case 'H':
+                                if (page)
+                                        --page;
+                                break;
+                        case 'L':
+                                if (page < 31)
+                                        ++page;
+                                break;
+                        case 'h':
+                                if (x)
+                                        --x;
+                                break;
+                        case 'l':
+                                if (x < 15)
+                                        ++x;
+                                break;
+                        case 'j':
+                                if (y < 15)
+                                        ++y;
+                                break;
+                        case 'k':
+                                if (y)
+                                        --y;
+                                break;
+                        case '\n':
+                                getsf(buff,3,x*3,y+1,'\n');
+                                mem[pos+(256*page)]=strhex(buff);
+                                if (x < 15)
+                                        ++x;
+                                else if (y < 15)
+                                {
+                                        ++y;
+                                        x=0;
+                                }
+                                else
+                                {
+                                        y=0;
+                                        x=0;
+                                        ++page;
+                                }
+                                break;
+                }
+                update_cursor(x*3,y+1);
+                input = getch();
+        }
+        clearScreen(0x2);
+        WriteF(filename,mem,sizeof(mem));
+}
+
 void system(char* _syscmd) {
         char* syscmd  = strtok(_syscmd, " \0");
         char* syscmd1 = strtok(NULL, ";\0");
@@ -87,6 +166,16 @@ void system(char* _syscmd) {
                 if (syscmd1)
                 {
                         CreateF(syscmd1);
+                }
+        } else if (strcmp(syscmd, "rm") == 0) {
+                if (syscmd1)
+                {
+                        DeleteF(syscmd1);
+                }
+        } else if (strcmp(syscmd, "mlmon") == 0) {
+                if (syscmd1)
+                {
+                        mlmon(syscmd1);
                 }
         } else {
                 if (syscmd[1] == ':') {
