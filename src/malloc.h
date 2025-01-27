@@ -5,7 +5,7 @@
 
 typedef uint32_t size_t;
 
-#define HEAP_CAP (2048 * 2048) // 2MiB heap capacity
+#define HEAP_CAP (2048 * 2048)
 
 typedef struct Block {
         uint32_t size;         // Size of the block
