@@ -136,15 +136,16 @@ void mode(int mod) {
 
 void osa86() {
         cli();
+        clearScreen(termCol);
+        mode(0x01);
 
         init_heap();
         init_gdt();
-        init_idt();
+        putc('\n');
+        //init_idt();
 
         pit_init(100);
 
-        clearScreen(termCol);
-        mode(0x01);
         system("info");
 
         //super_block = malloc(sizeof(Super_Block_t));

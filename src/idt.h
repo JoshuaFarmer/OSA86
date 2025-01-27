@@ -1,4 +1,5 @@
 #pragma once
+/*
 #include <stdint.h>
 #include <stdbool.h>
 #include "malloc.h"
@@ -9,29 +10,32 @@ extern void save_context();
 extern void restore_context();
 extern void timer_isr();
 
-/*
-        for instance
+void Int80(int code, int opa, int opb)
+{
+        __asm__ __volatile__
+        (
+                "movl %0, %%eax;"
+                "movl %1, %%ebx;"
+                "movl %2, %%ecx;"
+                "int $0x80;"  // Use $0x80 for the interrupt vector
+                :
+                : "r"(code), "r"(opa), "r"(opb)
+                : "%eax", "%ebx", "%ecx"
+        );
+}
 
-        _start:
-                mov  eax, 0x10 ; command
-                push eax
-                mov  eax, 0x00 ; exit code
-                push eax
-                int 0x80
-                cli                                ; never
-                hlt
-*/
 void OSASyscallHandler() {
         int code = 0, opa = 0, opb = 0;
         __asm__ __volatile__ (
-                "movl 12(%%esp), %0;"   // Get opb (3rd pushed value)
-                "movl 8(%%esp), %1;"        // Get opa (2nd pushed value)
-                "movl 4(%%esp), %2;"        // Get code (1st pushed value)
-                : "=r"(opb), "=r"(opa), "=r"(code) // output operands
+                "movl %%eax, %0;"
+                "movl %%ebx, %1;"
+                "movl %%ecx, %2;"
+                : "=r"(opb), "=r"(opa), "=r"(code)
         );
-        // Use code, opa, opb as needed here
+        __asm__ __volatile__ (
+                "iret;"
+        );
 }
-
 
 #define MAX_TASKS 10
 int current_task = 0;
@@ -98,7 +102,7 @@ void init_idt() {
         init_pic();
         cli();
 
-        struct idt_entry* idt = malloc(sizeof(struct idt_entry) * IDT_ENTRIES);
+        struct idt_entry idt[256];
 
         // Set default handler for all interrupts
         for (int i = 0; i < IDT_ENTRIES; i++) {
@@ -113,5 +117,4 @@ void init_idt() {
 #ifdef VERBOSE
         puts("IDT loaded\n");
 #endif
-        free(idt);
-}
+}*/
