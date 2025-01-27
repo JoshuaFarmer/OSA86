@@ -5,11 +5,9 @@
 #include <stdbool.h>
 #include "string.h"
 #define CLUSTSZ 503
-#define MFC 32
-#define MCC 32
+#define MFC 512
+#define MCC 512
 #define EOF -1
-
-char STR_PATH[64*16] = "";
 
 int current_path_idx = -1;
 
@@ -34,11 +32,15 @@ typedef struct
         char Cluster[CLUSTSZ];
 } FAE; // fat allocation entry, part of the FAT.
 
-FAE            * FAT0=(FAE*)0x1000;
-FileDescriptor * FDS0=(FileDescriptor*)(0x1000+(sizeof(FAE)*MCC));
+FAE            * FAT0=NULL;
+FileDescriptor * FDS0=NULL;
 
 void InitRamFS()
 {
+        if (FAT0) {free(FAT0);}
+        if (FDS0) {free(FDS0);}
+        FAT0=malloc(sizeof(FAE)*MCC);
+        FDS0=malloc(sizeof(FileDescriptor)*MFC);
         memset(FAT0,0,sizeof(FAE)*MCC);
         memset(FDS0,0,sizeof(FileDescriptor)*MFC);
 }

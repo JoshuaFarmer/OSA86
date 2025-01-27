@@ -128,7 +128,7 @@ void system(char* _syscmd) {
 
         static int r=0;
         if (strncmp(syscmd, "./", 2) == 0) {
-                char* path = strcat(STR_PATH, syscmd+2);
+                char* path = syscmd+2;
                 while(path[0] == '/')path++;
                 int res = ExecuteF(path);
                 r=res;
@@ -155,12 +155,11 @@ void system(char* _syscmd) {
                 fseek(fp,0,SEEK_END);
                 int len = ftell(fp);
                 char* data = malloc(len);
-                char* path = strcat(STR_PATH, syscmd1);
+                char* path = syscmd1;
                 
                 ReadF(path,data,len);
                 putsn((const char*)data, len);
                 free(data);
-                free(path);
                 data=path=NULL;
         } else if (strcmp(syscmd, "write") == 0) {
                 if (syscmd1 && syscmd2)
