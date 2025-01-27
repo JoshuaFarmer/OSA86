@@ -24,6 +24,7 @@ void init_heap() {
         initial_block->size = HEAP_CAP - sizeof(Block_t); // Remaining heap after Block metadata
         initial_block->free = true;
         heap->next_free = 0;
+        printf("Heap Initialized\n");
 }
 
 void* malloc(size_t size) {

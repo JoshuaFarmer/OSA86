@@ -27,9 +27,8 @@ static void shutup() {
         outb(0x61, tmp);
 }
 
-//Make a beep
-void beep() {
-        playSound(1000);
-        pit_delay(100);
+void Beep(int Freq) {
+        playSound(Freq);
+        delay(100);
         shutup();
 }

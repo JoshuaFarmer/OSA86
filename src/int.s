@@ -6,19 +6,19 @@ global timer_isr
 
 extern puts
 extern PRINT_DWORD
-;extern OSASyscallHandler
+extern OSASyscallHandler
 extern timer_interrupt_handler
 extern schedule_next_task
 
 default_exception_handler:
 	cli
 	iret
-;OSASyscall:
-;	cli
-;	pusha
-;	call OSASyscallHandler
-;	popa
-;	iret
+OSASyscall:
+	cli
+	pusha
+	call OSASyscallHandler
+	popa
+	iret
 
 ;timer_isr:
 ;	cli					; Disable interrupts

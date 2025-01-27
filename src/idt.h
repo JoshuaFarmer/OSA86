@@ -1,14 +1,11 @@
 #pragma once
-/*
+
 #include <stdint.h>
 #include <stdbool.h>
 #include "malloc.h"
 
-extern void default_exception_handler();
-extern void OSASyscall();
-extern void save_context();
-extern void restore_context();
-extern void timer_isr();
+extern void default_exception_handler(void);
+extern void OSASyscall(void);
 
 void Int80(int code, int opa, int opb)
 {
@@ -99,22 +96,19 @@ void load_idt(struct idt_entry* idt) {
 }
 
 void init_idt() {
-        init_pic();
         cli();
 
         struct idt_entry idt[256];
 
-        // Set default handler for all interrupts
         for (int i = 0; i < IDT_ENTRIES; i++) {
                 set_idt_entry(i, (uint32_t)default_exception_handler, idt);
         }
 
         set_idt_entry(0x80, (uint32_t)OSASyscall, idt);
-        set_idt_entry(0x20, (uint32_t)timer_isr, idt);
 
         // Load the IDT
         load_idt(idt);
 #ifdef VERBOSE
-        puts("IDT loaded\n");
+        puts("IDT Initialized\n");
 #endif
-}*/
+}

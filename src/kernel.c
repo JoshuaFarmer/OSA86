@@ -31,14 +31,11 @@ void send_eoi(uint8_t irq);
 #include "malloc.h"
 #include "pit.h"
 #include "sound.h"
-//#include "osafs.h"
 #include "osafs2.h"
-//#include "ed.h"
 #include "video.h"
 #include "user.h"
 #include "gui.h"
 #include "program.h"
-//#include "UpsaCPUEmu/cpu.h"
 
 void system(char* _syscmd) {
         char* syscmd  = strtok(_syscmd, " \0");
@@ -58,13 +55,7 @@ void system(char* _syscmd) {
         } else if (strcmp(syscmd, "?") == 0) { 
                 put_int(r);
                 putc('\n');
-        } else if (strcmp(syscmd, "ed") == 0) {
-                //int EdError = ed();
-                //puts("EdExitCode : ");
-                //printh(EdError);
-                putc('\n');
         } else if (strcmp(syscmd, "ls") == 0) {
-                //fs_list(super_block);
                 ListF();
         } else if (strcmp(syscmd, "cd") == 0) {
                 if (syscmd1)
@@ -138,15 +129,17 @@ void osa86() {
         cli();
         clearScreen(termCol);
         mode(0x01);
+        system("info");
 
+        putc('\n');
         init_heap();
         init_gdt();
+        init_pit(100);
+        init_pic();
+        init_idt();
         putc('\n');
-        //init_idt();
 
-        pit_init(100);
-
-        system("info");
+        Beep(1000);
 
         //super_block = malloc(sizeof(Super_Block_t));
         //initialize_super_block(super_block);
@@ -204,17 +197,12 @@ void osa86() {
         char* kbbuff = malloc(128);
 
         uint32_t remainingSpace = remaining_heap_space();
-        puts("Heap Size Is "); PRINT_DWORD(remainingSpace);
-        puts("File Descriptor Size "); PRINT_WORD(sizeof(FileDescriptor));
+        printf("Heap Size Is %d\n",remainingSpace);
+        printf("File Descriptor Size Is %d\n",sizeof(FileDescriptor));
         
-        // OS MAINLOOP
-        while (active) {
-                putc(Drive_Letter);
-                putc(':');
-                puts(ActiveDir());
-                puts(STR_PATH);
-                puts("> ");
-
+        while (active)
+        {
+                printf("%c: %s/%s> ", Drive_Letter, ActiveDirParen(), ActiveDir());
                 gets(kbbuff, 128);
                 system(kbbuff);
         }

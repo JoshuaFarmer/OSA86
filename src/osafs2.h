@@ -458,12 +458,20 @@ int ExecuteF(const char * name)
 
 const char * ActiveDir()
 {
-        static const char * root = "/";
         if (current_path_idx == -1)
         {
-                return root;
+                return "\0";
         }
         return FDS0[current_path_idx].Name;
+}
+
+const char * ActiveDirParen()
+{
+        if (current_path_idx == -1)
+        {
+                return "\0";
+        }
+        return FDS0[FDS0[current_path_idx].ParentIdx].Name;
 }
 
 #endif
