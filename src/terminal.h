@@ -278,44 +278,33 @@ void getsf(char *buffer, int buffer_size, uint16_t x, uint16_t y, char end) {
         int index = 0;
         char c;
 
-        while (index < buffer_size - 1) {  // Ensure space for null-terminator
-                c = getch();  // Get user input
+        while (index < buffer_size - 1) {
+                c = getch();
 
-                if (c == end) {  // Check for end key (e.g., ESC)
-                        buffer[index] = '\0';  // Null-terminate the string
+                if (c == end) { 
+                        buffer[index] = '\0';
                         return;
-                } else if (c == '\b') {  // Handle backspace
-                        if (index > 0) {  // Ensure there are characters to delete
-                                index--;
-
-                                putc_at(' ', --x, y);  // Move cursor back
-                        }
-                } else if (c >= ' ' && c <= '~') {  // Printable characters
-                        buffer[index++] = c;  // Store character in buffer
-
-                        putc_at(c, x, y);  // Echo character on screen
-
-                        // Move cursor right, wrapping to the next line if necessary
+                } else if (c == '\b' && index > 0) {
+                        index--;
+                        putc_at(' ', --x, y);
+                } else if (c >= ' ' && c <= '~') {
+                        buffer[index++] = c;
+                        putc_at(c, x, y);
                         if (++x >= TTY_WIDTH) {
                                 x = 0;
                                 y++;
                         }
-                } else if (c == '\n') {  // Handle newlines
-                        // Store newline in buffer (optional based on your needs)
+                } else if (c == '\n') {
                         buffer[index++] = c;
-                        
-                        // Move cursor to start of the next line
                         x = 0;
                         y++;
                 }
 
-                // Handle line overflow: wrap text on the screen if y exceeds screen height
                 if (y >= TTY_HEIGHT) {
-                        y = TTY_HEIGHT - 1;  // Keep y within bounds
+                        y = TTY_HEIGHT - 1;
                 }
         }
 
-        // Null-terminate in case buffer fills up
         buffer[index] = '\0';
 }
 
@@ -336,7 +325,7 @@ void puts_at(const char* s, uint16_t x, uint16_t y) {
 }
 
 void printh(uint8_t a) {
-        char c = hchar(a>>4);        // get higher byte
+        char c = hchar(a>>4);
         putc(c);
         c = hchar(a&15);
         putc(c);
@@ -362,7 +351,7 @@ int sscanf(const char *str, const char *format, ...) {
         while (*p) {
                 if (*p == '%') {
                         p++;
-                        if (*p == 'd') { // Integer
+                        if (*p == 'd') {
                                 int *int_ptr = va_arg(args, int *);
                                 int value = 0;
                                 while (*str >= '0' && *str <= '9') {
@@ -371,7 +360,7 @@ int sscanf(const char *str, const char *format, ...) {
                                 }
                                 *int_ptr = value;
                                 count++;
-                        } else if (*p == 's') { // String
+                        } else if (*p == 's') {
                                 char *str_ptr = va_arg(args, char *);
                                 while (*str != ' ' && *str != '\0') {
                                         *str_ptr++ = *str++;
@@ -381,7 +370,7 @@ int sscanf(const char *str, const char *format, ...) {
                         }
                         p++;
                 } else {
-                        if (*p != *str) return count; // Format mismatch
+                        if (*p != *str) return count;
                         p++;
                         str++;
                 }
@@ -391,68 +380,51 @@ int sscanf(const char *str, const char *format, ...) {
 }
 
 void put_int(int value) {
-        char buffer[12];  // Buffer to hold the integer string, enough for 32-bit int (-2147483648 to 2147483647)
+        char buffer[12];
         int i = 0;
         bool is_negative = false;
 
-        // Handle negative numbers
         if (value < 0) {
                 is_negative = true;
-                value = -value;  // Make value positive for easy processing
+                value = -value;
         }
 
-        // Convert integer to string in reverse order
         do {
-                buffer[i++] = (value % 10) + '0';  // Get the last digit and convert to character
+                buffer[i++] = (value % 10) + '0';
                 value /= 10;
         } while (value > 0);
 
-        // Add negative sign if needed
         if (is_negative) {
                 buffer[i++] = '-';
         }
 
-        // Print the string in the correct order
         while (--i >= 0) {
                 putc(buffer[i]);
         }
 }
 
 void put_int_at(int value, int x, int y) {
-        char buffer[12];  // Buffer to hold the integer string, enough for 32-bit int (-2147483648 to 2147483647)
+        char buffer[12];
         int i = 0;
         bool is_negative = false;
 
-        // Handle negative numbers
         if (value < 0) {
                 is_negative = true;
-                value = -value;  // Make value positive for easy processing
+                value = -value;
         }
 
-        // Convert integer to string in reverse order
         do {
-                buffer[i++] = (value % 10) + '0';  // Get the last digit and convert to character
+                buffer[i++] = (value % 10) + '0';
                 value /= 10;
         } while (value > 0);
 
-        // Add negative sign if needed
         if (is_negative) {
                 buffer[i++] = '-';
         }
 
-        // Print the string in the correct order
         while (--i >= 0) {
                 putc_at(buffer[i], x+i, y);
         }
-}
-
-void PRINT_DWORD(int X) {
-        puts("0x");
-        printh((X >> 24) & 255);
-        printh((X >> 16) & 255);
-        printh((X >> 8) & 255);
-        printh(X & 255);
-        putc('\n');
 }
 
 void PRINT_DWORD_NE(int X) {
@@ -463,9 +435,59 @@ void PRINT_DWORD_NE(int X) {
         printh(X & 255);
 }
 
+void PRINT_DWORD(int X) {
+        PRINT_DWORD_NE(X);
+        putc('\n');
+}
+
 void PRINT_WORD(int X) {
         puts("0x");
         printh((X >> 8) & 255);
         printh(X & 255);
         putc('\n');
+}
+
+int printf(const char* format, ...) {
+        va_list args;
+        va_start(args, format);
+        
+        const char* p = format;
+        while (*p) {
+                if (*p == '%' && *(p + 1)) {
+                        p++;
+                        switch (*p) {
+                                case 'c': {
+                                        char c = (char) va_arg(args, int);
+                                        putc(c);
+                                        break;
+                                }
+                                case 'd': {
+                                        int i = va_arg(args, int);
+                                        put_int(i);
+                                        break;
+                                }
+                                case 's': {
+                                        const char* str = va_arg(args, const char*);
+                                        puts(str);
+                                        break;
+                                }
+                                case 'x': {
+                                        int i = va_arg(args, int);
+                                        PRINT_DWORD(i);
+                                        break;
+                                }
+                                default: {
+                                        putc('%');
+                                        putc(*p);
+                                        break;
+                                }
+                        }
+                } else {
+                        putc(*p);
+                }
+                p++;
+        }
+
+        va_end(args);
+        return 0;
 }
