@@ -83,6 +83,7 @@ void system(char* _syscmd) {
                 putsn((const char*)data, len);
                 free(data);
                 free(path);
+                data=path=NULL;
         } else if (strcmp(syscmd, "write") == 0) {
                 if (syscmd1 && syscmd2)
                 {
