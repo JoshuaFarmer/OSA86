@@ -72,6 +72,9 @@ void mlmon(char * filename)
                 update_cursor(x*3,y+1);
                 switch (input)
                 {
+                        case 's':
+                                WriteF(filename,mem,sizeof(mem));
+                                break;
                         case 'H':
                                 if (page)
                                         --page;
@@ -118,7 +121,6 @@ void mlmon(char * filename)
                 input = getch();
         }
         clearScreen(0x2);
-        WriteF(filename,mem,sizeof(mem));
 }
 
 void system(char* _syscmd) {
