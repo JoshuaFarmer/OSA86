@@ -45,16 +45,19 @@ void system(char* _syscmd) {
         char* syscmd1 = strtok(NULL, ";\0");
         char* syscmd2 = strtok(NULL, "\0");
 
+        static int r=0;
         if (strncmp(syscmd, "./", 2) == 0) {
                 char* path = strcat(STR_PATH, syscmd+2);
                 while(path[0] == '/')path++;
                 int res = ExecuteF(path);
-                puts("RES: ");
-                PRINT_DWORD(res);
+                r=res;
         } else if (strcmp(syscmd, "info") == 0) { 
                 puts("OSA86 VERSION "); puts(__VER__); puts("\n(C) JOSHUA F. 2024-2025\n");
         } else if (strcmp(syscmd, "cls") == 0) { 
                 clearScreen(termCol);
+        } else if (strcmp(syscmd, "?") == 0) { 
+                put_int(r);
+                putc('\n');
         } else if (strcmp(syscmd, "ed") == 0) {
                 //int EdError = ed();
                 //puts("EdExitCode : ");
