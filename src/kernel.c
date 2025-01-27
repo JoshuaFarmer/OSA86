@@ -44,8 +44,13 @@ void mlmon(char * filename)
                 CreateF(filename);
         }
 
+        FILE fp = fgetf(filename,current_path_idx);
+        fseek(fp,0,SEEK_END);
+        int len = ftell(fp);
+
         uint8_t mem[8192];
-        ReadF(filename,mem,8192);
+        memset(mem,0,sizeof(mem));
+        ReadF(filename, mem, len);
         char input = 0;
         int x=0;
         int y=0;
