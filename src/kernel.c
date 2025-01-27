@@ -167,9 +167,6 @@ void osa86() {
         fputc(0x00,fp);
         fputc(0x00,fp);
         fputc(0xC3,fp);
-        int res = ExecuteF("test.exe");
-        puts("RES: ");
-        PRINT_DWORD(res);
         fclose(fp);
 /*
         for (int i = 0; i < 16; ++i) {
