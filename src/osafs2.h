@@ -11,11 +11,15 @@
 
 char STR_PATH[64*16] = "";
 
+int current_path_idx = -1;
+
+typedef int FILE;
+
 typedef struct
 {
         char Name[16];
         char padd[2];
-        bool Exists;
+        bool _Exists;
         bool HasChildren;
         int  FFAT;
         int  ParentIdx;
@@ -52,11 +56,11 @@ int ffefae()
         return -1;
 }
 
-int ffefd() // find first empty file desc
+int ffefd() // find first _Empty file desc
 {
         for (int i = 0; i < MFC; ++i)
         {
-                if (FDS0[i].Exists == false)
+                if (FDS0[i]._Exists == false)
                 {
                         return i;
                 }
@@ -65,7 +69,7 @@ int ffefd() // find first empty file desc
         return -1;
 }
 
-int Exists(const char * name, int parent_idx) // return index + 1 if exists
+int _Exists(const char * name, int parent_idx) // return index + 1 if _Exists
 {
         for (int i = 0; i < MFC; ++i)
         {
@@ -76,6 +80,18 @@ int Exists(const char * name, int parent_idx) // return index + 1 if exists
         }
 
         return 0;
+}
+
+FILE* fopen(const char * name, ...)
+{
+        FILE * f = malloc(sizeof(f));
+        *f = _Exists(name, current_path_idx);
+        return f;
+}
+
+void fclose(FILE * fp)
+{
+        free(fp);
 }
 
 void FreeFAE(int FAEIdx)
@@ -91,7 +107,7 @@ void FreeFAE(int FAEIdx)
         FAT0[FAEIdx].Taken=false;
 }
 
-void Empty(int fileIDX)
+void _Empty(int fileIDX)
 {
         int ffae = FDS0[fileIDX].FFAT;
         if (fileIDX == -1 || fileIDX >= MFC || ffae == -1) return;
@@ -132,16 +148,29 @@ void AllocFAE(int fileIDX)
         FAT0[lastidx].NextFAEIdx = fafae;
 }
 
-void CreateF(const char * name, int parent_idx)
+void Cd(const char * name)
+{
+        if (strncmp(name,"..",2)==0 && current_path_idx != -1)
+        {
+                current_path_idx = FDS0[current_path_idx].ParentIdx;
+                return;
+        }
+        int x = _Exists(name, current_path_idx)-1;
+        if (x == -1)
+                return;
+        current_path_idx = x;
+}
+
+void _CreateF(const char * name, int parent_idx)
 {
         int fefd = ffefd();
-        if (fefd == -1 || Exists(name, parent_idx))
+        if (fefd == -1 || _Exists(name, parent_idx))
         {
                 return;
         }
 
         FDS0[parent_idx].HasChildren = true;
-        FDS0[fefd].Exists = true;
+        FDS0[fefd]._Exists = true;
         FDS0[fefd].ParentIdx=parent_idx;
         FDS0[fefd].FFAT=-1;
         FDS0[fefd].HasChildren=false;
@@ -162,9 +191,9 @@ int ClusterCount(int fileIDX)
         return c;
 }
 
-void ReadF(const char *name, int parent_idx, char *buff, int len)
+void _ReadF(const char *name, int parent_idx, char *buff, int len)
 {
-        int idx = Exists(name, parent_idx) - 1;
+        int idx = _Exists(name, parent_idx) - 1;
         if (idx == -1 || len <= 0)
         {
                 return;
@@ -188,15 +217,15 @@ void ReadF(const char *name, int parent_idx, char *buff, int len)
         }
 }
 
-void WriteF(const char *name, int parent_idx, const char *data, int data_length)
+void _WriteF(const char *name, int parent_idx, const char *data, int data_length)
 {
-        int idx = Exists(name, parent_idx) - 1;
+        int idx = _Exists(name, parent_idx) - 1;
         if (idx == -1 || data_length <= 0)
         {
                 return;
         }
 
-        Empty(idx);
+        _Empty(idx);
         FDS0[idx].Size = data_length;
 
         int clusters_needed = (data_length + CLUSTSZ - 1) / CLUSTSZ; // Calculate the number of clusters needed
@@ -220,21 +249,19 @@ void WriteF(const char *name, int parent_idx, const char *data, int data_length)
         }
 }
 
-typedef int FILE;
-
 FILE fgetf(const char * name, int parent_idx)
 {
-        int f = Exists(name,parent_idx);
+        int f = _Exists(name,parent_idx);
         return f;
 }
 
-int fputc(char c, FILE fp)
+int fputc(char c, FILE * fp)
 {
-    if (fp <= 0 || fp > MFC)
+    if (*fp <= 0 || *fp > MFC)
         return -1;
 
-    int fileIdx = fp-1;
-    if (!FDS0[fileIdx].Exists)
+    int fileIdx = *fp-1;
+    if (!FDS0[fileIdx]._Exists)
         return -1;
 
     int pos = FDS0[fileIdx].Size;
@@ -275,7 +302,7 @@ void fseek(FILE fp, int p, int t)
         if (fp <= 0 || fp > MFC)
                 return;
         int fileIdx = fp-1;
-        if (!FDS0[fileIdx].Exists || FDS0[fileIdx].FFAT == -1)
+        if (!FDS0[fileIdx]._Exists || FDS0[fileIdx].FFAT == -1)
                 return;
         
         if (t == (int)SEEK_SET)
@@ -304,7 +331,7 @@ char fgetc(FILE fp)
                 return -1;
 
         int fileIdx = fp-1;
-        if (!FDS0[fileIdx].Exists || FDS0[fileIdx].FFAT == -1)
+        if (!FDS0[fileIdx]._Exists || FDS0[fileIdx].FFAT == -1)
                 return -1;
 
         int ci = FDS0[fileIdx].FFAT;
@@ -330,17 +357,17 @@ char fgetc(FILE fp)
         return ch;
 }
 
-void DeleteF(const char * name, int parent_idx);
+void _DeleteF(const char * name, int parent_idx);
 
-static void DeleteChildren(int parent_idx)
+static void _DeleteChildren(int parent_idx)
 {
-        if ((FDS0[parent_idx].Exists && FDS0[parent_idx].HasChildren) || parent_idx == -1)
+        if ((FDS0[parent_idx]._Exists && FDS0[parent_idx].HasChildren) || parent_idx == -1)
         {
                 for (int i = 0; i < MFC; ++i)
                 {
-                        if (FDS0[i].Exists && FDS0[i].ParentIdx == parent_idx)
+                        if (FDS0[i]._Exists && FDS0[i].ParentIdx == parent_idx)
                         {
-                                DeleteF(FDS0[i].Name, parent_idx);
+                                _DeleteF(FDS0[i].Name, parent_idx);
                         }
                 }
 
@@ -349,34 +376,27 @@ static void DeleteChildren(int parent_idx)
         }
 }
 
-void DeleteF(const char *name, int parent_idx)
+void _DeleteF(const char *name, int parent_idx)
 {
-        int idx = Exists(name, parent_idx) - 1;
+        int idx = _Exists(name, parent_idx) - 1;
         if (idx == -1)
         {
                 return;
         }
 
-        DeleteChildren(idx);
-        Empty(idx);
-        FDS0[idx].Exists = false;
+        _DeleteChildren(idx);
+        _Empty(idx);
+        FDS0[idx]._Exists = false;
 }
 
 void ListF()
 {
         for (int i = 0; i < MFC; ++i)
         {
-                if (FDS0[i].Exists)
+                if (FDS0[i]._Exists && FDS0[i].ParentIdx == current_path_idx)
                 {
-                        PRINT_DWORD_NE(i);
-                        puts(", ");
                         putsn(FDS0[i].Name,16);
-                        puts(" : ");
-                        PRINT_DWORD_NE(FDS0[i].FFAT);
-                        putc(' ');
-                        putc(FDS0[i].HasChildren ? 'T' : 'F');
-                        putc(' ');
-                        PRINT_DWORD_NE(FDS0[i].ParentIdx);
+                        FDS0[i].HasChildren ? putc('/') : 0;
                         puts(" SIZE=503*");
                         PRINT_DWORD_NE(ClusterCount(i));
                         putc('\n');
@@ -391,9 +411,9 @@ int ftell(FILE fp)
         return pos[fp-1];
 }
 
-int ExecuteF(const char *filename, int parentidx)
+int _ExecuteF(const char *filename, int parentidx)
 {
-        int idx = Exists(filename, parentidx) - 1;
+        int idx = _Exists(filename, parentidx) - 1;
         if (idx == -1) {
                 return 2;
         }
@@ -408,12 +428,42 @@ int ExecuteF(const char *filename, int parentidx)
                 return -1;
         }
 
-        ReadF(filename, parentidx, buffer, file_size);
+        _ReadF(filename, parentidx, buffer, file_size);
 
         int (*func_ptr)() = (int (*)())buffer;
         int res = func_ptr();
         free(buffer);
         return res;
+}
+
+void CreateF(const char * name)
+{
+        _CreateF(name,current_path_idx);
+}
+
+void WriteF(const char * name, void * data, int size)
+{
+        _WriteF(name,current_path_idx,data,size);
+}
+
+void ReadF(const char * name, void * data, int size)
+{
+        _ReadF(name,current_path_idx,data,size);
+}
+
+int ExecuteF(const char * name)
+{
+        return _ExecuteF(name,current_path_idx);
+}
+
+const char * ActiveDir()
+{
+        static const char * root = "/";
+        if (current_path_idx == -1)
+        {
+                return root;
+        }
+        return FDS0[current_path_idx].Name;
 }
 
 #endif

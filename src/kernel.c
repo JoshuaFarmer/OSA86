@@ -41,16 +41,14 @@ void send_eoi(uint8_t irq);
 //#include "UpsaCPUEmu/cpu.h"
 
 void system(char* _syscmd) {
-        char* syscmd  = strtok(_syscmd, " \"\0");
-        char* ignore = strtok(NULL, "\"\0");
-        char* syscmd1 = strtok(NULL, "\"\0");
-        ignore = strtok(NULL, "\"\0");
-        char* syscmd2 = strtok(NULL, "\"\0");
+        char* syscmd  = strtok(_syscmd, " \0");
+        char* syscmd1 = strtok(NULL, ";\0");
+        char* syscmd2 = strtok(NULL, "\0");
 
         if (strncmp(syscmd, "./", 2) == 0) {
                 char* path = strcat(STR_PATH, syscmd+2);
                 while(path[0] == '/')path++;
-                int res = ExecuteF(path,-1);
+                int res = ExecuteF(path);
                 puts("RES: ");
                 PRINT_DWORD(res);
         } else if (strcmp(syscmd, "info") == 0) { 
@@ -66,35 +64,34 @@ void system(char* _syscmd) {
                 //fs_list(super_block);
                 ListF();
         } else if (strcmp(syscmd, "cd") == 0) {
-                char* path = strcat(STR_PATH, syscmd1);
-                //change_active_dir(syscmd1);
-                free(path);
+                if (syscmd1)
+                {
+                        Cd(syscmd1);
+                }
         } else if (strcmp(syscmd, "shutdown") == 0) {
                 active = false;
         } else if (strcmp(syscmd, "expr") == 0) {
                 BrainFuck(syscmd1);
         } else if (strcmp(syscmd, "view") == 0) {
-                FILE fp = fgetf(syscmd1,-1);
+                FILE fp = fgetf(syscmd1,current_path_idx);
                 fseek(fp,0,SEEK_END);
                 int len = ftell(fp);
                 char* data = malloc(len);
                 char* path = strcat(STR_PATH, syscmd1);
                 
-                ReadF(path,-1,data,len);
+                ReadF(path,data,len);
                 putsn((const char*)data, len);
                 free(data);
                 free(path);
         } else if (strcmp(syscmd, "write") == 0) {
                 if (syscmd1 && syscmd2)
                 {
-                        FILE fp = fgetf(syscmd1,-1);
-                        fseek(fp,0,SEEK_SET);
-                        WriteF(syscmd2,-1,syscmd1,strlen(syscmd1));
+                        WriteF(syscmd2,syscmd1,strlen(syscmd1));
                 }
         } else if (strcmp(syscmd, "create") == 0) {
                 if (syscmd1)
                 {
-                        CreateF(syscmd1,-1);
+                        CreateF(syscmd1);
                 }
         } else {
                 if (syscmd[1] == ':') {
@@ -154,32 +151,21 @@ void osa86() {
         //create("example.prg", false);
         //create("example2.exe", false);
         InitRamFS();
-        CreateF("test.txt",-1);
-        CreateF("test.exe",-1);
-        CreateF("test2.exe",-1);
-        WriteF("test.txt",-1,"Hellorld!\n",11);
+        CreateF("test.txt");
+        CreateF("test.exe");
+        WriteF("test.txt","Hellorld!\n",11);
 
-        FILE fp = fgetf("test.exe",-1);
+        FILE * fp = fopen("test.exe","wb");
         fputc(0xb8,fp);
         fputc(0x20,fp);
         fputc(0x00,fp);
         fputc(0x00,fp);
         fputc(0x00,fp);
         fputc(0xC3,fp);
-        int res = ExecuteF("test.exe",-1);
+        int res = ExecuteF("test.exe");
         puts("RES: ");
         PRINT_DWORD(res);
-
-        fp = fgetf("test2.exe",-1);
-        fputc(0xb8,fp);
-        fputc(0x30,fp);
-        fputc(0x00,fp);
-        fputc(0x00,fp);
-        fputc(0x00,fp);
-        fputc(0xC3,fp);
-        res = ExecuteF("test2.exe",-1);
-        puts("RES: ");
-        PRINT_DWORD(res);
+        fclose(fp);
 /*
         for (int i = 0; i < 16; ++i) {
                 char num[32];
@@ -223,6 +209,7 @@ void osa86() {
         while (active) {
                 putc(Drive_Letter);
                 putc(':');
+                puts(ActiveDir());
                 puts(STR_PATH);
                 puts("> ");
 
