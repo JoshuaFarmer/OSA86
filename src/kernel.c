@@ -223,7 +223,7 @@ void mode(int mod) {
 void osa86() {
         cli();
         clearScreen(termCol);
-        mode(0x01);
+        mode(0x02);
         system("info");
 
         putc('\n');
