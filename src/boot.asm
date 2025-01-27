@@ -63,13 +63,6 @@ check_for_errors:
 	jmp spin
 
 done_with_disk:
-	jmp switch32
-
-spin:
-	hlt
-inf:
-	jmp inf
-
 switch32:
 	lgdt [gdtinfo]
 
@@ -98,16 +91,34 @@ clear_prefetch:
 [bits 32]
 
 Really32:
+        mov eax, cr0
+        test eax, 1
+        jz bruh_fail
 	call 0x10000
 .shutdown:
-	; Switch to real mode
 	mov eax, cr0		  ; Read CR0 register
 	and eax, 0xFFFFFFFE   ; Clear the PE (Protection Enable) bit
 	mov cr0, eax		  ; Write CR0 back
-
 	jmp $
 
 [bits 16]
+
+bruh_fail:
+        mov ah, 0x0E
+        mov al, 'b'
+        int 0x10
+        mov al, 'r'
+        int 0x10
+        mov al, 'u'
+        int 0x10
+        mov al, 'h'
+        int 0x10
+        jmp $
+
+spin:
+	hlt
+inf:
+	jmp inf
 
 gdtinfo:
 	dw gdt_end - gdt - 1 ; Limit (16 bits), subtract 1 because the limit is inclusive
