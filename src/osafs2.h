@@ -396,10 +396,7 @@ void ListF()
                 if (FDS0[i].Exists && FDS0[i].ParentIdx == current_path_idx)
                 {
                         putsn(FDS0[i].Name,16);
-                        FDS0[i].HasChildren ? putc('/') : 0;
-                        puts(" SIZE=503*");
-                        PRINT_DWORD_NE(ClusterCount(i));
-                        putc('\n');
+                        printf("%c SIZE=503*%d\n",FDS0[i].HasChildren ? '/' : '*', ClusterCount(i));
                 }
         }
 }

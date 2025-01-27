@@ -291,8 +291,8 @@ void osa86() {
         char* kbbuff = malloc(128);
 
         uint32_t remainingSpace = remaining_heap_space();
-        printf("Heap Size Is %d\n",remainingSpace);
-        printf("File Descriptor Size Is %d\n",sizeof(FileDescriptor));
+        printf("Heap Size Is %d Bytes\n",remainingSpace);
+        printf("File Descriptor Size Is %d Bytes\n",sizeof(FileDescriptor));
         
         while (active)
         {
