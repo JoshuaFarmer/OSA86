@@ -429,8 +429,8 @@ int _ExecuteF(const char *filename, int parentidx)
 
         _ReadF(filename, parentidx, buffer, file_size);
 
-        int (*func_ptr)() = (int (*)())buffer;
-        int res = func_ptr();
+        int (*func_ptr)(int x) = (int (*)())buffer;
+        int res = func_ptr((int)CallF);
         free(buffer);
         return res;
 }

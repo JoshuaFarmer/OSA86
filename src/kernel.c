@@ -15,6 +15,7 @@ uint8_t Drive_Letter = 'A';
 
 void osa86();
 void clearScreen(uint8_t c);
+int CallF(int op, int arg0, int arg1);
 
 void init() {
         osa86();
@@ -121,6 +122,21 @@ void mlmon(char * filename)
                 input = getch();
         }
         clearScreen(0x2);
+}
+
+int CallF(int op, int arg0, int arg1)
+{
+        int res=0;
+        switch(op)
+        {
+                case 0x00:
+                        putc(arg0);
+                        break;
+                default:
+                        res=255;
+                        break;
+        }
+        return res;
 }
 
 void system(char* _syscmd) {
@@ -250,11 +266,16 @@ void osa86() {
 
         FILE * fp = fopen("test.exe","wb");
         fputc(0xb8,fp);
-        fputc(0x20,fp);
         fputc(0x00,fp);
+        fputc(0x80,fp);
+        fputc(0x0b,fp);
         fputc(0x00,fp);
+        fputc(0x66,fp);
+        fputc(0xc7,fp);
         fputc(0x00,fp);
-        fputc(0xC3,fp);
+        fputc(0x41,fp);
+        fputc(0x41,fp);
+        fputc(0xc3,fp);
         fclose(fp);
 /*
         for (int i = 0; i < 16; ++i) {
@@ -294,7 +315,7 @@ void osa86() {
         uint32_t remainingSpace = remaining_heap_space();
         printf("Heap Size Is %d Bytes\n",remainingSpace);
         printf("File Descriptor Size Is %d Bytes\n",sizeof(FileDescriptor));
-        
+
         while (active)
         {
                 printf("%c: %s/%s> ", Drive_Letter, ActiveDirParen(), ActiveDir());
