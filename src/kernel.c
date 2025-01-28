@@ -264,19 +264,14 @@ void osa86() {
         CreateF("test.exe");
         WriteF("test.txt","Hellorld!\n",11);
 
-        FILE * fp = fopen("test.exe","wb");
-        fputc(0xb8,fp);
-        fputc(0x00,fp);
-        fputc(0x80,fp);
-        fputc(0x0b,fp);
-        fputc(0x00,fp);
-        fputc(0x66,fp);
-        fputc(0xc7,fp);
-        fputc(0x00,fp);
-        fputc(0x41,fp);
-        fputc(0x41,fp);
-        fputc(0xc3,fp);
-        fclose(fp);
+        char prog[] = { 0x4F,0x53,0x41,0x58,
+                        0xAA,0x0D,0x00,0x00,
+                        0x00,0x01,0x00,0x00,
+                        0x00,0xB8,0x00,0x80,
+                        0x0B,0x00,0x66,0xC7,
+                        0x00,0x41,0x41,0x31,
+                        0xC0,0xC3 };
+        WriteF("test.exe",prog,sizeof(prog));
 /*
         for (int i = 0; i < 16; ++i) {
                 char num[32];

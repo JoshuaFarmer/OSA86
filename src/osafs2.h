@@ -32,6 +32,16 @@ typedef struct
         char Cluster[CLUSTSZ];
 } FAE; // fat allocation entry, part of the FAT.
 
+typedef struct {
+        char     Sign[4];
+        uint8_t  Checksum;
+        uint32_t StartOffset;
+        uint32_t Version;
+} ProgramHeader;
+
+#define CHECKSUM 0xAA
+#define PHVERSION 0x1
+
 FAE            * FAT0=NULL;
 FileDescriptor * FDS0=NULL;
 
@@ -423,16 +433,24 @@ int _ExecuteF(const char *filename, int parentidx)
         }
 
         char *buffer = malloc(file_size);
+        ProgramHeader * progh = (ProgramHeader *)buffer;
         if (!buffer) {
                 return -1;
         }
-
         _ReadF(filename, parentidx, buffer, file_size);
-
-        int (*func_ptr)(int x) = (int (*)())buffer;
-        int res = func_ptr((int)CallF);
-        free(buffer);
-        return res;
+        if (progh->Checksum == CHECKSUM && strncmp(progh->Sign,"OSAX",4)==0 && progh->Version == PHVERSION && progh->StartOffset>0)
+        {
+                int (*func_ptr)(int x) = (int (*)())progh->StartOffset+(int)buffer;
+                int res = func_ptr((int)CallF);
+                free(buffer);
+                return res;
+        }
+        else
+        {
+                free(buffer);
+                buffer=NULL;
+                return -2;
+        }
 }
 
 void CreateF(const char * name)
