@@ -7,6 +7,7 @@
 
 extern void default_exception_handler(void);
 extern void OSASyscall(void);
+extern void invalid_opcode_handler(void);
 
 void Exception(unsigned int addr)
 {
@@ -21,6 +22,36 @@ typedef struct
         int c;
         int d;
 } SysCall;
+
+extern void divide_by_zero_handler();
+
+void divide_by_zero()
+{
+        PANIC("You can't divide by zero, Silly!\n");
+}
+
+void invalid_opcode()
+{
+        PANIC("Invalid Opcode\n");
+}
+
+void page_fault_handler()
+{
+        uint32_t faulting_address;
+        __asm__ __volatile__
+        (
+                "movl %%cr2, %0;"
+                : "=r"(faulting_address)
+        );
+        send_eoi(0x20);
+        PANIC("Page Fault at address: %x\n", faulting_address);
+}
+
+void general_protection_fault_handler()
+{
+        send_eoi(0x20);
+        PANIC("General Protection Fault!\nHalting...\n");
+}
 
 void Int80(SysCall * x)
 {
@@ -103,6 +134,10 @@ void init_idt() {
 
         set_idt_entry(0x80, (uint32_t)OSASyscall, idt);
         set_idt_entry(0x20, (uint32_t)timer_interrupt_handler, idt);
+        set_idt_entry(0x00, (uint32_t)divide_by_zero_handler, idt);
+        set_idt_entry(0x0E, (uint32_t)page_fault_handler, idt);
+        set_idt_entry(0x0D, (uint32_t)general_protection_fault_handler, idt);
+        set_idt_entry(0x06, (uint32_t)invalid_opcode_handler, idt);
         load_idt(idt);
 #ifdef VERBOSE
         puts("IDT Initialized\n");

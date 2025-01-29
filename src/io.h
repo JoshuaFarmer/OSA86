@@ -26,6 +26,7 @@ void outb(unsigned short port, unsigned char value)
         asm("outb %0, %1" : : "a"(value), "Nd"(port));
 }
 
+/*
 extern void __ata_lba_read();
 extern void __ata_lba_write();
 
@@ -114,3 +115,4 @@ void ata_select_drive(uint16_t base, uint8_t drive)
         outb(base + ATA_REG_DRIVE, drive);
         ata_io_wait(base);
 }
+*/

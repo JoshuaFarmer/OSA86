@@ -15,7 +15,6 @@ uint8_t Drive_Letter = 'A';
 
 void osa86();
 void clearScreen(uint8_t c);
-int CallF(int op, int arg0, int arg1);
 
 void init() {
         osa86();
@@ -122,21 +121,6 @@ void mlmon(char * filename)
                 input = getch();
         }
         clearScreen(0x2);
-}
-
-int CallF(int op, int arg0, int arg1)
-{
-        int res=0;
-        switch(op)
-        {
-                case 0x00:
-                        putc(arg0);
-                        break;
-                default:
-                        res=255;
-                        break;
-        }
-        return res;
 }
 
 void system(char* _syscmd) {
@@ -265,10 +249,7 @@ void osa86() {
         char prog[] = { 0x4F,0x53,0x41,0x58,
                         0xAA,0x0D,0x00,0x00,
                         0x00,0x01,0x00,0x00,
-                        0x00,0xB8,0x00,0x80,
-                        0x0B,0x00,0x66,0xC7,
-                        0x00,0x41,0x41,0x31,
-                        0xC0,0xC3 };
+                        0x00,0x31,0xC0,0xEB,0xFE };
         WriteF("test",prog,sizeof(prog));
 
         char* kbbuff = malloc(128);

@@ -420,6 +420,8 @@ int ftell(FILE fp)
         return pos[fp-1];
 }
 
+extern void jump_usermode(int addr);
+
 int _ExecuteF(const char *filename, int parentidx)
 {
         int idx = _Exists(filename, parentidx) - 1;
@@ -432,17 +434,21 @@ int _ExecuteF(const char *filename, int parentidx)
                 return 0;
         }
 
-        char *buffer = malloc(file_size);
+        char *buffer = ualloc(file_size);
         ProgramHeader * progh = (ProgramHeader *)buffer;
-        if (!buffer) {
+        if (!buffer)
+        {
                 return -1;
         }
         _ReadF(filename, parentidx, buffer, file_size);
         if (progh->Checksum == CHECKSUM && strncmp(progh->Sign,"OSAX",4)==0 && progh->Version == PHVERSION && progh->StartOffset>0)
         {
-                int (*func_ptr)(int x) = (int (*)())progh->StartOffset+(int)buffer;
-                int res = func_ptr((int)CallF);
-                free(buffer);
+                int (*func_ptr)() = (int (*)())progh->StartOffset+(int)buffer;
+                printf("_start: %x\n",func_ptr);
+                int res = func_ptr();
+                //jump_usermode(func_ptr);
+                ufree(buffer);
+                buffer=NULL;
                 return res;
         }
         else

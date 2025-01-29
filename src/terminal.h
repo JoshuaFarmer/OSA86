@@ -491,3 +491,5 @@ int printf(const char* format, ...) {
         va_end(args);
         return 0;
 }
+
+#define PANIC(x, ...) printf("PANIC: "); printf(x, ##__VA_ARGS__); while(1)
