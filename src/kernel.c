@@ -305,6 +305,7 @@ void osa86()
                 sti();
         }
 
+        cli();
         free(kbbuff);
         clearScreen(termCol);
         mode(0x2);
