@@ -13,7 +13,9 @@ extern schedule_next_task
 
 default_exception_handler:
 	cli
+        add esp,4
         call Exception
+        sub esp,4
 	iret
 OSASyscall:
 	cli

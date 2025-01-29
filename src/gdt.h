@@ -46,8 +46,8 @@ void init_gdt() {
                       movl %%eax, %%fs; \
                       movl %%eax, %%gs; \
                       movl %%eax, %%ss; \
-                      ljmp $0x08, $flush; \
-                      flush:" : : : "memory");
+                      ljmp $0x08, $goto; \
+                      goto:" : : : "memory");
 
 #ifdef VERBOSE
         puts("GDT Initialized\n");

@@ -13,45 +13,48 @@ void Exception(unsigned int addr)
         printf("Exception Error At: %x",addr);
 }
 
-void Int80(int code, int opa, int opb)
+typedef struct
+{
+        int code;
+        int a;
+        int b;
+        int c;
+        int d;
+} SysCall;
+
+void Int80(SysCall * x)
 {
         __asm__ __volatile__
         (
                 "movl %0, %%eax;"
-                "movl %1, %%ebx;"
-                "movl %2, %%ecx;"
                 "int $0x80;"
                 :
-                : "r"(code), "r"(opa), "r"(opb)
-                : "%eax", "%ebx", "%ecx"
+                : "r"(x)
+                : "%eax"
         );
 }
 
 void OSASyscallHandler() {
         cli();
-        int code = 0, opa = 0, opb = 0;
+        SysCall * args;
         __asm__ __volatile__ (
                 "movl %%eax, %0;"
-                "movl %%ebx, %1;"
-                "movl %%ecx, %2;"
-                : "=r"(code), "=r"(opa), "=r"(opb)
+                : "=r"(args)
         );
-        
-        switch (code)
+
+        switch (args->code)
         {
                 case 0:
-                        puts("SYSCALL:");
-                        putc(opa);
-                        putc('\n');
+                        putc(args->a);
                         break;
                 case 1:
-                        puts((const char *)opa);
+                        puts((const char *)args->a);
                         break;
                 case 2:
-                        fwrite((void *)opa,1,opb,(FILE *)opb);
+                        fwrite((void *)args->a,1,args->b,(FILE *)args->c);
                         break;
                 case 3:
-                        fread((void *)opa,1,opb,(FILE *)opb);
+                        fread((void *)args->a,1,args->b,(FILE *)args->c);
                         break;
         }
 }

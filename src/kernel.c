@@ -276,6 +276,13 @@ void osa86() {
         uint32_t remainingSpace = remaining_heap_space();
         printf("Heap Size Is %d Bytes\n",remainingSpace);
         printf("File Descriptor Size Is %d Bytes\n",sizeof(FileDescriptor));
+
+        // E.g.
+        //SysCall x;
+        //x.code=0x0;
+        //x.a='_';
+        //Int80(&x);
+
         while (active)
         {
                 sti();
