@@ -247,7 +247,7 @@ void osa86() {
         init_gdt();
         init_idt();
         init_pic();
-        init_pit(1000);
+        init_pit(100);
         putc('\n');
 
         InitRamFS();
