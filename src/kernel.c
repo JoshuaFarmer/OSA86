@@ -252,13 +252,6 @@ void osa86() {
 
         Beep(1000);
 
-        //super_block = malloc(sizeof(Super_Block_t));
-        //initialize_super_block(super_block);
-        //create("link.lnk", false);
-        //create("ExampleDir", true);
-        //create("ExampleDir/hello.txt", false);
-        //create("example.prg", false);
-        //create("example2.exe", false);
         InitRamFS();
         CreateF("test.txt");
         CreateF("test.exe");
@@ -272,38 +265,6 @@ void osa86() {
                         0x00,0x41,0x41,0x31,
                         0xC0,0xC3 };
         WriteF("test.exe",prog,sizeof(prog));
-/*
-        for (int i = 0; i < 16; ++i) {
-                char num[32];
-                itoa(i, num, 16);
-                char* str = strcat(num, ".txt");
-                create(str, false);
-                free(str);
-        }
-
-        write_file("link.lnk", "ExampleDir/hello.txt\0", 22);
-        write_file("ExampleDir/hello.txt", "Hello, World!\n\0", 16);
-
-        char* example_expr = ">++++++[<++++++++++>-]<+++++>+[<[>>+>+<<<-]>>>[<<<+>>>-]<+>>+++++++++[<++++++++++>-]<>+[<+>-]>+<<<[>>+<<-]>>[>-]>[><<<<+>[-]>>->]<+<<[>-[>-]>[><<<<+>[-]+>>->]<+<<-]>[-]>-<<<[<<[>>>+>+<<<<-]>>>>[<<<<+>>>>-]<.[-]<<<[>>>+>+<<<<-]>>>>[<<<<+>>>>-]+[<+>-]<<<<[-]>>>[<<<+>>>-]<[-]<+>]<-]<[-]>=10.";
-        write_file("example.prg", (uint8_t*)example_expr, strlen(example_expr)+1);
-
-        char example_prog[] = {
-                MV_A_I, 'A', 0x00, HLT,
-        };
-
-        write_file("example2.exe", (uint8_t*)example_prog, sizeof(example_prog));
-
-        for (int i = 0; i < 16; ++i) {
-                char num[32];
-                itoa(i, num, 16);
-                char* str = strcat(num, ".txt");
-                char* text = strcat("Hello, World! > ", num);
-                write_file(str, text, strlen(text));
-                free(str);
-                free(text);
-        }
-*/
-        //write_file_system();
 
         char* kbbuff = malloc(128);
 
@@ -318,7 +279,6 @@ void osa86() {
                 system(kbbuff);
         }
 
-        //write_file_system();
         free(kbbuff);
         clearScreen(termCol);
         mode(0x2);

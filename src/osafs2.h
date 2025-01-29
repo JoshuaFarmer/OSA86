@@ -501,4 +501,24 @@ const char * ActiveDirParen()
         return FDS0[FDS0[current_path_idx].ParentIdx].Name;
 }
 
+void fwrite(void * buff, int size, int count, FILE * fp)
+{
+        if (*fp == 0 || !size || !count)
+        {
+                return;
+        }
+        const char * name = FDS0[*fp-1].Name;
+        WriteF(name,buff,size*count);
+}
+
+void fread(void * buff, int size, int count, FILE * fp)
+{
+        if (*fp == 0 || !size || !count)
+        {
+                return;
+        }
+        const char * name = FDS0[*fp-1].Name;
+        ReadF(name,buff,size*count);
+}
+
 #endif
