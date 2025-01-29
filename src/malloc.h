@@ -8,26 +8,33 @@ typedef uint32_t size_t;
 #define HEAP_CAP (2048 * 2048)
 
 typedef struct Block {
-        uint32_t size;         // Size of the block
-        bool           free;         // Is this block free?
+        uint32_t size;
+        bool     free;
 } Block_t;
 
 typedef struct {
-        uint8_t  raw[HEAP_CAP];        // The raw heap memory
-        uint32_t next_free;                // The index of the next free block
+        uint8_t  raw[HEAP_CAP];
+        uint32_t next_free;
 } Heap_t;
 
+Heap_t* prog = (Heap_t*)(0x2000000);
 Heap_t* heap = (Heap_t*)(0xF00000);
 
-void init_heap() {
+void init_heap()
+{
         Block_t* initial_block = (Block_t*)heap->raw;
+        initial_block->size = HEAP_CAP - sizeof(Block_t); // Remaining heap after Block metadata
+        initial_block->free = true;
+        heap->next_free = 0;
+        initial_block = (Block_t*)prog->raw;
         initial_block->size = HEAP_CAP - sizeof(Block_t); // Remaining heap after Block metadata
         initial_block->free = true;
         heap->next_free = 0;
         printf("Heap Initialized\n");
 }
 
-void* malloc(size_t size) {
+void* malloc(size_t size)
+{
         if (size == 0 || size > HEAP_CAP) {
                 return NULL;
         }
@@ -56,6 +63,15 @@ void* malloc(size_t size) {
                 i += sizeof(Block_t) + block->size;
         }
         return NULL;
+}
+
+void * ualloc(size_t size)
+{
+        Heap_t * tmp = heap;
+        heap = prog;
+        void * x = malloc(size);
+        heap = tmp;
+        return x;
 }
 
 void free(void* ptr) {
@@ -90,7 +106,16 @@ void free(void* ptr) {
         }
 }
 
-size_t remaining_heap_space() {
+void ufree(void * ptr)
+{
+        Heap_t * tmp = heap;
+        heap = prog;
+        free(ptr);
+        heap = tmp;
+}
+
+size_t remaining_heap_space()
+{
         size_t total_free = 0;
         uint32_t i = 0;
         while (i < HEAP_CAP) {
@@ -103,7 +128,17 @@ size_t remaining_heap_space() {
         return total_free;
 }
 
-void* realloc(void* ptr, size_t size) {
+size_t uremain()
+{
+        Heap_t * tmp = heap;
+        heap = prog;
+        size_t x = remaining_heap_space();
+        heap = tmp;
+        return x;
+}
+
+void * realloc(void* ptr, size_t size)
+{
         if (ptr == NULL) {
                 return malloc(size);
         }
@@ -135,4 +170,13 @@ void* realloc(void* ptr, size_t size) {
                 free(ptr);
         }
         return new_ptr;
+}
+
+void * urealloc(void* ptr, size_t size)
+{
+        Heap_t * tmp = heap;
+        heap = prog;
+        void * x = realloc(ptr,size);
+        heap = tmp;
+        return x;
 }

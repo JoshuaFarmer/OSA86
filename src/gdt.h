@@ -16,7 +16,8 @@ struct gdt_ptr {
         uint32_t base;
 };
 
-struct gdt_entry gdt[3];
+#define GDT_SIZE 5
+struct gdt_entry gdt[GDT_SIZE];
 struct gdt_ptr gdtp;
 
 void set_gdt_entry(int num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) {
@@ -31,30 +32,22 @@ void set_gdt_entry(int num, uint32_t base, uint32_t limit, uint8_t access, uint8
 }
 
 void init_gdt() {
-        gdtp.limit = (sizeof(struct gdt_entry) * 3) - 1;
+        gdtp.limit = (sizeof(struct gdt_entry) * GDT_SIZE) - 1;
         gdtp.base = (uint32_t)&gdt;
-
-        // Null segment
-        set_gdt_entry(0, 0, 0, 0, 0);  // Null descriptor
-
-        // Kernel code segment
-        set_gdt_entry(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); // Code segment, read/write
-
-        // Kernel data segment
-        set_gdt_entry(2, 0, 0xFFFFFFFF, 0x92, 0xCF); // Data segment, read/write
-
-        // Load the GDT
+        set_gdt_entry(0, 0, 0, 0, 0);
+        set_gdt_entry(1, 0x00000000, 0x00FFFFFF, 0x9A, 0xCF);
+        set_gdt_entry(2, 0x00000000, 0x00FFFFFF, 0x92, 0xCF);
+        set_gdt_entry(3, 0x01000000, 0x00FFFFFF, 0xFA, 0xCF);
+        set_gdt_entry(4, 0x01000000, 0x00FFFFFF, 0xF2, 0xCF);
         asm volatile("lgdt (%0)" : : "r" (&gdtp));
-
-        // Set up segments
         asm volatile("movl $0x10, %%eax; \
-                                  movl %%eax, %%ds; \
-                                  movl %%eax, %%es; \
-                                  movl %%eax, %%fs; \
-                                  movl %%eax, %%gs; \
-                                  movl %%eax, %%ss; \
-                                  ljmp $0x08, $flush; \
-                                  flush:" : : : "memory");
+                      movl %%eax, %%ds; \
+                      movl %%eax, %%es; \
+                      movl %%eax, %%fs; \
+                      movl %%eax, %%gs; \
+                      movl %%eax, %%ss; \
+                      ljmp $0x08, $flush; \
+                      flush:" : : : "memory");
 
 #ifdef VERBOSE
         puts("GDT Initialized\n");
