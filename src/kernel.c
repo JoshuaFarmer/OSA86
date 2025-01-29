@@ -36,6 +36,7 @@ void send_eoi(uint8_t irq);
 #include "user.h"
 #include "gui.h"
 #include "program.h"
+#include "schedule.h"
 
 void mlmon(char * filename)
 {
@@ -136,6 +137,12 @@ void system(char* _syscmd) {
                 r=res;
         } else if (strcmp(syscmd, "info") == 0) { 
                 puts("OSA86 VERSION "); puts(__VER__); puts("\n(C) JOSHUA F. 2024-2025\n");
+        } else if (strcmp(syscmd, "&") == 0) { 
+                if (syscmd1 && syscmd2)
+                {
+                        Schedule(syscmd1);
+                        Schedule(syscmd2);
+                }
         } else if (strcmp(syscmd, "cls") == 0) { 
                 clearScreen(termCol);
         } else if (strcmp(syscmd, "?") == 0) { 
