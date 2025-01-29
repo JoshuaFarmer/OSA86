@@ -243,7 +243,20 @@ void yield(int steps)
         for(int i = 0; i < steps;++i);
 }
 
-void osa86() {
+char* kbbuff = NULL;
+
+void mainloop()
+{
+        if (kbbuff)
+        {
+                printf("%c: %s/%s> ", Drive_Letter, ActiveDirParen(), ActiveDir());
+                gets(kbbuff, 128);
+                system(kbbuff);
+        }
+}
+
+void osa86()
+{
         cli();
         clearScreen(termCol);
         mode(0x02);
@@ -254,7 +267,7 @@ void osa86() {
         init_gdt();
         init_idt();
         init_pic();
-        init_pit(100);
+        init_pit(1000);
         putc('\n');
 
         InitRamFS();
@@ -270,7 +283,7 @@ void osa86() {
                         0x00,0x31,0xC0,0xC3 };
         WriteF("test",prog,sizeof(prog));
 
-        char* kbbuff = malloc(128);
+        kbbuff = malloc(128);
 
         uint32_t remainingSpace = remaining_heap_space();
         printf("Heap Size Is %d Bytes\n",remainingSpace);
@@ -290,11 +303,7 @@ void osa86() {
         while (active)
         {
                 sti();
-                yield(100);
-                cli();
-                printf("%c: %s/%s> ", Drive_Letter, ActiveDirParen(), ActiveDir());
-                gets(kbbuff, 128);
-                system(kbbuff);
+                mainloop();
         }
 
         free(kbbuff);

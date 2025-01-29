@@ -3,25 +3,56 @@ global OSASyscall
 global jump_usermode
 global divide_by_zero_handler
 global invalid_opcode_handler
+global timer_interrupt_handler
+global keyboard_interrupt_handler
+global general_protection_fault_handler
+global page_fault_handler
 extern divide_by_zero
 extern Exception
 extern OSASyscallHandler
 extern test_user_function
 extern invalid_opcode
+extern timer_interrupt
+extern keyboard_handler
+extern general_protection_fault
+extern page_fault
 
 invalid_opcode_handler:
         cli
         call invalid_opcode
+        sti
+        iret
+general_protection_fault_handler:
+        cli
+        call general_protection_fault
+        sti
+        iret
+page_fault_handler:
+        cli
+        call page_fault
+        sti
+        iret
+timer_interrupt_handler:
+        cli
+        call timer_interrupt
+        sti
+        iret
+keyboard_interrupt_handler:
+        cli
+        call keyboard_handler
+        sti
         iret
 default_exception_handler:
 	cli
         add esp,4
         call Exception
         sub esp,4
+        sti
 	iret
 divide_by_zero_handler:
 	cli
         call divide_by_zero
+        sti
 	iret
 OSASyscall:
 	cli

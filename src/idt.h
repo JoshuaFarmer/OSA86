@@ -8,6 +8,11 @@
 extern void default_exception_handler(void);
 extern void OSASyscall(void);
 extern void invalid_opcode_handler(void);
+extern void timer_interrupt_handler(void);
+extern void divide_by_zero_handler(void);
+extern void keyboard_interrupt_handler(void);
+extern void general_protection_fault_handler(void);
+extern void page_fault_handler(void);
 
 void Exception(unsigned int addr)
 {
@@ -23,8 +28,6 @@ typedef struct
         int d;
 } SysCall;
 
-extern void divide_by_zero_handler();
-
 void divide_by_zero()
 {
         PANIC("You can't divide by zero, Silly!\n");
@@ -35,7 +38,28 @@ void invalid_opcode()
         PANIC("Invalid Opcode\n");
 }
 
-void page_fault_handler()
+volatile uint8_t CharBuff=0;
+
+void keyboard_handler()
+{
+        if (!getching)
+        {
+                static uint8_t buffer[16];
+                static int head = 0, tail = 0;
+
+                uint8_t scancode = inb(KEYBOARD_DATA_PORT);
+                buffer[head] = scancode;
+                head = (head + 1) % 16;
+                if (CharBuff == 0)
+                {
+                        CharBuff = buffer[tail];
+                        tail = (tail + 1) % 16;
+                }
+        }
+        send_eoi(1);
+}
+
+void page_fault()
 {
         uint32_t faulting_address;
         __asm__ __volatile__
@@ -43,13 +67,13 @@ void page_fault_handler()
                 "movl %%cr2, %0;"
                 : "=r"(faulting_address)
         );
-        send_eoi(0x20);
+        send_eoi(0xE);
         PANIC("Page Fault at address: %x\n", faulting_address);
 }
 
-void general_protection_fault_handler()
+void general_protection_fault()
 {
-        send_eoi(0x20);
+        send_eoi(0xD);
         PANIC("General Protection Fault!\nHalting...\n");
 }
 
@@ -90,15 +114,17 @@ void OSASyscallHandler() {
         }
 }
 
-void timer_interrupt_handler() {
-        send_eoi(0x20);
+void timer_interrupt()
+{
+        //putc('A');
+        send_eoi(0x0);
 }
 
 struct idt_entry {
         uint16_t base_low;         // Lower 16 bits of the handler address
         uint16_t selector;         // Kernel segment selector
         uint8_t  always0;          // This must always be zero
-        uint8_t  flags;                // Flags
+        uint8_t  flags;            // Flags
         uint16_t base_high;        // Upper 16 bits of the handler address
 };
 
@@ -111,9 +137,9 @@ struct idt_ptr {
 
 void set_idt_entry(int n, uint32_t handler, struct idt_entry* idt) {
         idt[n].base_low = handler & 0xFFFF;
-        idt[n].selector = 0x08; // Kernel code segment
+        idt[n].selector = 0x08;
         idt[n].always0 = 0;
-        idt[n].flags = 0x8E;        // Present, ring 0, 32-bit interrupt gate
+        idt[n].flags = 0x8E;
         idt[n].base_high = (handler >> 16) & 0xFFFF;
 }
 
@@ -134,6 +160,7 @@ void init_idt() {
 
         set_idt_entry(0x80, (uint32_t)OSASyscall, idt);
         set_idt_entry(0x20, (uint32_t)timer_interrupt_handler, idt);
+        set_idt_entry(0x21, (uint32_t)keyboard_interrupt_handler, idt);
         set_idt_entry(0x00, (uint32_t)divide_by_zero_handler, idt);
         set_idt_entry(0x0E, (uint32_t)page_fault_handler, idt);
         set_idt_entry(0x0D, (uint32_t)general_protection_fault_handler, idt);

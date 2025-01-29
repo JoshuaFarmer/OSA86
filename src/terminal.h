@@ -70,31 +70,35 @@ const uint16_t keyboard_map_shifted[256] = {
         KEY_ALT, '\\', KEY_F11, KEY_F12
 };
 
-char getch() {
+/*
+char getc()
+{
         char status;
         static int shift_pressed = 0;
         static int alt_code_mode = 0;
         static int alt_code = 0;
 
-        do {
-                status = inb(KEYBOARD_STATUS_PORT); // Read keyboard status port
-        } while ((status & 0x01) == 0); // Wait until there is data to read
+        status = inb(KEYBOARD_STATUS_PORT);
+        if ((status & 0x01) == 0)
+        {
+                return -1;
+        }
 
-        unsigned char scancode = inb(KEYBOARD_DATA_PORT); // Read scan code
+        unsigned char scancode = inb(KEYBOARD_DATA_PORT);
 
-        if (scancode == 0x2A || scancode == 0x36) { // Left or Right Shift pressed
+        if (scancode == 0x2A || scancode == 0x36) {
                 shift_pressed = 1;
-                return 0; // Ignore Shift key press itself
-        } else if (scancode == 0xAA || scancode == 0xB6) { // Left or Right Shift released
+                return 0;
+        } else if (scancode == 0xAA || scancode == 0xB6) {
                 shift_pressed = 0;
-                return 0; // Ignore Shift key release itself
-        } else if (scancode == 0x38) { // Left Alt pressed
-                alt_code_mode = 1; // Enter Alt code mode
-                alt_code = 0; // Reset Alt code
-                return 0; // Ignore Alt key press itself
-        } else if (scancode == 0xB8) { // Left Alt released
-                alt_code_mode = 0; // Exit Alt code mode
-                return 0; // Ignore Alt key release itself
+                return 0;
+        } else if (scancode == 0x38) {
+                alt_code_mode = 1;
+                alt_code = 0;
+                return 0;
+        } else if (scancode == 0xB8) {
+                alt_code_mode = 0;
+                return 0;
         }
 
         if (scancode & 0x80) {
@@ -102,19 +106,16 @@ char getch() {
         } else {
                 if (alt_code_mode) {
                         if (keyboard_map[scancode] >= '0' && keyboard_map[scancode] <= '9') {
-                                // Accumulate the numeric value for Alt code
                                 alt_code = alt_code * 10 + (keyboard_map[scancode] - '0');
                         } else if (keyboard_map[scancode] == '\n') {
-                                // Convert the accumulated Alt code to character
                                 if (alt_code >= 0 && alt_code <= 255) {
-                                        alt_code_mode = 0; // Exit Alt code mode
-                                        return (char)alt_code; // Return character corresponding to Alt code
+                                        alt_code_mode = 0;
+                                        return (char)alt_code;
                                 }
                         }
-                        getch(); // Continue accumulating Alt code
+                        getc();
                         return 0;
                 } else {
-                        // Check if Shift key is pressed and adjust keyboard map index accordingly
                         if (shift_pressed) {
                                 return keyboard_map_shifted[scancode];
                         } else {
@@ -122,6 +123,91 @@ char getch() {
                         }
                 }
         }
+}*/
+
+extern volatile uint8_t CharBuff;
+
+char getc()
+{
+        static int shift_pressed = 0;
+        int x = CharBuff;
+        CharBuff=0;
+
+        if (x == 0x2A || x == 0x36) {
+                shift_pressed = 1;
+                return 0;
+        } else if (x == 0xAA || x == 0xB6) {
+                shift_pressed = 0;
+                return 0;
+        }
+
+        if (x & 0x80) {
+                return 0;
+        } else {
+                if (shift_pressed) {
+                        return keyboard_map_shifted[x];
+                } else {
+                        return keyboard_map[x];
+                }
+        }
+}
+
+int getching = 0;
+
+char getch()
+{       
+        getching = 1;
+        char status;
+        static int shift_pressed = 0;
+        static int alt_code_mode = 0;
+        static int alt_code = 0;
+
+        status = inb(KEYBOARD_STATUS_PORT);
+        do
+        {
+                status = inb(KEYBOARD_STATUS_PORT);
+        } while ((status & 0x01) == 0);
+
+        unsigned char scancode = inb(KEYBOARD_DATA_PORT);
+
+        if (scancode == 0x2A || scancode == 0x36) {
+                shift_pressed = 1;
+                return 0;
+        } else if (scancode == 0xAA || scancode == 0xB6) {
+                shift_pressed = 0;
+                return 0;
+        } else if (scancode == 0x38) {
+                alt_code_mode = 1;
+                alt_code = 0;
+                return 0;
+        } else if (scancode == 0xB8) {
+                alt_code_mode = 0;
+                return 0;
+        }
+
+        if (scancode & 0x80) {
+                return 0;
+        } else {
+                if (alt_code_mode) {
+                        if (keyboard_map[scancode] >= '0' && keyboard_map[scancode] <= '9') {
+                                alt_code = alt_code * 10 + (keyboard_map[scancode] - '0');
+                        } else if (keyboard_map[scancode] == '\n') {
+                                if (alt_code >= 0 && alt_code <= 255) {
+                                        alt_code_mode = 0;
+                                        return (char)alt_code;
+                                }
+                        }
+                        getch();
+                        return 0;
+                } else {
+                        if (shift_pressed) {
+                                return keyboard_map_shifted[scancode];
+                        } else {
+                                return keyboard_map[scancode];
+                        }
+                }
+        }
+        getching=0;
 }
 
 void scroll_cursor() {
