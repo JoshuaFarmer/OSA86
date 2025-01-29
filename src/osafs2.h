@@ -434,7 +434,7 @@ int _ExecuteF(const char *filename, int parentidx)
                 return 0;
         }
 
-        char *buffer = ualloc(file_size);
+        char *buffer = malloc(file_size);
         ProgramHeader * progh = (ProgramHeader *)buffer;
         if (!buffer)
         {
@@ -447,7 +447,7 @@ int _ExecuteF(const char *filename, int parentidx)
                 printf("_start: %x\n",func_ptr);
                 int res = func_ptr();
                 //jump_usermode(func_ptr);
-                ufree(buffer);
+                free(buffer);
                 buffer=NULL;
                 return res;
         }
