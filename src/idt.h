@@ -99,7 +99,7 @@ void init_idt() {
         }
 
         set_idt_entry(0x80, (uint32_t)OSASyscall, idt);
-        set_idt_entry(0x00, (uint32_t)timer_interrupt_handler, idt);
+        set_idt_entry(0x20, (uint32_t)timer_interrupt_handler, idt);
         load_idt(idt);
 #ifdef VERBOSE
         puts("IDT Initialized\n");
