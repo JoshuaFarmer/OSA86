@@ -254,8 +254,10 @@ void osa86() {
 
         InitRamFS();
         CreateF("test.txt");
-        CreateF("test.exe");
+        CreateF("test.tx");
+        CreateF("test");
         WriteF("test.txt","Hellorld!\n",11);
+        WriteF("test.tx","Hellorld!2\n",12);
 
         char prog[] = { 0x4F,0x53,0x41,0x58,
                         0xAA,0x0D,0x00,0x00,
@@ -264,7 +266,7 @@ void osa86() {
                         0x0B,0x00,0x66,0xC7,
                         0x00,0x41,0x41,0x31,
                         0xC0,0xC3 };
-        WriteF("test.exe",prog,sizeof(prog));
+        WriteF("test",prog,sizeof(prog));
 
         char* kbbuff = malloc(128);
 
