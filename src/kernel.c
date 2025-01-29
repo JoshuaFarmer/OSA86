@@ -40,18 +40,16 @@ void send_eoi(uint8_t irq);
 
 void mlmon(char * filename)
 {
-        if (Exists(filename)==0)
-        {
-                CreateF(filename);
-        }
-
-        FILE fp = fgetf(filename,current_path_idx);
-        fseek(fp,0,SEEK_END);
-        int len = ftell(fp);
-
         uint8_t mem[8192];
         memset(mem,0,sizeof(mem));
-        ReadF(filename, mem, len);
+        if (Exists(filename)!=0)
+        {
+                FILE fp = fgetf(filename,current_path_idx);
+                fseek(fp,0,SEEK_END);
+                int len = ftell(fp);
+                ReadF(filename, mem, len);
+        }
+
         char input = 0;
         int x=0;
         int y=0;
@@ -74,6 +72,8 @@ void mlmon(char * filename)
                 switch (input)
                 {
                         case 's':
+                                if (Exists(filename)==0)
+                                        CreateF(filename);
                                 WriteF(filename,mem,sizeof(mem));
                                 break;
                         case 'H':
