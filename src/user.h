@@ -2,7 +2,7 @@
 
 #include "malloc.h"
 //#include "osafs.h"
-
+/*
 typedef enum {
         ROOT_LEVEL,
         USER_LEVEL,
@@ -42,7 +42,6 @@ void create_user(const char name[], PermLevel perms) {
         free(hom);
 }
 
-/*
 void switch_user(const char name[]) {
 }
 */
