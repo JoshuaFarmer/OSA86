@@ -8,13 +8,9 @@
 
 void delay(unsigned int milliseconds) {
         unsigned int count = 11932 * milliseconds; // PIT frequency is approximately 11932 Hz
-
-        // Write initial count value
         outb(count & 0xFF, PIT_CHANNEL0); // Low byte
         outb((count >> 8) & 0xFF, PIT_CHANNEL0); // High byte
-
-        // Wait until timer reaches 0
-        while (count-- > 0 );
+        while (count-- > 0);
 }
 
 #define PIT_COMMAND 0x43

@@ -245,12 +245,10 @@ void osa86() {
         putc('\n');
         init_heap();
         init_gdt();
-        init_pit(100);
-        init_pic();
         init_idt();
+        init_pic();
+        init_pit(1000);
         putc('\n');
-
-        Beep(1000);
 
         InitRamFS();
         CreateF("test.txt");
@@ -273,7 +271,7 @@ void osa86() {
         uint32_t remainingSpace = remaining_heap_space();
         printf("Heap Size Is %d Bytes\n",remainingSpace);
         printf("File Descriptor Size Is %d Bytes\n",sizeof(FileDescriptor));
-
+        sti();
         while (active)
         {
                 printf("%c: %s/%s> ", Drive_Letter, ActiveDirParen(), ActiveDir());
