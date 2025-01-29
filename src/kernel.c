@@ -16,7 +16,11 @@ uint8_t Drive_Letter = 'A';
 void osa86();
 void clearScreen(uint8_t c);
 
-void init() {
+uint8_t hour, minute, second;
+uint8_t day, month, year;
+
+void init()
+{
         osa86();
 }
 
@@ -37,6 +41,7 @@ void send_eoi(uint8_t irq);
 #include "gui.h"
 #include "program.h"
 #include "schedule.h"
+#include "rtc.h"
 
 void mlmon(char * filename)
 {
@@ -190,6 +195,12 @@ void system(char* _syscmd) {
                 {
                         mlmon(syscmd1);
                 }
+        } else if (strcmp(syscmd, "time") == 0)
+        {
+                rtc_get_time(&hour, &minute, &second);
+                rtc_get_date(&day, &month, &year);
+                printf("Time: %d:%d:%d, ", hour, minute, second);
+                printf("Date: %d/%d/%d\n", day, month, year);
         } else {
                 if (syscmd[1] == ':') {
                         //switch_drive(syscmd[0] - 'A');
@@ -270,6 +281,11 @@ void osa86() {
         //x.code=0x0;
         //x.a='_';
         //Int80(&x);
+        
+        rtc_get_time(&hour, &minute, &second);
+        rtc_get_date(&day, &month, &year);
+        printf("Time: %d:%d:%d, ", hour, minute, second);
+        printf("Date: %d/%d/%d\n", day, month, year);
 
         while (active)
         {
