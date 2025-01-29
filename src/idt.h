@@ -14,11 +14,6 @@ extern void keyboard_interrupt_handler(void);
 extern void general_protection_fault_handler(void);
 extern void page_fault_handler(void);
 
-void Exception(unsigned int addr)
-{
-        printf("Exception Error At: %x",addr);
-}
-
 typedef struct
 {
         int code;
@@ -27,6 +22,11 @@ typedef struct
         int c;
         int d;
 } SysCall;
+
+void Exception(unsigned int addr)
+{
+        printf("Exception Error At: %x",addr);
+}
 
 void divide_by_zero()
 {
@@ -114,9 +114,20 @@ void OSASyscallHandler() {
         }
 }
 
+void SystemTick();
+
 void timer_interrupt()
 {
-        //putc('A');
+        static int tick=0;
+        if (tick & 1)
+        {
+                // Run Program Tick
+        }
+        else
+        {
+                SystemTick();
+        }
+        tick++;
         send_eoi(0x0);
 }
 

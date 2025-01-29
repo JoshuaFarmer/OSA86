@@ -245,7 +245,7 @@ void yield(int steps)
 
 char* kbbuff = NULL;
 
-void mainloop()
+void SystemTick()
 {
         if (kbbuff)
         {
@@ -303,7 +303,6 @@ void osa86()
         while (active)
         {
                 sti();
-                mainloop();
         }
 
         free(kbbuff);
