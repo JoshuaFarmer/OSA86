@@ -236,6 +236,11 @@ void mode(int mod) {
         }
 }
 
+void yield(int steps)
+{
+        for(int i = 0; i < steps;++i);
+}
+
 void osa86() {
         cli();
         clearScreen(termCol);
@@ -271,9 +276,11 @@ void osa86() {
         uint32_t remainingSpace = remaining_heap_space();
         printf("Heap Size Is %d Bytes\n",remainingSpace);
         printf("File Descriptor Size Is %d Bytes\n",sizeof(FileDescriptor));
-        sti();
         while (active)
         {
+                sti();
+                yield(100);
+                cli();
                 printf("%c: %s/%s> ", Drive_Letter, ActiveDirParen(), ActiveDir());
                 gets(kbbuff, 128);
                 system(kbbuff);
