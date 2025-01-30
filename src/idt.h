@@ -123,22 +123,22 @@ __attribute__((cdecl)) void timer_interrupt(uint32_t eax, uint32_t ebx, uint32_t
         static int tick=0;
         if (tick & 1)
         {
-                printf("RETURN:%x\n",eip);
-                printf("EAX:%x\n",eax);
-                printf("EBX:%x\n",ebx);
-                printf("ECX:%x\n",ecx);
-                printf("EDX:%x\n",edx);
-                printf("ESI:%x\n",esi);
-                printf("EDI:%x\n",edi);
-                printf("ESP:%x\n",esp);
-                printf("EBP:%x\n",ebp);
-                printf("CS:%x\n",cs);
-                printf("DS:%x\n",ds);
-                printf("SS:%x\n",ss);
-                printf("ES:%x\n",es);
-                printf("FS:%x\n",fs);
-                printf("GS:%x\n",gs);
-                printf("EFLAGS:%b\n",eflags);
+                //printf("RETURN:%x\n",eip);
+                //printf("EAX:%x\n",eax);
+                //printf("EBX:%x\n",ebx);
+                //printf("ECX:%x\n",ecx);
+                //printf("EDX:%x\n",edx);
+                //printf("ESI:%x\n",esi);
+                //printf("EDI:%x\n",edi);
+                //printf("ESP:%x\n",esp);
+                //printf("EBP:%x\n",ebp);
+                //printf("CS:%x\n",cs);
+                //printf("DS:%x\n",ds);
+                //printf("SS:%x\n",ss);
+                //printf("ES:%x\n",es);
+                //printf("FS:%x\n",fs);
+                //printf("GS:%x\n",gs);
+                //printf("EFLAGS:%b\n",eflags);
                 Scheduler();
         }
         else
