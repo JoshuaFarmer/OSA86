@@ -2,7 +2,7 @@
 
 nasm src/boot.asm -o bin/raw/boot.bin
 cd src
-clang -m32 -c -ffreestanding kernel.c -o ../bin/raw/kernel.o -Wall -Wextra -target i386 -Wunused-function
+clang -m32 -c -ffreestanding kernel.c -o ../bin/raw/kernel.o -Wall -Wextra -target i386 -Wunused-function -Wno-unused-parameter
 nasm -felf32 "int.s" -o "../bin/raw/int.o"
 nasm -felf32 "disk.s" -o "../bin/raw/disk.o"
 cd ..
