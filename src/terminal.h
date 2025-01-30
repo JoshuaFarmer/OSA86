@@ -7,8 +7,8 @@
 #define KEYBOARD_STATUS_PORT 0x64
 #define KEYBOARD_DATA_PORT 0x60
 
-int TTY_WIDTH  = 90;
-int TTY_HEIGHT = 60;
+int TTY_WIDTH  = 80;
+int TTY_HEIGHT = 25;
 
 uint8_t termCol = 0x02;
 int txtx=0, txty=0;
@@ -210,25 +210,29 @@ char getch()
         getching=0;
 }
 
-void scroll_cursor() {
-        // Move all lines up by one
-        for (int y = 1; y < TTY_HEIGHT; y++) {
-                for (int x = 0; x < TTY_WIDTH; x++) {
-                        ((char*)videobuff)[((y - 1) * TTY_WIDTH * 2) + (x * 2)] =
-                                ((char*)videobuff)[(y * TTY_WIDTH * 2) + (x * 2)];
-                        ((char*)videobuff)[((y - 1) * TTY_WIDTH * 2) + (x * 2) + 1] =
-                                ((char*)videobuff)[(y * TTY_WIDTH * 2) + (x * 2) + 1];
+void scroll_cursor()
+{
+        char * chars = ((char*)videobuff);
+        for (int y = 1; y < TTY_HEIGHT; ++y)
+        {
+                for (int x = 0; x < TTY_WIDTH; ++x)
+                {
+                        int src=((y * TTY_WIDTH) << 1) + (x << 1);
+                        int dst=(((y - 1) * TTY_WIDTH) << 1) + (x << 1);
+                        chars[dst]   = chars[src];
+                        chars[dst+1] = chars[src+1];
                 }
         }
 
-        // Clear the last line
-        for (int x = 0; x < TTY_HEIGHT; x++) {
-                ((char*)videobuff)[((TTY_HEIGHT - 1) * TTY_WIDTH * 2) + (x * 2)] = '\0';
-                ((char*)videobuff)[((TTY_HEIGHT - 1) * TTY_WIDTH * 2) + (x * 2) + 1] = termCol;
+        for (int x = 0; x < TTY_WIDTH; ++x)
+        {
+                int pos = (((TTY_HEIGHT - 1) * TTY_WIDTH) << 1) + (x << 1);
+                chars[pos]   = '\0';
+                chars[pos+1] = termCol;
         }
 
-        // Adjust the cursor position
-        if (txty >= TTY_HEIGHT) {
+        if (txty >= TTY_HEIGHT)
+        {
                 txty = TTY_HEIGHT - 1;
         }
 }
@@ -559,7 +563,15 @@ int printf(const char* format, ...) {
                                 }
                                 case 'x': {
                                         int i = va_arg(args, int);
-                                        PRINT_DWORD(i);
+                                        PRINT_DWORD_NE(i);
+                                        break;
+                                }
+                                case 'b': {
+                                        uint32_t b = va_arg(args, int);
+                                        for (int i = 0; i < 32; ++i)
+                                        {
+                                                putc(((b>>(31-i))&(1)) ? '1' : '0');
+                                        }
                                         break;
                                 }
                                 default: {

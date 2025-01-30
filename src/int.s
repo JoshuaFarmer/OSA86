@@ -34,8 +34,28 @@ page_fault_handler:
         iret
 timer_interrupt_handler:
         cli
+        push gs
+        push fs
+        push es
+        push ss
+        push ds
+        pushf
+        push esp
+        push ebp
+        push edi
+        push esi
+        push edx
+        push ecx
+        push ebx
+        push eax
+        mov ax, 0x10
+        mov ds, ax
+        mov es, ax
+        mov fs, ax
+        mov gs, ax
         call timer_interrupt
         sti
+        add esp,4*14
         iret
 keyboard_interrupt_handler:
         cli

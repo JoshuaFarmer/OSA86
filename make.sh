@@ -14,4 +14,4 @@ cat bin/raw/boot.bin bin/raw/kernel.bin > bin/raw/OSA86.img
 clang diskutil.c -o diskutil.o -O3 -Wall
 ./diskutil.o "bin/raw/OSA86.img" "bin/OSA86.img"
 ./diskutil.o "|0|" "bin/BlankDisk.img"
-qemu-system-x86_64 -drive file=bin/OSA86.img,format=raw,if=ide,readonly=off
+qemu-system-x86_64 -drive file=bin/OSA86.img,format=raw,if=ide,readonly=off -debugcon stdio
