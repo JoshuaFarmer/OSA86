@@ -530,10 +530,14 @@ void PRINT_DWORD(int X) {
         putc('\n');
 }
 
-void PRINT_WORD(int X) {
+void PRINT_WORD_NE(int X) {
         puts("0x");
         PrintByte((X >> 8) & 255);
         PrintByte(X & 255);
+}
+
+void PRINT_WORD(int X) {
+        PRINT_WORD_NE(X);
         putc('\n');
 }
 
@@ -566,6 +570,16 @@ int printf(const char* format, ...) {
                                         PRINT_DWORD_NE(i);
                                         break;
                                 }
+                                case 'w': {
+                                        int i = va_arg(args, int);
+                                        PRINT_WORD_NE(i);
+                                        break;
+                                }
+                                case 'X': {
+                                        uint8_t i = va_arg(args, int);
+                                        PrintByte(i);
+                                        break;
+                                }
                                 case 'b': {
                                         uint32_t b = va_arg(args, int);
                                         for (int i = 0; i < 32; ++i)
@@ -590,4 +604,4 @@ int printf(const char* format, ...) {
         return 0;
 }
 
-#define PANIC(x, ...) printf("PANIC: "); printf(x, ##__VA_ARGS__); while(1)
+#define PANIC(x, ...) void StackDump(); StackDump(); printf("PANIC: "); printf(x, ##__VA_ARGS__); while(1)

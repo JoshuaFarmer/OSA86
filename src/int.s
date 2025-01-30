@@ -16,7 +16,36 @@ extern timer_interrupt
 extern keyboard_handler
 extern general_protection_fault
 extern page_fault
-
+extern temp1
+extern temp2
+extern temp3
+extern putc
+global LoadAndJump
+LoadAndJump:
+        popf
+        pop eax
+        pop eax
+        pop eax
+        pop eax
+        pop edi
+        pop esi
+        pop ebp
+        mov [0xFF00],ebp
+        pop ebp
+        pop ebx
+        pop edx
+        pop ecx
+        pop eax
+        mov [0xF04],ecx
+        mov [0xF08],eax
+        pop ecx
+        pop eax
+        mov esp,[0xF00]
+        push eax
+        push ecx
+        mov ecx,[0xF04]
+        mov eax,[0xF08]
+        retf
 invalid_opcode_handler:
         cli
         call invalid_opcode
@@ -50,6 +79,7 @@ timer_interrupt_handler:
         push eax
         mov ax, 0x10
         mov ds, ax
+        mov ss, ax
         mov es, ax
         mov fs, ax
         mov gs, ax

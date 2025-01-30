@@ -118,36 +118,26 @@ void SystemTick();
 
 #include "schedule.h"
 
-__attribute__((cdecl)) void timer_interrupt(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx, uint32_t esi, uint32_t edi, uint32_t ebp, uint32_t esp, uint32_t eflags, uint32_t ds, uint32_t ss, uint32_t es, uint32_t fs, uint32_t gs, uint32_t eip, uint16_t cs)
+extern void LoadAndJump(uint32_t eflags, uint32_t ds, uint32_t es, uint32_t fs, uint32_t gs, uint32_t edi, uint32_t esi, uint32_t ebp, uint32_t ebx, uint32_t edx, uint32_t ecx, uint32_t eax, uint32_t esp, uint32_t eip, uint32_t cs);
+
+uint64_t timer_interrupt(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx, uint32_t esi, uint32_t edi, uint32_t ebp, uint32_t esp, uint32_t eflags, uint32_t ds, uint32_t ss, uint32_t es, uint32_t fs, uint32_t gs, uint32_t eip, uint16_t cs)
 {
         static int tick=0;
         if (tick & 1)
         {
-                //printf("RETURN:%x\n",eip);
-                //printf("EAX:%x\n",eax);
-                //printf("EBX:%x\n",ebx);
-                //printf("ECX:%x\n",ecx);
-                //printf("EDX:%x\n",edx);
-                //printf("ESI:%x\n",esi);
-                //printf("EDI:%x\n",edi);
-                //printf("ESP:%x\n",esp);
-                //printf("EBP:%x\n",ebp);
-                //printf("CS:%x\n",cs);
-                //printf("DS:%x\n",ds);
-                //printf("SS:%x\n",ss);
-                //printf("ES:%x\n",es);
-                //printf("FS:%x\n",fs);
-                //printf("GS:%x\n",gs);
-                //printf("EFLAGS:%b\n",eflags);
-                Scheduler();
+                Scheduler(eax, ebx, ecx, edx, esi, edi, ebp, esp, eflags, ds, ss, es, fs, gs, eip, cs);
+                //printf("Switching...\n");
+                //LoadAndJump(eflags, ds, es, fs, gs, edi, esi, ebp, esp, ebx, edx, ecx, eax, eip, cs);
+                //PANIC("What The Fuck?\n");
         }
         else
         {
+                //LookForDead();
                 SystemTick();
         }
         tick++;
         send_eoi(0x0);
-        return;
+        return (cs<<16)|eip;
 }
 
 struct idt_entry {
