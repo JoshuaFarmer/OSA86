@@ -206,7 +206,7 @@ void Scheduler(
                         ActiveTask->ebp=*ebp;
                         ActiveTask->esp=*esp;
                         ActiveTask->eip=*eip;
-                        ActiveTask->eflags=*eflags;
+                        ActiveTask->eflags=*eflags|0x201;
                         ActiveTask->ds=*ds;
                         ActiveTask->ss=*ss;
                         ActiveTask->es=*es;
