@@ -5,12 +5,18 @@
 #define PIT_FREQUENCY 1193180
 #define PIT_CHANNEL0        0x40  // PIT channel 0
 #define PIT_COMMAND         0x43  // PIT command register
+#define PIT_STATUS   0x61
 
 void delay(unsigned int milliseconds) {
-        unsigned int count = 11932 * milliseconds; // PIT frequency is approximately 11932 Hz
-        outb(count & 0xFF, PIT_CHANNEL0); // Low byte
-        outb((count >> 8) & 0xFF, PIT_CHANNEL0); // High byte
-        while (count-- > 0);
+        cli();
+        unsigned int count = 11932 * milliseconds;
+        outb(count & 0xFF, PIT_CHANNEL0);
+        outb((count >> 8) & 0xFF, PIT_CHANNEL0);
+        outb(0x36, PIT_COMMAND);
+        while ((inb(PIT_STATUS) & 0x80) == 0)
+        {
+        }
+        sti();
 }
 
 #define PIT_COMMAND 0x43

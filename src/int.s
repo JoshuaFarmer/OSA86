@@ -104,11 +104,6 @@ keyboard_interrupt_handler:
         call keyboard_handler
         sti
         iret
-        iret
-        iret
-        iret
-        iret
-        iret
 default_exception_handler:
 	cli
         add esp,4

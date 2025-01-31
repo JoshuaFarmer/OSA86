@@ -2,7 +2,7 @@
 
 nasm src/boot.asm -o bin/raw/boot.bin
 cd src
-clang -m32 -c -ffreestanding kernel.c -o ../bin/raw/kernel.o -Wall -Wextra -target i386 -Wunused-function -Wno-unused-parameter
+clang -m32 -ffast-math -c -ffreestanding kernel.c -o ../bin/raw/kernel.o -Wall -Wextra -target i386 -Wunused-function -Wno-unused-parameter
 nasm -felf32 "int.s" -o "../bin/raw/int.o"
 nasm -felf32 "disk.s" -o "../bin/raw/disk.o"
 cd ..
@@ -14,4 +14,4 @@ cat bin/raw/boot.bin bin/raw/kernel.bin > bin/raw/OSA86.img
 clang diskutil.c -o diskutil.o -O3 -Wall
 ./diskutil.o "bin/raw/OSA86.img" "bin/OSA86.img"
 ./diskutil.o "|0|" "bin/BlankDisk.img"
-qemu-system-x86_64 -drive file=bin/OSA86.img,format=raw,if=ide,readonly=off #-debugcon stdio
+qemu-system-i386 -drive file=bin/OSA86.img,format=raw,if=ide,readonly=off #-debugcon stdio

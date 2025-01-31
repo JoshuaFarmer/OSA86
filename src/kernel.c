@@ -267,7 +267,7 @@ void osa86()
         init_idt();
         init_pic();
         init_scheduler();
-        init_pit(256);
+        init_pit(1);
         putc('\n');
 
         InitRamFS();
@@ -300,10 +300,11 @@ void osa86()
         printf("Time: %d:%d:%d, ", hour, minute, second);
         printf("Date: %d/%d/%d\n", day, month, year);
 
-        //sti();
         while (active)
         {
+                cli();
                 SystemTick();
+                sti();
         }
 
         cli();

@@ -159,7 +159,7 @@ int printf(const char *,...);
 
 char getch()
 {
-        getching = true;
+        outb(0x21,0x2);
         char status;
         static int shift_pressed = 0;
         static int alt_code_mode = 0;
@@ -172,28 +172,23 @@ char getch()
         } while ((status & 0x01) == 0);
 
         unsigned char scancode = inb(KEYBOARD_DATA_PORT);
-
+        outb(0x21,0x0);
         if (scancode == 0x2A || scancode == 0x36) {
                 shift_pressed = 1;
-                getching = false;
                 return 0;
         } else if (scancode == 0xAA || scancode == 0xB6) {
                 shift_pressed = 0;
-                getching = false;
                 return 0;
         } else if (scancode == 0x38) {
                 alt_code_mode = 1;
                 alt_code = 0;
-                getching = false;
                 return 0;
         } else if (scancode == 0xB8) {
-                getching = false;
                 alt_code_mode = 0;
                 return 0;
         }
 
         if (scancode & 0x80) {
-                getching = false;
                 return 0;
         } else {
                 if (alt_code_mode) {
@@ -202,19 +197,14 @@ char getch()
                         } else if (keyboard_map[scancode] == '\n') {
                                 if (alt_code >= 0 && alt_code <= 255) {
                                         alt_code_mode = 0;
-                                        getching = false;
                                         return (char)alt_code;
                                 }
                         }
-                        getch();
-                        getching = false;
                         return 0;
                 } else {
                         if (shift_pressed) {
-                                getching = false;
                                 return keyboard_map_shifted[scancode];
                         } else {
-                                getching = false;
                                 return keyboard_map[scancode];
                         }
                 }

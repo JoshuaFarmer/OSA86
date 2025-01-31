@@ -162,7 +162,7 @@ void timer_interrupt(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx, uin
                   &fs, &gs, &eip, &cs, tick); // Get Next
         tick=1;
         uint32_t * new_stack=(uint32_t*)esp;
-        new_stack -= 14;
+        new_stack -= (14*4);
         new_stack[0]=eax;
         new_stack[1]=ebx;
         new_stack[2]=ecx;

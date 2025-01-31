@@ -47,7 +47,7 @@ void init_scheduler()
         RootTask.es=0x10;
         RootTask.fs=0x10;
         RootTask.gs=0x10;
-        RootTask.eflags=0x201;
+        RootTask.eflags=0x200;
         RootTask.name = "Scheduler Root";
         RootTask.esp = (uint32_t)&RootTask.stack[sizeof(RootTask.stack) - 4];
         printf("SCHED Initialized\n");
@@ -73,7 +73,7 @@ void AppendTask(char * name, void (*start)(void))
         new->es=0x10;
         new->fs=0x10;
         new->gs=0x10;
-        new->eflags=0x201;
+        new->eflags=0x200;
         new->esp = (uint32_t)&new->stack[sizeof(new->stack) - 4];
         new->eip = (uint32_t)start;
         new->running = true;
@@ -205,7 +205,7 @@ void Scheduler(
                 ActiveTask->ebp=*ebp;
                 ActiveTask->esp=*esp;
                 ActiveTask->eip=*eip;
-                ActiveTask->eflags=*eflags|0x200;
+                ActiveTask->eflags=*eflags;
                 ActiveTask->ds=*ds;
                 ActiveTask->ss=*ss;
                 ActiveTask->es=*es;
