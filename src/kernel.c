@@ -261,18 +261,15 @@ void osa86()
         clearScreen(termCol);
         mode(0x02);
         system("info");
-
         putc('\n');
+        ps2_init();
         init_heap();
         init_gdt();
         init_idt();
         init_pic();
-        init_pit(10);
         init_scheduler();
+        init_pit(256);
         putc('\n');
-
-        AppendTask("test1",RootTaskMain2);
-        AppendTask("test2",RootTaskMain3);
 
         InitRamFS();
         CreateF("test.txt");
@@ -304,9 +301,10 @@ void osa86()
         printf("Time: %d:%d:%d, ", hour, minute, second);
         printf("Date: %d/%d/%d\n", day, month, year);
 
+        sti();
         while (active)
         {
-                sti();
+                SystemTick();
         }
 
         cli();

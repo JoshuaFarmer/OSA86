@@ -18,12 +18,8 @@ Task * ActiveTask=&RootTask;
 
 void Int80(int);
 void SystemTick();
-void RootTaskMain()
-{
-        SystemTick();
-}
 
-void RootTaskMain2()
+void test()
 {
         putc('2');
         while (true)
@@ -31,7 +27,7 @@ void RootTaskMain2()
         }
 }
 
-void RootTaskMain3()
+void test2()
 {
         putc('3');
         while (true)
@@ -44,7 +40,7 @@ void init_scheduler()
         memset(&RootTask, 0, sizeof(Task));
         RootTask.next=NULL;
         RootTask.running=true;
-        RootTask.eip=(uint32_t)RootTaskMain;
+        RootTask.eip=(uint32_t)0;
         RootTask.cs=0x8;
         RootTask.ds=0x10;
         RootTask.ss=0x10;
@@ -107,18 +103,21 @@ uint32_t temp1,temp2,temp3;
 
 void StackDump()
 {
-        uint32_t esp; asm volatile ("movl %%esp, %0" : "=r" (esp)); 
+        asm ("movl %esp, %eax"); 
+        asm ("addl $4,%eax"); 
+        uint32_t esp; asm volatile ("movl %%eax, %0" : "=r" (esp)); 
         cli();
         clearScreen(0x1F);
 
-        int Size=128;
-        uint8_t * data = (uint8_t*)esp;
+        int Size=64;
+        uint32_t * data = (uint32_t*)esp;
+        printf("ESP = %x\n", esp);
         printf("ESP -%w: ", (Size>>1));
         for (int i = 1; i <= Size; ++i)
         {
                 int pos=i-(Size>>1);
-                PrintByte(data[pos]); putc(' ');
-                if ((i % 16) == 0 && i < Size)
+                PRINT_DWORD_NE(data[pos]); putc(' ');
+                if ((i % 4) == 0 && i < Size)
                 {
                         putc('\n');
                         printf("ESP %c%w: ", pos > 0 ? '+' : (pos<0 ? '-' : ' '), abs(pos));
@@ -195,26 +194,23 @@ void Scheduler(
         cli();
         if (ActiveTask)
         {
-                if (tick)
-                {
-                        ActiveTask->eax=*eax;
-                        ActiveTask->ebx=*ebx;
-                        ActiveTask->ecx=*ecx;
-                        ActiveTask->edx=*edx;
-                        ActiveTask->esi=*esi;
-                        ActiveTask->edi=*edi;
-                        ActiveTask->ebp=*ebp;
-                        ActiveTask->esp=*esp;
-                        ActiveTask->eip=*eip;
-                        ActiveTask->eflags=*eflags|0x200;
-                        ActiveTask->ds=*ds;
-                        ActiveTask->ss=*ss;
-                        ActiveTask->es=*es;
-                        ActiveTask->fs=*fs;
-                        ActiveTask->gs=*gs;
-                        ActiveTask->cs=*cs;
-                        ActiveTask->tick++;
-                }
+                ActiveTask->eax=*eax;
+                ActiveTask->ebx=*ebx;
+                ActiveTask->ecx=*ecx;
+                ActiveTask->edx=*edx;
+                ActiveTask->esi=*esi;
+                ActiveTask->edi=*edi;
+                ActiveTask->ebp=*ebp;
+                ActiveTask->esp=*esp;
+                ActiveTask->eip=*eip;
+                ActiveTask->eflags=*eflags|0x200;
+                ActiveTask->ds=*ds;
+                ActiveTask->ss=*ss;
+                ActiveTask->es=*es;
+                ActiveTask->fs=*fs;
+                ActiveTask->gs=*gs;
+                ActiveTask->cs=*cs;
+                ActiveTask->tick++;
 
                 Next();
                 *eax = ActiveTask->eax;

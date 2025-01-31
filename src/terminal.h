@@ -154,56 +154,69 @@ char getc()
 
 int getching = 0;
 
+int printf(const char *,...);
+
+
+#define PS2_DATA_PORT 0x60
+#define PS2_CMD_PORT  0x64
+
+#define PS2_CMD_DISABLE_PORT1 0xAD
+#define PS2_CMD_ENABLE_PORT1  0xAE
+#define PS2_CMD_READ_DATA     0x20
+#define PS2_CMD_WRITE_DATA    0x60
+
+#define DELAY() asm volatile("nop")
+
+void ps2_send_command(uint8_t cmd) {
+    while (inb(PS2_CMD_PORT) & 0x02) {
+        DELAY();
+    }
+    outb(PS2_CMD_PORT, cmd);
+}
+
+void ps2_write_data(uint8_t data) {
+    while (inb(PS2_CMD_PORT) & 0x02) {
+        DELAY();
+    }
+    outb(PS2_DATA_PORT, data);
+}
+
+uint8_t ps2_read_data() {
+    while (!(inb(PS2_CMD_PORT) & 0x01)) {
+        DELAY();
+    }
+    return inb(PS2_DATA_PORT);
+}
+
+void ps2_init() {
+    ps2_send_command(PS2_CMD_DISABLE_PORT1);
+    DELAY();
+    ps2_send_command(PS2_CMD_ENABLE_PORT1);
+}
+
+uint8_t ps2_read_key() {
+    return ps2_read_data();
+}
+
 char getch()
-{       
-        char status;
-        static int shift_pressed = 0;
-        static int alt_code_mode = 0;
-        static int alt_code = 0;
-
-        status = inb(KEYBOARD_STATUS_PORT);
-        do
-        {
-                status = inb(KEYBOARD_STATUS_PORT);
-        } while ((status & 0x01) == 0);
-
-        unsigned char scancode = inb(KEYBOARD_DATA_PORT);
-
+{
+        getching=true;
+        uint8_t scancode = ps2_read_key();
+        static bool shift_pressed=0;
         if (scancode == 0x2A || scancode == 0x36) {
                 shift_pressed = 1;
                 return 0;
         } else if (scancode == 0xAA || scancode == 0xB6) {
                 shift_pressed = 0;
                 return 0;
-        } else if (scancode == 0x38) {
-                alt_code_mode = 1;
-                alt_code = 0;
-                return 0;
-        } else if (scancode == 0xB8) {
-                alt_code_mode = 0;
-                return 0;
         }
-
         if (scancode & 0x80) {
                 return 0;
         } else {
-                if (alt_code_mode) {
-                        if (keyboard_map[scancode] >= '0' && keyboard_map[scancode] <= '9') {
-                                alt_code = alt_code * 10 + (keyboard_map[scancode] - '0');
-                        } else if (keyboard_map[scancode] == '\n') {
-                                if (alt_code >= 0 && alt_code <= 255) {
-                                        alt_code_mode = 0;
-                                        return (char)alt_code;
-                                }
-                        }
-                        getch();
-                        return 0;
+                if (shift_pressed) {
+                        return keyboard_map_shifted[scancode];
                 } else {
-                        if (shift_pressed) {
-                                return keyboard_map_shifted[scancode];
-                        } else {
-                                return keyboard_map[scancode];
-                        }
+                        return keyboard_map[scancode];
                 }
         }
 }

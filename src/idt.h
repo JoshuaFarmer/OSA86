@@ -44,21 +44,6 @@ volatile uint8_t CharBuff=0;
 
 void keyboard_handler()
 {
-        cli();
-        if (!getching)
-        {
-                static uint8_t buffer[16];
-                static int head = 0, tail = 0;
-
-                uint8_t scancode = inb(KEYBOARD_DATA_PORT);
-                buffer[head] = scancode;
-                head = (head + 1) % 16;
-                if (CharBuff == 0)
-                {
-                        CharBuff = buffer[tail];
-                        tail = (tail + 1) % 16;
-                }
-        }
         send_eoi(1);
 }
 
@@ -153,16 +138,14 @@ void SystemTick();
 
 extern void LoadAndJump(uint32_t * NewStack);
 
-// we need to push data in the new stack in order to switch
-
 void timer_interrupt(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx, uint32_t esi, uint32_t edi, uint32_t ebp, uint32_t esp, uint32_t eflags, uint32_t ds, uint32_t ss, uint32_t es, uint32_t fs, uint32_t gs, uint32_t eip, uint32_t cs)
 {
         static int tick=0;
         LookForDead();
         Scheduler(&eax, &ebx, &ecx, &edx,
-                        &esi, &edi, &ebp, &esp,
-                        &eflags, &ds, &ss, &es,
-                        &fs, &gs, &eip, &cs, tick); // Get Next
+                  &esi, &edi, &ebp, &esp,
+                  &eflags, &ds, &ss, &es,
+                  &fs, &gs, &eip, &cs, tick); // Get Next
         tick=1;
         uint32_t * new_stack=(uint32_t*)esp;
         new_stack -= 14;

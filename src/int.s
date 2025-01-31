@@ -16,13 +16,11 @@ extern timer_interrupt
 extern keyboard_handler
 extern general_protection_fault
 extern page_fault
-extern temp1
-extern temp2
-extern temp3
 extern putc
 extern put_int
 global LoadAndJump
-
+extern PRINT_DWORD
+extern StackDump
 LoadAndJump:
         mov esp,[esp+4]
         pop eax
@@ -88,14 +86,14 @@ timer_interrupt_handler:
         mov fs, ax
         mov gs, ax
         call timer_interrupt
+        jmp $
         sti
         mov esp,[0xFFFF00]
         iret
 keyboard_interrupt_handler:
         cli
-        call keyboard_handler
-        sti
-        iret
+        call StackDump
+        jmp $
 default_exception_handler:
 	cli
         add esp,4
@@ -110,8 +108,6 @@ divide_by_zero_handler:
 	iret
 OSASyscall:
 	cli
-	pusha
 	call OSASyscallHandler
-	popa
         sti
 	iret
