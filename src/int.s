@@ -59,21 +59,21 @@ timer_interrupt_handler:
         cli
         push eax
         mov eax,dword[esp+8]
-        mov dword[0xFF0C],eax
+        mov dword[0xFFFF0C],eax
         mov eax,dword[esp+4]
-        mov dword[0xFF10],eax
+        mov dword[0xFFFF10],eax
         pop eax
-        mov dword[0xFF00],esp
-        mov esp,0xFF00
-        push dword[0xFF0C]
-        push dword[0xFF10]
+        mov dword[0xFFFF00],esp
+        mov esp,0xFFFF00
+        push dword[0xFFFF10]
+        push dword[0xFFFF0C]
         push gs
         push fs
         push es
         push ss
         push ds
         pushf
-        push dword[0xFF00]
+        push dword[0xFFFF00]
         push ebp
         push edi
         push esi
@@ -89,7 +89,7 @@ timer_interrupt_handler:
         mov gs, ax
         call timer_interrupt
         sti
-        mov esp,[0xFF00]
+        mov esp,[0xFFFF00]
         iret
 keyboard_interrupt_handler:
         cli

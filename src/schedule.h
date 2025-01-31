@@ -22,7 +22,7 @@ void RootTaskMain()
 {
         while (true)
         {
-                putc('A');
+                SystemTick();
         }
 }
 
@@ -30,7 +30,6 @@ void RootTaskMain2()
 {
         while (true)
         {
-                putc('B');
         }
 }
 
@@ -46,8 +45,9 @@ void init_scheduler()
         RootTask.es=0x10;
         RootTask.fs=0x10;
         RootTask.gs=0x10;
+        RootTask.eflags=0x201;
         RootTask.name = "Scheduler Root";
-        RootTask.esp = (uint32_t)RootTask.stack;
+        RootTask.esp = (uint32_t)&RootTask.stack[8192*4 - 4];
         printf("SCHED Initialized\n");
 }
 
@@ -61,9 +61,9 @@ void AppendTask(char * name, void (*start)(void))
 {
         Task * new = malloc(sizeof(Task));
         if (!new) return; // outta ram bitch
+        memset(new, 0, sizeof(Task));
         new->next=RootTask.next;
         RootTask.next=new;
-        memset(new, 0, sizeof(Task));
         new->name=name;
         new->cs=0x8;
         new->ds=0x10;
@@ -71,7 +71,8 @@ void AppendTask(char * name, void (*start)(void))
         new->es=0x10;
         new->fs=0x10;
         new->gs=0x10;
-        new->esp = (uint32_t)new->stack;
+        new->eflags=0x201;
+        new->esp = (uint32_t)&new->stack[sizeof(new->stack) - 4];
         new->eip = (uint32_t)start;
         new->running = true;
 }
@@ -144,8 +145,9 @@ void LookForDead()
                                 prev->next = current->next;
                         }
                         prev = current;
+                        Task * to_free = current;
                         current = current->next;
-                        free(current);
+                        free(to_free);
                 }
                 else
                 {
@@ -160,9 +162,10 @@ void Next()
         if (ActiveTask && ActiveTask->next)
         {
                 ActiveTask = ActiveTask->next;
-                if (!ActiveTask->running)
+                while (ActiveTask && !ActiveTask->running)
                 {
-                        Next();
+                        ActiveTask = ActiveTask->next;
+                        if (!ActiveTask) ActiveTask = &RootTask;
                 }
         }
         else if (!ActiveTask->next)
@@ -183,6 +186,7 @@ void Scheduler(
                 uint32_t tick
               )
 {
+        cli();
         if (ActiveTask)
         {
                 if (tick)
@@ -196,7 +200,7 @@ void Scheduler(
                         ActiveTask->ebp=*ebp;
                         ActiveTask->esp=*esp;
                         ActiveTask->eip=*eip;
-                        ActiveTask->eflags=*eflags;
+                        ActiveTask->eflags=*eflags|0x200;
                         ActiveTask->ds=*ds;
                         ActiveTask->ss=*ss;
                         ActiveTask->es=*es;
