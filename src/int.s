@@ -20,32 +20,26 @@ extern temp1
 extern temp2
 extern temp3
 extern putc
+extern put_int
 global LoadAndJump
+
 LoadAndJump:
-        popf
+        mov esp,[esp+4]
         pop eax
-        pop eax
-        pop eax
-        pop eax
-        pop edi
-        pop esi
-        pop ebp
-        mov [0xFF00],ebp
-        pop ebp
         pop ebx
+        pop ecx
         pop edx
-        pop ecx
-        pop eax
-        mov [0xF04],ecx
-        mov [0xF08],eax
-        pop ecx
-        pop eax
-        mov esp,[0xF00]
-        push eax
-        push ecx
-        mov ecx,[0xF04]
-        mov eax,[0xF08]
+        pop esi
+        pop edi
+        pop ebp
+        popf
+        pop ds
+        pop es
+        pop fs
+        pop gs
+        sti
         retf
+
 invalid_opcode_handler:
         cli
         call invalid_opcode
@@ -63,13 +57,23 @@ page_fault_handler:
         iret
 timer_interrupt_handler:
         cli
+        push eax
+        mov eax,dword[esp+8]
+        mov dword[0xFF0C],eax
+        mov eax,dword[esp+4]
+        mov dword[0xFF10],eax
+        pop eax
+        mov dword[0xFF00],esp
+        mov esp,0xFF00
+        push dword[0xFF0C]
+        push dword[0xFF10]
         push gs
         push fs
         push es
         push ss
         push ds
         pushf
-        push esp
+        push dword[0xFF00]
         push ebp
         push edi
         push esi
@@ -85,7 +89,7 @@ timer_interrupt_handler:
         mov gs, ax
         call timer_interrupt
         sti
-        add esp,4*14
+        mov esp,[0xFF00]
         iret
 keyboard_interrupt_handler:
         cli
@@ -111,17 +115,3 @@ OSASyscall:
 	popa
         sti
 	iret
-jump_usermode:
-        mov ebp,esp
-        mov ax,0x10|3
-        mov ds,ax
-        mov es,ax
-        mov fs,ax
-        mov gs,ax
-        xor edx,edx
-        mov eax,0x8
-        mov ecx,0x174
-        wrmsr
-        mov edx,[ebp+4]
-        mov ecx,esp
-        sysexit

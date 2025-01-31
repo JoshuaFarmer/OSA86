@@ -1,9 +1,11 @@
-#pragma once
+#ifndef IDT_H
+#define IDT_H
 
 #include <stdint.h>
 #include <stdbool.h>
 #include "malloc.h"
 #include "osafs2.h"
+#include "schedule.h"
 
 extern void default_exception_handler(void);
 extern void OSASyscall(void);
@@ -77,40 +79,70 @@ void general_protection_fault()
         PANIC("General Protection Fault!\nHalting...\n");
 }
 
-void Int80(SysCall * x)
+void Int80(int eax)
 {
         __asm__ __volatile__
         (
                 "movl %0, %%eax;"
+                "movl %1, %%ebx;"
                 "int $0x80;"
                 :
-                : "r"(x)
-                : "%eax"
+                : "r"(eax), "r"(1)
+                : "%eax", "%ebx"
+        );
+}
+
+void Int80Args(SysCall * x)
+{
+        __asm__ __volatile__
+        (
+                "movl %0, %%eax;"
+                "movl %1, %%ebx;"
+                "int $0x80;"
+                :
+                : "r"(x), "r"(1)
+                : "%eax", "%ebx"
         );
 }
 
 void OSASyscallHandler() {
         cli();
         SysCall * args;
+        int is_args=0;
         __asm__ __volatile__ (
                 "movl %%eax, %0;"
-                : "=r"(args)
+                "movl %%ebx, %1;"
+                : "=r"(args),"=r"(is_args)
         );
 
-        switch (args->code)
+        if (is_args)
         {
-                case 0:
-                        putc(args->a);
-                        break;
-                case 1:
-                        puts((const char *)args->a);
-                        break;
-                case 2:
-                        fwrite((void *)args->a,1,args->b,(FILE *)args->c);
-                        break;
-                case 3:
-                        fread((void *)args->a,1,args->b,(FILE *)args->c);
-                        break;
+                switch (args->code)
+                {
+                        case 0:
+                                putc(args->a);
+                                break;
+                        case 1:
+                                puts((const char *)args->a);
+                                break;
+                        case 2:
+                                fwrite((void *)args->a,1,args->b,(FILE *)args->c);
+                                break;
+                        case 3:
+                                fread((void *)args->a,1,args->b,(FILE *)args->c);
+                                break;
+                }
+        }
+
+        else
+        {
+                int code = (int)args;
+                switch (code)
+                {
+                        case 0:
+                                MarkDead();
+                                break;
+                }
         }
 }
 
@@ -118,26 +150,37 @@ void SystemTick();
 
 #include "schedule.h"
 
-extern void LoadAndJump(uint32_t eflags, uint32_t ds, uint32_t es, uint32_t fs, uint32_t gs, uint32_t edi, uint32_t esi, uint32_t ebp, uint32_t ebx, uint32_t edx, uint32_t ecx, uint32_t eax, uint32_t esp, uint32_t eip, uint32_t cs);
+extern void LoadAndJump(uint32_t * NewStack);
 
-uint64_t timer_interrupt(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx, uint32_t esi, uint32_t edi, uint32_t ebp, uint32_t esp, uint32_t eflags, uint32_t ds, uint32_t ss, uint32_t es, uint32_t fs, uint32_t gs, uint32_t eip, uint16_t cs)
+// we need to push data in the new stack in order to switch
+
+void timer_interrupt(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx, uint32_t esi, uint32_t edi, uint32_t ebp, uint32_t esp, uint32_t eflags, uint32_t ds, uint32_t ss, uint32_t es, uint32_t fs, uint32_t gs, uint32_t eip, uint32_t cs)
 {
         static int tick=0;
-        if (tick & 1)
-        {
-                Scheduler(eax, ebx, ecx, edx, esi, edi, ebp, esp, eflags, ds, ss, es, fs, gs, eip, cs);
-                //printf("Switching...\n");
-                //LoadAndJump(eflags, ds, es, fs, gs, edi, esi, ebp, esp, ebx, edx, ecx, eax, eip, cs);
-                //PANIC("What The Fuck?\n");
-        }
-        else
-        {
-                //LookForDead();
-                SystemTick();
-        }
-        tick++;
+        LookForDead();
+        outb(0xE9,'S');
+        Scheduler(&eax, &ebx, &ecx, &edx,
+                        &esi, &edi, &ebp, &esp,
+                        &eflags, &ds, &ss, &es,
+                        &fs, &gs, &eip, &cs, tick); // Get Next
+        uint32_t * new_stack=(uint32_t*)esp;
+        new_stack -= 14;
+        new_stack[0]=eax;
+        new_stack[1]=ebx;
+        new_stack[2]=ecx;
+        new_stack[3]=edx;
+        new_stack[4]=esi;
+        new_stack[5]=edi;
+        new_stack[6]=ebp;
+        new_stack[7]=eflags;
+        new_stack[8]=ds;
+        new_stack[9]=es;
+        new_stack[10]=fs;
+        new_stack[11]=gs;
+        new_stack[12]=eip;
+        new_stack[13]=cs;
         send_eoi(0x0);
-        return (cs<<16)|eip;
+        LoadAndJump(new_stack);
 }
 
 struct idt_entry {
@@ -190,3 +233,5 @@ void init_idt() {
         puts("IDT Initialized\n");
 #endif
 }
+
+#endif

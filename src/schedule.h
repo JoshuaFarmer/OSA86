@@ -6,6 +6,8 @@ typedef struct Task
         uint32_t eax,ecx,edx,ebx,esp,ebp,esi,edi,eip;
         uint16_t ds,es,fs,gs,cs,ss;
         uint32_t eflags;
+        uint8_t stack[8192*4];
+        int tick;
         struct Task * next;
         bool running;
         char * name;
@@ -14,11 +16,21 @@ typedef struct Task
 Task RootTask; // on init, switch self to this, so that it's only called on interrupts
 Task * ActiveTask=&RootTask;
 
+void Int80(int);
+void SystemTick();
 void RootTaskMain()
 {
-        puts("ROOT TASK");
-        while(1)
+        while (true)
         {
+                putc('A');
+        }
+}
+
+void RootTaskMain2()
+{
+        while (true)
+        {
+                putc('B');
         }
 }
 
@@ -29,7 +41,13 @@ void init_scheduler()
         RootTask.running=true;
         RootTask.eip=(uint32_t)RootTaskMain;
         RootTask.cs=0x8;
+        RootTask.ds=0x10;
+        RootTask.ss=0x10;
+        RootTask.es=0x10;
+        RootTask.fs=0x10;
+        RootTask.gs=0x10;
         RootTask.name = "Scheduler Root";
+        RootTask.esp = (uint32_t)RootTask.stack;
         printf("SCHED Initialized\n");
 }
 
@@ -39,7 +57,7 @@ void MarkDead()
         ActiveTask->running=false;
 }
 
-void AppendTask(char * name)
+void AppendTask(char * name, void (*start)(void))
 {
         Task * new = malloc(sizeof(Task));
         if (!new) return; // outta ram bitch
@@ -47,6 +65,15 @@ void AppendTask(char * name)
         RootTask.next=new;
         memset(new, 0, sizeof(Task));
         new->name=name;
+        new->cs=0x8;
+        new->ds=0x10;
+        new->ss=0x10;
+        new->es=0x10;
+        new->fs=0x10;
+        new->gs=0x10;
+        new->esp = (uint32_t)new->stack;
+        new->eip = (uint32_t)start;
+        new->running = true;
 }
 
 int ScheduleLength()
@@ -128,7 +155,7 @@ void LookForDead()
         }
 }
 
-static void Next()
+void Next()
 {
         if (ActiveTask && ActiveTask->next)
         {
@@ -144,28 +171,55 @@ static void Next()
         }
 }
 
-void Scheduler(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx, uint32_t esi, uint32_t edi, uint32_t ebp, uint32_t esp, uint32_t eflags, uint32_t ds, uint32_t ss, uint32_t es, uint32_t fs, uint32_t gs, uint32_t eip, uint16_t cs)
+void Scheduler(
+                uint32_t * eax, uint32_t * ebx,
+                uint32_t * ecx, uint32_t * edx,
+                uint32_t * esi, uint32_t * edi,
+                uint32_t * ebp, uint32_t * esp,
+                uint32_t * eflags, uint32_t * ds,
+                uint32_t * ss, uint32_t * es,
+                uint32_t * fs, uint32_t * gs,
+                uint32_t * eip, uint32_t * cs,
+                uint32_t tick
+              )
 {
         if (ActiveTask)
         {
-                ActiveTask->eax=eax;
-                ActiveTask->ebx=ebx;
-                ActiveTask->ecx=ecx;
-                ActiveTask->edx=edx;
-                ActiveTask->esi=esi;
-                ActiveTask->edi=edi;
-                ActiveTask->ebp=ebp;
-                ActiveTask->esp=esp;
-                ActiveTask->eip=eip;
-                ActiveTask->eflags=eflags;
-                ActiveTask->ds=ds;
-                ActiveTask->ss=ss;
-                ActiveTask->es=es;
-                ActiveTask->fs=fs;
-                ActiveTask->gs=gs;
-                ActiveTask->cs=cs;
+                if (tick)
+                {
+                        ActiveTask->eax=*eax;
+                        ActiveTask->ebx=*ebx;
+                        ActiveTask->ecx=*ecx;
+                        ActiveTask->edx=*edx;
+                        ActiveTask->esi=*esi;
+                        ActiveTask->edi=*edi;
+                        ActiveTask->ebp=*ebp;
+                        ActiveTask->esp=*esp;
+                        ActiveTask->eip=*eip;
+                        ActiveTask->eflags=*eflags;
+                        ActiveTask->ds=*ds;
+                        ActiveTask->ss=*ss;
+                        ActiveTask->es=*es;
+                        ActiveTask->fs=*fs;
+                        ActiveTask->gs=*gs;
+                        ActiveTask->cs=*cs;
+                }
 
                 Next();
+                *eax = ActiveTask->eax;
+                *ebx = ActiveTask->ebx;
+                *ecx = ActiveTask->ecx;
+                *edx = ActiveTask->edx;
+                *esi = ActiveTask->esi;
+                *edi = ActiveTask->edi;
+                *esp = ActiveTask->esp;
+                *ebp = ActiveTask->ebp;
+                *eip = ActiveTask->eip;
+                *cs  = ActiveTask->cs;
+                *ds  = ActiveTask->ds;
+                *es  = ActiveTask->es;
+                *fs  = ActiveTask->fs;
+                *gs  = ActiveTask->gs;
         }
 }
 

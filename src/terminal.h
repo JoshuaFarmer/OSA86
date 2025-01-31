@@ -156,7 +156,13 @@ int getching = 0;
 
 char getch()
 {       
-        getching = 1;
+        char x = 0;
+        while (x == 0)
+        {
+                x=getc();
+        }
+        return x;
+        /*
         char status;
         static int shift_pressed = 0;
         static int alt_code_mode = 0;
@@ -206,8 +212,7 @@ char getch()
                                 return keyboard_map[scancode];
                         }
                 }
-        }
-        getching=0;
+        }*/
 }
 
 void scroll_cursor()
