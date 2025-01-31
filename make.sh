@@ -15,6 +15,5 @@ cat bin/raw/boot.bin bin/raw/kernel.bin > bin/raw/OSA86.img
 clang fstools/src/diskutil.c -o fstools/bin/diskutil -O3 -Wall
 clang fstools/src/osafs2.c -o fstools/bin/osafs -O3 -Wall
 ./fstools/bin/diskutil "bin/raw/OSA86.img" "bin/OSA86.img"
-./fstools/bin/diskutil "|0|" "bin/BlankDisk.img"
 
 qemu-system-i386 -drive file=bin/OSA86.img,format=raw,if=ide,readonly=off #-debugcon stdio
