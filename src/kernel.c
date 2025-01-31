@@ -3,6 +3,7 @@
 
 #define DEBUG
 #define VERBOSE
+#define MAX_ADDR (1<<25)
 
 #pragma pack(1)
 

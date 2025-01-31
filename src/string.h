@@ -162,11 +162,12 @@ char* strdup(const char* s) {
                 return NULL;
 
         size_t len = strlen(s);
-        char* dup = (char*)malloc(len + 1); // Allocate memory for the duplicated string
+        char* dup = (char*)malloc(len + 1);
         if (dup == NULL)
                 return NULL;
 
-        strcpy(dup, s); // Copy the contents of the original string into the new string
+        strcpy(dup, s);
+        dup[len]=0;
         return dup;
 }
 

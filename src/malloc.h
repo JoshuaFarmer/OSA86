@@ -8,8 +8,8 @@ typedef uint32_t size_t;
 #include <stddef.h>
 #include <stdint.h>
 
-#define HEAP_BASE 0x2000000
 #define HEAP_SIZE 1024*1024
+#define HEAP_BASE MAX_ADDR-HEAP_SIZE
 #define ALIGNMENT 4
 #define ALIGN(size) (((size) + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1))
 typedef struct Block {
