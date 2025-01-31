@@ -63,7 +63,10 @@ void MarkDead()
 void AppendTask(char * name, void (*start)(void))
 {
         Task * new = malloc(sizeof(Task));
-        if (!new) return; // outta ram bitch
+        if (!new) {
+                printf("outta ram bitch\n");
+                return;
+        }
         memset(new, 0, sizeof(Task));
         new->next=RootTask.next;
         RootTask.next=new;
