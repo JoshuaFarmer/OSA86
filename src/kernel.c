@@ -135,8 +135,8 @@ void system(char* sys) {
         char* syscmd  = strtok(sys, " \0");
         char* syscmd1 = strtok(NULL, ";\0");
         char* syscmd2 = strtok(NULL, "\0");
-
-        if (strncmp(syscmd, "./", 2) == 0) {
+        if (syscmd[0]=='.' && syscmd[1]=='/')
+        {
                 char* path = syscmd+2;
                 while(path[0] == '/')path++;
                 int res = ExecuteF(path);
@@ -250,16 +250,21 @@ void yield(int steps)
         for(int i = 0; i < steps;++i);
 }
 
-char* kbbuff = NULL;
 
 void SystemTick()
 {
+        char kbbuff[128];
         if (kbbuff)
         {
                 printf("%c: %s/%s> ", Drive_Letter, ActiveDirParen(), ActiveDir());
                 gets(kbbuff, 128);
                 system(kbbuff);
         }
+}
+
+void loadfs() // org sector 128
+{
+
 }
 
 void osa86()
@@ -274,7 +279,7 @@ void osa86()
         init_idt();
         init_pic();
         init_scheduler();
-        init_pit(1);
+        init_pit(128);
         putc('\n');
 
         InitRamFS();
@@ -290,8 +295,6 @@ void osa86()
                       };
         WriteF("test",prog,sizeof(prog));
 
-        kbbuff = malloc(128);
-
         uint32_t remainingSpace = remaining_heap_space();
         printf("Heap Size Is %d Bytes\n",remainingSpace);
         printf("File Descriptor Size Is %d Bytes\n",sizeof(FileDescriptor));
@@ -302,6 +305,8 @@ void osa86()
         //x.a='_';
         //Int80(&x);
         
+        loadfs();
+
         rtc_get_time(&hour, &minute, &second);
         rtc_get_date(&day, &month, &year);
         printf("Time: %d:%d:%d, ", hour, minute, second);
@@ -315,7 +320,6 @@ void osa86()
         }
 
         cli();
-        free(kbbuff);
         clearScreen(termCol);
         mode(0x2);
         puts_at("It is now safe to turn of your computer\n", 20, 11);

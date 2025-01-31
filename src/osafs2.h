@@ -5,8 +5,8 @@
 #include <stdbool.h>
 #include "string.h"
 #define CLUSTSZ 503
-#define MFC 512
-#define MCC 512
+#define MFC 64
+#define MCC 64
 #define EOF -1
 
 int current_path_idx = -1;
@@ -42,15 +42,11 @@ typedef struct {
 #define CHECKSUM 0xAA
 #define PHVERSION 0x1
 
-FAE            * FAT0=NULL;
-FileDescriptor * FDS0=NULL;
+FAE            * FAT0=(FAE*)0x1000000;
+FileDescriptor * FDS0=(FileDescriptor*)0x1000000+(sizeof(FAE)*MCC);
 
 void InitRamFS()
 {
-        if (FAT0) {free(FAT0);}
-        if (FDS0) {free(FDS0);}
-        FAT0=malloc(sizeof(FAE)*MCC);
-        FDS0=malloc(sizeof(FileDescriptor)*MFC);
         memset(FAT0,0,sizeof(FAE)*MCC);
         memset(FDS0,0,sizeof(FileDescriptor)*MFC);
 }
