@@ -62,6 +62,7 @@ void MarkDead()
 
 void AppendTask(char * name, void (*start)(void))
 {
+        if (!name || !start) return;
         Task * new = malloc(sizeof(Task));
         if (!new) {
                 printf("outta ram bitch\n");

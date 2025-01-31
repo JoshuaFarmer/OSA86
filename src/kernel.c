@@ -209,6 +209,10 @@ void system(char* _syscmd) {
                 }
                 else if (syscmd[0]) { puts(syscmd); puts(", What?\n"); }
         }
+
+        free(syscmd);
+        free(syscmd1);
+        free(syscmd2);
 }
 
 void mode(int mod) {
