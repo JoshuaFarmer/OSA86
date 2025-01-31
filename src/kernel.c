@@ -145,8 +145,9 @@ void system(char* _syscmd) {
         } else if (strcmp(syscmd, "&") == 0) { 
                 if (syscmd1 && syscmd2)
                 {
-                        Schedule(syscmd1);
-                        Schedule(syscmd2);
+                        ExecuteF(syscmd1);
+                        ExecuteF(syscmd2);
+                        ListSchedule();
                 }
         } else if (strcmp(syscmd, "cls") == 0) { 
                 clearScreen(termCol);
