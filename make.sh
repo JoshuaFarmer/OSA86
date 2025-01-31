@@ -1,17 +1,20 @@
 #!/bin/bash
 
-nasm src/boot.asm -o bin/raw/boot.bin
-cd src
-clang -m32 -ffast-math -c -ffreestanding kernel.c -o ../bin/raw/kernel.o -Wall -Wextra -target i386 -Wunused-function -Wno-unused-parameter
-nasm -felf32 "int.s" -o "../bin/raw/int.o"
-nasm -felf32 "disk.s" -o "../bin/raw/disk.o"
-cd ..
+nasm src/boot.asm -o bin/raw/boot.bin -f bin
+nasm src/int.s -o bin/raw/int.o -f elf32
+nasm src/disk.s -o bin/raw/disk.o -f elf32
+clang src/kernel.c -o bin/raw/kernel.o -m32 -ffast-math -c -ffreestanding -Wall -Wextra -target i386 -Wunused-function -Wno-unused-parameter
+
 ld -m elf_i386 -T linker.ld -o bin/raw/kernel.elf -Os bin/raw/kernel.o bin/raw/int.o bin/raw/disk.o -nostdlib
 llvm-objcopy -O binary bin/raw/kernel.elf bin/raw/kernel.bin
 llvm-strip bin/raw/kernel.elf
 llvm-objdump -h bin/raw/kernel.elf
+
 cat bin/raw/boot.bin bin/raw/kernel.bin > bin/raw/OSA86.img
-clang diskutil.c -o diskutil.o -O3 -Wall
-./diskutil.o "bin/raw/OSA86.img" "bin/OSA86.img"
-./diskutil.o "|0|" "bin/BlankDisk.img"
+
+clang fstools/src/diskutil.c -o fstools/bin/diskutil -O3 -Wall
+clang fstools/src/osafs2.c -o fstools/bin/osafs -O3 -Wall
+./fstools/bin/diskutil "bin/raw/OSA86.img" "bin/OSA86.img"
+./fstools/bin/diskutil "|0|" "bin/BlankDisk.img"
+
 qemu-system-i386 -drive file=bin/OSA86.img,format=raw,if=ide,readonly=off #-debugcon stdio
