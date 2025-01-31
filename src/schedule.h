@@ -49,7 +49,7 @@ void init_scheduler()
         RootTask.fs=0x10;
         RootTask.gs=0x10;
         RootTask.eflags=0x200;
-        RootTask.name = "Scheduler Root";
+        RootTask.name = "System";
         RootTask.esp = (uint32_t)&RootTask.stack[sizeof(RootTask.stack) - 4];
         printf("SCHED Initialized\n");
 }
@@ -133,7 +133,7 @@ void StackDump()
 
 void ListSchedule()
 {
-        printf("SCHEDULE:\n");
+        printf("task list:\n");
         IterateSchedule(i)
         {
                 putsn(current->name,64); putc('\n');
