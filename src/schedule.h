@@ -101,6 +101,8 @@ int abs(int x)
 
 uint32_t temp1,temp2,temp3;
 
+extern void StackDump();
+
 void StackDump()
 {
         asm ("movl %esp, %eax"); 

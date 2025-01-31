@@ -44,6 +44,20 @@ volatile uint8_t CharBuff=0;
 
 void keyboard_handler()
 {
+        if (!getching)
+        {
+                static uint8_t buffer[16];
+                static int head = 0, tail = 0;
+
+                uint8_t scancode = inb(KEYBOARD_DATA_PORT);
+                buffer[head] = scancode;
+                head = (head + 1) % 16;
+                if (CharBuff == 0)
+                {
+                        CharBuff = buffer[tail];
+                        tail = (tail + 1) % 16;
+                }
+        }
         send_eoi(1);
 }
 

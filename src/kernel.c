@@ -262,7 +262,6 @@ void osa86()
         mode(0x02);
         system("info");
         putc('\n');
-        ps2_init();
         init_heap();
         init_gdt();
         init_idt();
@@ -301,7 +300,7 @@ void osa86()
         printf("Time: %d:%d:%d, ", hour, minute, second);
         printf("Date: %d/%d/%d\n", day, month, year);
 
-        sti();
+        //sti();
         while (active)
         {
                 SystemTick();
