@@ -267,11 +267,12 @@ void osa86()
         init_gdt();
         init_idt();
         init_pic();
-        init_pit(1000);
+        init_pit(10);
         init_scheduler();
         putc('\n');
 
-        AppendTask("test",RootTaskMain2);
+        AppendTask("test1",RootTaskMain2);
+        AppendTask("test2",RootTaskMain3);
 
         InitRamFS();
         CreateF("test.txt");

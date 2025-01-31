@@ -65,8 +65,8 @@ timer_interrupt_handler:
         pop eax
         mov dword[0xFFFF00],esp
         mov esp,0xFFFF00
+        push dword[0xFFFF0C] 
         push dword[0xFFFF10]
-        push dword[0xFFFF0C]
         push gs
         push fs
         push es

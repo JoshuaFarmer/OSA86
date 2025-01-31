@@ -6,7 +6,7 @@ typedef struct Task
         uint32_t eax,ecx,edx,ebx,esp,ebp,esi,edi,eip;
         uint16_t ds,es,fs,gs,cs,ss;
         uint32_t eflags;
-        uint8_t stack[8192*4];
+        uint8_t stack[8192*8];
         int tick;
         struct Task * next;
         bool running;
@@ -20,14 +20,20 @@ void Int80(int);
 void SystemTick();
 void RootTaskMain()
 {
-        while (true)
-        {
-                SystemTick();
-        }
+        SystemTick();
 }
 
 void RootTaskMain2()
 {
+        putc('2');
+        while (true)
+        {
+        }
+}
+
+void RootTaskMain3()
+{
+        putc('3');
         while (true)
         {
         }
@@ -47,7 +53,7 @@ void init_scheduler()
         RootTask.gs=0x10;
         RootTask.eflags=0x201;
         RootTask.name = "Scheduler Root";
-        RootTask.esp = (uint32_t)&RootTask.stack[8192*4 - 4];
+        RootTask.esp = (uint32_t)&RootTask.stack[sizeof(RootTask.stack) - 4];
         printf("SCHED Initialized\n");
 }
 
@@ -200,13 +206,14 @@ void Scheduler(
                         ActiveTask->ebp=*ebp;
                         ActiveTask->esp=*esp;
                         ActiveTask->eip=*eip;
-                        ActiveTask->eflags=*eflags|0x200;
+                        ActiveTask->eflags=*eflags;
                         ActiveTask->ds=*ds;
                         ActiveTask->ss=*ss;
                         ActiveTask->es=*es;
                         ActiveTask->fs=*fs;
                         ActiveTask->gs=*gs;
                         ActiveTask->cs=*cs;
+                        ActiveTask->tick++;
                 }
 
                 Next();

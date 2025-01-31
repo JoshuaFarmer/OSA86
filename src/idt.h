@@ -44,6 +44,7 @@ volatile uint8_t CharBuff=0;
 
 void keyboard_handler()
 {
+        cli();
         if (!getching)
         {
                 static uint8_t buffer[16];
@@ -158,11 +159,11 @@ void timer_interrupt(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx, uin
 {
         static int tick=0;
         LookForDead();
-        outb(0xE9,'S');
         Scheduler(&eax, &ebx, &ecx, &edx,
                         &esi, &edi, &ebp, &esp,
                         &eflags, &ds, &ss, &es,
                         &fs, &gs, &eip, &cs, tick); // Get Next
+        tick=1;
         uint32_t * new_stack=(uint32_t*)esp;
         new_stack -= 14;
         new_stack[0]=eax;
