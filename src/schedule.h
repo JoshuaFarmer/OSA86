@@ -7,6 +7,7 @@ typedef struct Task
         uint16_t ds,es,fs,gs,cs,ss;
         uint32_t eflags;
         uint8_t stack[8192];
+        void * start;
         int tick;
         struct Task * next;
         bool running;
@@ -16,7 +17,7 @@ typedef struct Task
 Task RootTask; // on init, switch self to this, so that it's only called on interrupts
 Task * ActiveTask=&RootTask;
 
-void Int80(int);
+void Int80(int,int);
 void SystemTick();
 
 void test()
@@ -66,7 +67,8 @@ void AppendTask(char * name, void (*start)(void))
         memset(new, 0, sizeof(Task));
         new->next=RootTask.next;
         RootTask.next=new;
-        new->name=name;
+        new->name=strdup(name);
+        new->start=(void*)start;
         new->cs=0x8;
         new->ds=0x10;
         new->ss=0x10;
@@ -154,6 +156,8 @@ void LookForDead()
                         prev = current;
                         Task * to_free = current;
                         current = current->next;
+                        free(to_free->name);
+                        free(to_free->start);
                         free(to_free);
                 }
                 else

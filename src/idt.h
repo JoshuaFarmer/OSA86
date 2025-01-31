@@ -79,16 +79,17 @@ void general_protection_fault()
         PANIC("General Protection Fault!\nHalting...\n");
 }
 
-void Int80(int eax)
+void Int80(int eax, int ecx)
 {
         __asm__ __volatile__
         (
                 "movl %0, %%eax;"
-                "movl %1, %%ebx;"
+                "movl $0, %%ebx;"
+                "movl %1, %%ecx;"
                 "int $0x80;"
                 :
-                : "r"(eax), "r"(1)
-                : "%eax", "%ebx"
+                : "r"(eax), "r"(ecx)
+                : "%eax", "%ecx"
         );
 }
 
@@ -105,44 +106,17 @@ void Int80Args(SysCall * x)
         );
 }
 
-void OSASyscallHandler() {
+void OSASyscallHandler(int eip, int cs, int none, int op, int b) {
         cli();
-        SysCall * args;
-        int is_args=0;
-        __asm__ __volatile__ (
-                "movl %%eax, %0;"
-                "movl %%ebx, %1;"
-                : "=r"(args),"=r"(is_args)
-        );
-
-        if (is_args)
+        switch (op)
         {
-                switch (args->code)
-                {
-                        case 0:
-                                putc(args->a);
-                                break;
-                        case 1:
-                                puts((const char *)args->a);
-                                break;
-                        case 2:
-                                fwrite((void *)args->a,1,args->b,(FILE *)args->c);
-                                break;
-                        case 3:
-                                fread((void *)args->a,1,args->b,(FILE *)args->c);
-                                break;
-                }
-        }
-
-        else
-        {
-                int code = (int)args;
-                switch (code)
-                {
-                        case 0:
-                                MarkDead();
-                                break;
-                }
+                case 0:
+                        MarkDead();
+                        r=b;
+                        break;
+                case 1:
+                        putc(b);
+                        break;
         }
 }
 

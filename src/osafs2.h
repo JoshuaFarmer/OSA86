@@ -422,7 +422,8 @@ int ftell(FILE fp)
 
 extern void jump_usermode(int addr);
 
-int _ExecuteF(const char *filename, int parentidx)
+void AppendTask(char * name, void (*start)(void));
+int _ExecuteF(char *filename, int parentidx)
 {
         int idx = _Exists(filename, parentidx) - 1;
         if (idx == -1) {
@@ -443,13 +444,9 @@ int _ExecuteF(const char *filename, int parentidx)
         _ReadF(filename, parentidx, buffer, file_size);
         if (progh->Checksum == CHECKSUM && strncmp(progh->Sign,"OSAX",4)==0 && progh->Version == PHVERSION && progh->StartOffset>0)
         {
-                int (*func_ptr)() = (int (*)())progh->StartOffset+(int)buffer;
-                printf("_start: %x\n",func_ptr);
-                int res = func_ptr();
-                //jump_usermode(func_ptr);
-                free(buffer);
-                buffer=NULL;
-                return res;
+                void (*func_ptr)() = (void (*)())progh->StartOffset+(int)buffer;
+                AppendTask(filename,func_ptr);                
+                return 0;
         }
         else
         {
@@ -479,7 +476,7 @@ void ReadF(const char * name, void * data, int size)
         _ReadF(name,current_path_idx,data,size);
 }
 
-int ExecuteF(const char * name)
+int ExecuteF(char * name)
 {
         return _ExecuteF(name,current_path_idx);
 }

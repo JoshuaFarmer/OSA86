@@ -26,6 +26,8 @@ void init()
 
 void send_eoi(uint8_t irq);
 
+static int r=0;
+
 #include "io.h"
 #include "string.h"
 #include "terminal.h"
@@ -134,12 +136,10 @@ void system(char* _syscmd) {
         char* syscmd1 = strtok(NULL, ";\0");
         char* syscmd2 = strtok(NULL, "\0");
 
-        static int r=0;
         if (strncmp(syscmd, "./", 2) == 0) {
                 char* path = syscmd+2;
                 while(path[0] == '/')path++;
                 int res = ExecuteF(path);
-                r=res;
         } else if (strcmp(syscmd, "info") == 0) { 
                 puts("OSA86 VERSION "); puts(__VER__); puts("\n(C) JOSHUA F. 2024-2025\n");
         } else if (strcmp(syscmd, "&") == 0) { 
@@ -190,6 +190,8 @@ void system(char* _syscmd) {
                 {
                         DeleteF(syscmd1);
                 }
+        } else if (strcmp(syscmd, "tasks") == 0) {
+                ListSchedule();
         } else if (strcmp(syscmd, "mlmon") == 0) {
                 if (syscmd1)
                 {
@@ -255,12 +257,6 @@ void SystemTick()
         }
 }
 
-void start()
-{
-        putc('a');
-        Int80(0);
-}
-
 void osa86()
 {
         cli();
@@ -283,10 +279,10 @@ void osa86()
         WriteF("test.txt","Hellorld!\n",11);
         WriteF("test.tx","Hellorld!2\n",12);
 
-        char prog[] = { 0x4F,0x53,0x41,0x58,
-                        0xAA,0x0D,0x00,0x00,
-                        0x00,0x01,0x00,0x00,
-                        0x00,0x31,0xC0,0xC3 };
+        char prog[] = {
+                        'O','S','A','X',0xAA,0x0D,0x00,0x00,0x00,0x01,0x00,0x00,0x00,
+                        0xBB,0,0,0,0,0xB8,1,0,0,0,0x50,0x53,0xcd,0x80,0xeb,0xfe
+                      };
         WriteF("test",prog,sizeof(prog));
 
         kbbuff = malloc(128);
@@ -306,7 +302,6 @@ void osa86()
         printf("Time: %d:%d:%d, ", hour, minute, second);
         printf("Date: %d/%d/%d\n", day, month, year);
         
-        AppendTask("the",start);
         while (active)
         {
                 cli();
