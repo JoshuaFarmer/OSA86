@@ -131,8 +131,8 @@ void mlmon(char * filename)
         clearScreen(0x2);
 }
 
-void system(char* _syscmd) {
-        char* syscmd  = strtok(_syscmd, " \0");
+void system(char* sys) {
+        char* syscmd  = strtok(sys, " \0");
         char* syscmd1 = strtok(NULL, ";\0");
         char* syscmd2 = strtok(NULL, "\0");
 
