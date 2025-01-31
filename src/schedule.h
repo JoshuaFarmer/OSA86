@@ -136,7 +136,8 @@ void ListSchedule()
         printf("task list:\n");
         IterateSchedule(i)
         {
-                putsn(current->name,64); putc('\n');
+                if (current)
+                        {putsn(current->name,64); putc('\n');}
         }
 }
 
