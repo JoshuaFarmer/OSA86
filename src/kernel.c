@@ -255,6 +255,12 @@ void SystemTick()
         }
 }
 
+void start()
+{
+        putc('a');
+        Int80(0);
+}
+
 void osa86()
 {
         cli();
@@ -299,7 +305,8 @@ void osa86()
         rtc_get_date(&day, &month, &year);
         printf("Time: %d:%d:%d, ", hour, minute, second);
         printf("Date: %d/%d/%d\n", day, month, year);
-
+        
+        AppendTask("the",start);
         while (active)
         {
                 cli();
