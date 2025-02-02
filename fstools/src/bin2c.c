@@ -13,9 +13,9 @@ char ** argv;
         fprintf(fo,"char %s[] = {",argv[1]);
         while((c=fgetc(fp))!=EOF)
         {
-                fprintf(fo,"0x%x,",c);
+                fprintf(fo,"%d,",c);
         }
-        fprintf(fo,"};\nCreateF(\"%s\");WriteF(\"%s\",\"%s\",sizeof(%s));\n",argv[1],argv[1],argv[1],argv[1]);
+        fprintf(fo,"};\nCreateF(\"%s\");WriteF(\"%s\",%s,sizeof(%s));\n",argv[1],argv[1],argv[1],argv[1]);
         fclose(fp);
         fclose(fo);
         fp=fo=NULL;
