@@ -132,89 +132,103 @@ void mlmon(char * filename)
         clearScreen(0x2);
 }
 
-void system(char* sys) {
-        char* syscmd  = strtok(sys, " \0");
-        char* syscmd1 = strtok(NULL, ";\0");
-        char* syscmd2 = strtok(NULL, "\0");
-        if (syscmd[0]=='.' && syscmd[1]=='/')
+#define CMDM_LEN 128
+#define MARGS 32
+
+int
+parse(b,cmd)
+        char * b,cmd[MARGS][CMDM_LEN];
+{       int N,i;
+        for (N=0,i=0;*b&&N<MARGS&&i<CMDM_LEN;cmd[N++][i]=0,++b,i=0) {
+                while (*b == ' ') b++;
+                if(*b=='"'){for(++b;*b!='"'&&*b;++b,++i)
+                  cmd[N][i]=(*b=='\\')?((*(++b)=='n')?'\n':*b):*b;}
+                else for(;*b&&*b!=' ';cmd[N][i++]=*(b++)); }
+        return N;
+}
+
+void system(char* sys)
+{
+        char cmd[MARGS][CMDM_LEN];
+        int argc=parse(sys,&cmd);
+        if (strncmp(cmd[0],"./",2)==0)
         {
-                char* path = syscmd+2;
+                char* path = cmd[0]+2;
                 while(path[0] == '/')path++;
                 int res = ExecuteF(path);
-        } else if (strcmp(syscmd, "info") == 0) { 
+        } else if (strcmp(cmd[0], "info") == 0) { 
                 puts("OSA86 VERSION "); puts(__VER__); puts("\n(C) JOSHUA F. 2024-2025\n");
-        } else if (strcmp(syscmd, "&") == 0) { 
-                if (syscmd1 && syscmd2)
+        } else if (strcmp(cmd[0], "&") == 0) { 
+                if (argc == 3)
                 {
-                        ExecuteF(syscmd1);
-                        ExecuteF(syscmd2);
+                        ExecuteF(cmd[1]);
+                        ExecuteF(cmd[2]);
                         ListSchedule();
                 }
-        } else if (strcmp(syscmd, "cls") == 0) { 
+        } else if (strcmp(cmd[0], "cls") == 0) { 
                 clearScreen(termCol);
-        } else if (strcmp(syscmd, "?") == 0) { 
+        } else if (strcmp(cmd[0], "?") == 0) { 
                 put_int(r);
                 putc('\n');
-        } else if (strcmp(syscmd, "ls") == 0) {
+        } else if (strcmp(cmd[0], "ls") == 0) {
                 ListF();
-        } else if (strcmp(syscmd, "cd") == 0) {
-                if (syscmd1)
+        } else if (strcmp(cmd[0], "cd") == 0) {
+                if (argc == 2)
                 {
-                        Cd(syscmd1);
+                        Cd(cmd[1]);
                 }
-        } else if (strcmp(syscmd, "shutdown") == 0) {
+        } else if (strcmp(cmd[0], "shutdown") == 0) {
                 active = false;
-        } else if (strcmp(syscmd, "expr") == 0) {
-                BrainFuck(syscmd1);
-        } else if (strcmp(syscmd, "view") == 0) {
-                FILE fp = fgetf(syscmd1,current_path_idx);
-                fseek(fp,0,SEEK_END);
-                int len = ftell(fp);
-                char* data = malloc(len);
-                char* path = syscmd1;
-                
-                ReadF(path,data,len);
-                putsn((const char*)data, len);
-                free(data);
-                data=path=NULL;
-        } else if (strcmp(syscmd, "write") == 0) {
-                if (syscmd1 && syscmd2)
+        } else if (strcmp(cmd[0], "expr") == 0) {
+                if (argc == 2) BrainFuck(cmd[1]);
+        } else if (strcmp(cmd[0], "view") == 0) {
+                if (argc == 2)
                 {
-                        WriteF(syscmd2,syscmd1,strlen(syscmd1));
+                        FILE fp = fgetf(cmd[1],current_path_idx);
+                        fseek(fp,0,SEEK_END);
+                        int len = ftell(fp);
+                        char* data = malloc(len);
+                        char* path = cmd[1];
+                        
+                        ReadF(path,data,len);
+                        putsn((const char*)data, len);
+                        free(data);
+                        data=path=NULL;
                 }
-        } else if (strcmp(syscmd, "create") == 0) {
-                if (syscmd1)
+        } else if (strcmp(cmd[0], "write") == 0) {
+                if (argc==3)
                 {
-                        CreateF(syscmd1);
+                        WriteF(cmd[2],cmd[1],strlen(cmd[1]));
                 }
-        } else if (strcmp(syscmd, "rm") == 0) {
-                if (syscmd1)
+        } else if (strcmp(cmd[0], "create") == 0) {
+                if (argc==2)
                 {
-                        DeleteF(syscmd1);
+                        CreateF(cmd[1]);
                 }
-        } else if (strcmp(syscmd, "tasks") == 0) {
+        } else if (strcmp(cmd[0], "rm") == 0) {
+                if (argc==2)
+                {
+                        DeleteF(cmd[1]);
+                }
+        } else if (strcmp(cmd[0], "tasks") == 0) {
                 ListSchedule();
-        } else if (strcmp(syscmd, "mlmon") == 0) {
-                if (syscmd1)
+        } else if (strcmp(cmd[0], "mlmon") == 0) {
+                if (argc==2)
                 {
-                        mlmon(syscmd1);
+                        mlmon(cmd[1]);
                 }
-        } else if (strcmp(syscmd, "time") == 0)
+        } else if (strcmp(cmd[0], "time") == 0)
         {
                 rtc_get_time(&hour, &minute, &second);
                 rtc_get_date(&day, &month, &year);
                 printf("Time: %d:%d:%d, ", hour, minute, second);
                 printf("Date: %d/%d/%d\n", day, month, year);
         } else {
-                if (syscmd[1] == ':') {
-                        //switch_drive(syscmd[0] - 'A');
+                if (cmd[0][1] == ':') {
+                        //switch_drive(cmd[0][0] - 'A');
                 }
-                else if (syscmd[0]) { puts(syscmd); puts(", What?\n"); }
+                else if (cmd[0][0]) { puts(cmd[0]); puts(", What?\n"); }
         }
-
-        free(syscmd);
-        free(syscmd1);
-        free(syscmd2);
 }
 
 void mode(int mod) {
