@@ -223,11 +223,8 @@ void system(char* sys)
                 rtc_get_date(&day, &month, &year);
                 printf("Time: %d:%d:%d, ", hour, minute, second);
                 printf("Date: %d/%d/%d\n", day, month, year);
-        } else {
-                if (cmd[0][1] == ':') {
-                        //switch_drive(cmd[0][0] - 'A');
-                }
-                else if (cmd[0][0]) { puts(cmd[0]); puts(", What?\n"); }
+        } else if (cmd[0][0]) {
+                _ExecuteF(cmd[0],-1); // Execute file in root
         }
 }
 
