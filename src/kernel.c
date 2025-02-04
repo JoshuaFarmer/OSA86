@@ -178,6 +178,7 @@ void system(char* sys)
                 Cd(cmd[1]);
         } else if (strcmp(cmd[0], "shutdown") == 0) {
                 active = false;
+                cli();
         } else if (strcmp(cmd[0], "expr") == 0) {
                 if (argc == 2) BrainFuck(cmd[1]);
         } else if (strcmp(cmd[0], "view") == 0 && argc == 2) {
