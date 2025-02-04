@@ -30,7 +30,7 @@ void putc(char c) { __Interrupt(PUTC,c); }
 
 int main(void);
 
-void _start()
+void init()
 {
         int res = main();
         __Interrupt(END_PROCESS,res);

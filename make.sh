@@ -12,7 +12,7 @@ llvm-objdump -h bin/raw/kernel.elf
 
 clang -c "osa86 stdlib/example.c" -o "osa86 stdlib/example.o" -m32 -ffast-math -ffreestanding -Wall -Wextra -target i386 -Wunused-function -Wno-unused-parameter
 clang -c -S "osa86 stdlib/example.c" -o "osa86 stdlib/example.s" -m32 -ffast-math -ffreestanding -Wall -Wextra -target i386 -Wunused-function -Wno-unused-parameter
-ld "osa86 stdlib/example.o" -m elf_i386 -nostdlib -o "osa86 stdlib/example.elf"
+ld -T "osa86 stdlib/linker.ld" "osa86 stdlib/example.o" -m elf_i386 -nostdlib -o "osa86 stdlib/example.elf"
 llvm-objcopy -O binary "osa86 stdlib/example.elf" "osa86 stdlib/example.bin"
 
 cat bin/raw/boot.bin bin/raw/kernel.bin > bin/raw/OSA86.img

@@ -65,10 +65,10 @@ putc:                                   # @putc
 .Lfunc_end2:
 	.size	putc, .Lfunc_end2-putc
                                         # -- End function
-	.globl	_start                          # -- Begin function _start
+	.globl	init                            # -- Begin function init
 	.p2align	4, 0x90
-	.type	_start,@function
-_start:                                 # @_start
+	.type	init,@function
+init:                                   # @init
 # %bb.0:
 	pushl	%ebp
 	movl	%esp, %ebp
@@ -83,7 +83,7 @@ _start:                                 # @_start
 .LBB3_1:                                # =>This Inner Loop Header: Depth=1
 	jmp	.LBB3_1
 .Lfunc_end3:
-	.size	_start, .Lfunc_end3-_start
+	.size	init, .Lfunc_end3-init
                                         # -- End function
 	.globl	main                            # -- Begin function main
 	.p2align	4, 0x90
