@@ -151,74 +151,56 @@ void system(char* sys)
 {
         char cmd[MARGS][CMDM_LEN];
         int argc=parse(sys,(char (*)[128])&cmd);
-        if (strncmp(cmd[0],"./",2)==0)
-        {
+        if (strncmp(cmd[0],"./",2)==0) {
                 char* path = cmd[0]+2;
                 while(path[0] == '/')path++;
-                int res = ExecuteF(path);
+                ExecuteF(path);
         } else if (strcmp(cmd[0], "info") == 0) { 
-                puts("OSA86 VERSION "); puts(__VER__); puts("\n(C) JOSHUA F. 2024-2025\n");
-        } else if (strcmp(cmd[0], "&") == 0) { 
-                if (argc == 3)
-                {
-                        ExecuteF(cmd[1]);
-                        ExecuteF(cmd[2]);
-                        ListSchedule();
-                }
+                printf("OSA86 VERSION %s\n(C) JOSHUA F. 2024-2025\n",__VER__);
+                uint32_t remainingSpace = remaining_heap_space();
+                printf("Heap Size Is %d Bytes\n",remainingSpace);
+                printf("File Descriptor Size Is %d Bytes\n",sizeof(FileDescriptor));
+                rtc_get_time(&hour, &minute, &second);
+                rtc_get_date(&day, &month, &year);
+                printf("Time: %d:%d:%d, ", hour, minute, second);
+                printf("Date: %d/%d/%d\n", day, month, year);
+        } else if (strcmp(cmd[0], "&") == 0 && argc==3) { 
+                ExecuteF(cmd[1]);
+                ExecuteF(cmd[2]);
+                ListSchedule();
         } else if (strcmp(cmd[0], "cls") == 0) { 
                 clearScreen(termCol);
         } else if (strcmp(cmd[0], "?") == 0) { 
-                put_int(r);
-                putc('\n');
+                printf("%d\n",r);
         } else if (strcmp(cmd[0], "ls") == 0) {
                 ListF();
-        } else if (strcmp(cmd[0], "cd") == 0) {
-                if (argc == 2)
-                {
-                        Cd(cmd[1]);
-                }
+        } else if (strcmp(cmd[0], "cd") == 0 && argc==2) {
+                Cd(cmd[1]);
         } else if (strcmp(cmd[0], "shutdown") == 0) {
                 active = false;
         } else if (strcmp(cmd[0], "expr") == 0) {
                 if (argc == 2) BrainFuck(cmd[1]);
-        } else if (strcmp(cmd[0], "view") == 0) {
-                if (argc == 2)
-                {
-                        FILE fp = fgetf(cmd[1],current_path_idx);
-                        fseek(fp,0,SEEK_END);
-                        int len = ftell(fp);
-                        char* data = malloc(len);
-                        char* path = cmd[1];
-                        
-                        ReadF(path,data,len);
-                        putsn((const char*)data, len);
-                        free(data);
-                        data=path=NULL;
-                }
-        } else if (strcmp(cmd[0], "write") == 0) {
-                if (argc==3)
-                {
-                        WriteF(cmd[2],cmd[1],strlen(cmd[1]));
-                }
-        } else if (strcmp(cmd[0], "create") == 0) {
-                if (argc==2)
-                {
-                        CreateF(cmd[1]);
-                }
-        } else if (strcmp(cmd[0], "rm") == 0) {
-                if (argc==2)
-                {
-                        DeleteF(cmd[1]);
-                }
+        } else if (strcmp(cmd[0], "view") == 0 && argc == 2) {
+                FILE fp = fgetf(cmd[1],current_path_idx);
+                fseek(fp,0,SEEK_END);
+                int len = ftell(fp);
+                char* data = malloc(len);
+                char* path = cmd[1];
+                ReadF(path,data,len);
+                putsn((const char*)data, len);
+                free(data);
+                data=path=NULL;
+        } else if (strcmp(cmd[0], "write") == 0 && argc == 3) {
+                WriteF(cmd[2],cmd[1],strlen(cmd[1]));
+        } else if (strcmp(cmd[0], "create") == 0 && argc == 2) {
+                CreateF(cmd[1]);
+        } else if (strcmp(cmd[0], "rm") == 0 && argc == 2) {
+                DeleteF(cmd[1]);
         } else if (strcmp(cmd[0], "tasks") == 0) {
                 ListSchedule();
-        } else if (strcmp(cmd[0], "mlmon") == 0) {
-                if (argc==2)
-                {
-                        mlmon(cmd[1]);
-                }
-        } else if (strcmp(cmd[0], "time") == 0)
-        {
+        } else if (strcmp(cmd[0], "mlmon") == 0 && argc == 2) {
+                mlmon(cmd[1]);
+        } else if (strcmp(cmd[0], "time") == 0) {
                 rtc_get_time(&hour, &minute, &second);
                 rtc_get_date(&day, &month, &year);
                 printf("Time: %d:%d:%d, ", hour, minute, second);
@@ -257,21 +239,12 @@ void mode(int mod) {
         }
 }
 
-void yield(int steps)
-{
-        for(int i = 0; i < steps;++i);
-}
-
-
 void SystemTick()
 {
         char kbbuff[128];
-        if (kbbuff)
-        {
-                printf("%c: %s/%s> ", Drive_Letter, ActiveDirParen(), ActiveDir());
-                gets(kbbuff, 128);
-                system(kbbuff);
-        }
+        printf("%c: %s/%s> ", Drive_Letter, ActiveDirParen(), ActiveDir());
+        gets(kbbuff, 128);
+        system(kbbuff);
 }
 
 void loadfs() // org sector 128
@@ -282,22 +255,19 @@ void loadfs() // org sector 128
 void osa86()
 {
         cli();
-        clearScreen(termCol);
         mode(0x02);
-        system("info");
-        putc('\n');
         init_heap();
         init_gdt();
         init_idt();
         init_pic();
         init_scheduler();
+        init_ramfs();
         init_pit(128);
+
+        clearScreen(termCol);
+        system("info");
         putc('\n');
 
-        InitRamFS();
-        CreateF("test.txt");
-        CreateF("test.tx");
-        CreateF("test");
         WriteF("test.txt","Hellorld!\n",11);
         WriteF("test.tx","Hellorld!2\n",12);
 
@@ -306,27 +276,9 @@ void osa86()
                         0xBB,0,0,0,0,0xB8,1,0,0,0,0x50,0x53,0xcd,0x80,0xeb,0xfe
                       };
         WriteF("test",prog,sizeof(prog));
-
         char out[] = {79,83,65,88,-86,13,0,0,0,1,0,0,0,-24,16,0,0,0,-69,0,0,0,0,-72,1,0,0,0,80,83,-51,-128,-21,-2,-24,44,0,0,0,-61,-21,-2,-95,126,0,0,0,-93,122,0,0,0,-95,-126,0,0,0,-93,126,0,0,0,-95,122,0,0,0,-117,29,126,0,0,0,1,-40,-93,-126,0,0,0,-61,-21,-2,-72,1,0,0,0,-69,1,0,0,0,57,-40,15,-108,-64,117,19,-95,122,0,0,0,-69,1,0,0,0,1,-40,-93,122,0,0,0,-21,-36,-61,-21,-2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
-        CreateF("out");WriteF("out",out,sizeof(out));
+        WriteF("out",out,sizeof(out));
 
-        uint32_t remainingSpace = remaining_heap_space();
-        printf("Heap Size Is %d Bytes\n",remainingSpace);
-        printf("File Descriptor Size Is %d Bytes\n",sizeof(FileDescriptor));
-
-        // E.g.
-        //SysCall x;
-        //x.code=0x0;
-        //x.a='_';
-        //Int80(&x);
-        
-        loadfs();
-
-        rtc_get_time(&hour, &minute, &second);
-        rtc_get_date(&day, &month, &year);
-        printf("Time: %d:%d:%d, ", hour, minute, second);
-        printf("Date: %d/%d/%d\n", day, month, year);
-        
         while (active)
         {
                 cli();

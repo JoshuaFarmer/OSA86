@@ -45,10 +45,11 @@ typedef struct {
 FAE            * FAT0=(FAE*)0x1000000;
 FileDescriptor * FDS0=(FileDescriptor*)0x1000000+(sizeof(FAE)*MCC);
 
-void InitRamFS()
+void init_ramfs()
 {
         memset(FAT0,0,sizeof(FAE)*MCC);
         memset(FDS0,0,sizeof(FileDescriptor)*MFC);
+        printf("RAMFS Initialized\n");
 }
 
 int ffefae()
@@ -227,18 +228,13 @@ void _ReadF(const char *name, int parent_idx, char *buff, int len)
 
 void _WriteF(const char *name, int parent_idx, const char *data, int data_length)
 {
-        int idx = _Exists(name, parent_idx) - 1;
-        if (idx == -1 || data_length <= 0)
-        {
-                return;
-        }
-
+        if (data_length <= 0) return;
+        _CreateF(name,parent_idx);
+        int idx = _Exists(name,parent_idx) - 1;
         _Empty(idx);
         FDS0[idx].Size = data_length;
-
         int clusters_needed = (data_length + CLUSTSZ - 1) / CLUSTSZ; // Calculate the number of clusters needed
         const char *data_ptr = data;
-
         for (int i = 0; i < clusters_needed; ++i)
         {
                 AllocFAE(idx);
