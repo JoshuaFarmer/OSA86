@@ -96,9 +96,6 @@ Really32:
         jz bruh_fail
 	call 0x10000
 .shutdown:
-	mov eax, cr0		  ; Read CR0 register
-	and eax, 0xFFFFFFFE   ; Clear the PE (Protection Enable) bit
-	mov cr0, eax		  ; Write CR0 back
 	jmp $
 
 [bits 16]
