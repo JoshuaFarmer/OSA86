@@ -155,7 +155,6 @@ int getching = 0;
 
 int printf(const char *,...);
 
-
 char getch()
 {
         outb(0x21,0x2);
@@ -212,23 +211,22 @@ char getch()
 
 void scroll_cursor()
 {
-        char * chars = ((char*)videobuff);
         for (int y = 1; y < TTY_HEIGHT; ++y)
         {
                 for (int x = 0; x < TTY_WIDTH; ++x)
                 {
                         int src=((y * TTY_WIDTH) << 1) + (x << 1);
                         int dst=(((y - 1) * TTY_WIDTH) << 1) + (x << 1);
-                        chars[dst]   = chars[src];
-                        chars[dst+1] = chars[src+1];
+                        videobuff[dst]   = videobuff[src];
+                        videobuff[dst+1] = videobuff[src+1];
                 }
         }
 
         for (int x = 0; x < TTY_WIDTH; ++x)
         {
                 int pos = (((TTY_HEIGHT - 1) * TTY_WIDTH) << 1) + (x << 1);
-                chars[pos]   = '\0';
-                chars[pos+1] = termCol;
+                videobuff[pos]   = '\0';
+                videobuff[pos+1] = termCol;
         }
 
         if (txty >= TTY_HEIGHT)
@@ -239,7 +237,6 @@ void scroll_cursor()
 
 void update_cursor(const int x, const int y) {
         uint16_t pos = y * TTY_WIDTH + x;
- 
         outb(0x3D4, 0x0F);
         outb(0x3D5, (uint8_t) (pos & 0xFF));
         outb(0x3D4, 0x0E);
@@ -248,173 +245,168 @@ void update_cursor(const int x, const int y) {
 
 void putc(char c) {
         outb(0xE9, c);
-        
         if (txty < 0) txty = 0;
         if (txtx < 0) txtx = 0;
-
         update_cursor(txtx, txty);
 
-        // Backspace
-        if (c == '\b') {
-                --txtx;
-                if (txtx < 0) {
-                        txtx = 0;
-                        --txty;
-                        while (((char*)videobuff)[(txty * TTY_WIDTH * 2) + (txtx * 2)] != '\0') {
-                                txtx++;
+        switch (c)
+        {
+                case '\b':
+                {
+                        --txtx;
+                        if (txtx < 0)
+                        {
+                                txtx=0,--txty;
+                                for (;((char*)videobuff)[(txty * TTY_WIDTH * 2) + (txtx * 2)] != '\0';++txtx);
                         }
-                }
-                ((char*)videobuff)[(txty * TTY_WIDTH * 2) + (txtx * 2)] = '\0';
-                ((char*)videobuff)[(txty * TTY_WIDTH * 2) + (txtx * 2) + 1] = termCol;
-                update_cursor(txtx, txty);
-                return;
-        }
-
-        // NULL
-        if (c == 0) return;
-
-        // Newline
-        if (c == '\n') {
-                txtx = 0;
-                txty++;
-                if (txty >= TTY_HEIGHT) {
-                        scroll_cursor();
+                        ((char*)videobuff)[(txty * TTY_WIDTH * 2) + (txtx * 2)] = '\0';
+                        ((char*)videobuff)[(txty * TTY_WIDTH * 2) + (txtx * 2) + 1] = termCol;
+                        update_cursor(txtx, txty);
+                } break;
+                case 0:
+                        break;
+                case '\n':
+                {
+                        txtx=0;
+                        txty++;
+                        (txty >= TTY_HEIGHT) ? scroll_cursor(),update_cursor(txtx, txty) : 0;
+                } break;
+                case '\t':
+                {
+                        while ((txtx % 8) != 0)
+                                putc(' ');
                         update_cursor(txtx, txty);
                 }
-                return;
-        }
-
-        if (c == '\t') {
-                for (int i = 0; i < 8; ++i)
-                        putc(' ');
-                update_cursor(txtx, txty);
-                return;
-        }
-
-        // Normal character
-        ((char*)videobuff)[(txty * TTY_WIDTH * 2) + (txtx * 2)] = c;
-        ((char*)videobuff)[(txty * TTY_WIDTH * 2) + (txtx * 2) + 1] = termCol;
-
-        txtx++;
-        if (txtx >= TTY_WIDTH) {
-                txtx = 0;
-                txty++;
-                if (txty >= TTY_HEIGHT) {
-                        scroll_cursor();
-                }
-        }
-
-        update_cursor(txtx, txty);
-}
-
-void puts(const char* s) {
-        for (int i = 0; s[i] != '\0'; i++) {
-                putc(s[i]);
+                default:
+                {
+                        ((char*)videobuff)[(txty * TTY_WIDTH * 2) + (txtx * 2)] = c;
+                        ((char*)videobuff)[(txty * TTY_WIDTH * 2) + (txtx * 2) + 1] = termCol;
+                        ++txtx;
+                        (txtx >= TTY_WIDTH) ? txtx=0,++txty,(txty >= TTY_HEIGHT) ? scroll_cursor() : 0 : 0;
+                        update_cursor(txtx, txty);
+                } break;
         }
 }
 
-void putc_at(char c, uint16_t x, uint16_t y) {
-        if (x < 0) x = 0;
-        if (x < 0) x = 0;
-        // backspace
-        if (c == '\b') {--x;
-                if (x < 0) {
-                        x = 0; --y;
-                        while ( ((char*)videobuff)[(y*TTY_WIDTH*2) + (x*2)] != '\0') {x++;}
-                }
-                ((char*)videobuff)[(y*TTY_WIDTH*2)+(x*2)] = '\0';
-                ((char*)videobuff)[(y*TTY_WIDTH*2)+(x*2)+1] = termCol;
-                return;
-        }
-
-        // NULL
-        if (c == 0 || c == '\n') return;
-
-        // normal
-        ((char*)videobuff)[(y*TTY_WIDTH*2)+(x*2)] = c;
-        ((char*)videobuff)[(y*TTY_WIDTH*2)+(x*2)+1] = termCol;
+void puts(s)
+        const char * s;
+{
+        while(*s)putc(*(s++));
 }
 
-void gets(char *buffer, int buffer_size) {
-        int index = 0;
+void putc_at(char c, uint16_t x, uint16_t y)
+{
+        int tx=txtx;
+        int ty=txty;
+        txtx=x;
+        txty=y;
+        putc(c);
+        txtx=tx;
+        txty=ty;
+}
+
+void gets(b,s)
+        char * b;
+        int s;
+{
+        int i = 0;
         char c;
 
-        while (index < buffer_size - 1) {
+        while (i < s - 1)
+        {
                 c = getch();
-
-                if (c == '\n') {
-                        buffer[index] = '\0';
+                if (c == '\n')
+                {
+                        b[i] = '\0';
                         putc('\n');
                         return;
-                } else if (c == '\b') {
-                        if (index > 0) {
-                                index--;
-                                putc('\b');
-                                putc(' ');
-                                putc('\b');
-                        }
-                } else if (c >= ' ' && c <= '~') {
-                        buffer[index++] = c;
+                }
+                else if (c == '\b' && i > 0)
+                {
+                        --i;
+                        putc('\b');
+                        putc(' ');
+                        putc('\b');
+                }
+                else if (c >= ' ' && c <= '~')
+                {
+                        b[i++] = c;
                         putc(c);
                 }
         }
 
-        // If the loop exits, the buffer is full
-        buffer[index] = '\0'; // Null-terminate the string
+        b[i] = '\0';
         putc('\n');
 }
 
-void getsf(char *buffer, int buffer_size, uint16_t x, uint16_t y, char end) {
-        int index = 0;
+void getsf(b,s,x,y,end)
+        char * b,end;
+        int s;
+        uint16_t x,y;
+{
+        int i = 0;
         char c;
 
-        while (index < buffer_size - 1) {
+        while (i < s - 1)
+        {
                 c = getch();
 
-                if (c == end) { 
-                        buffer[index] = '\0';
+                if (c == end)
+                { 
+                        b[i] = '\0';
                         return;
-                } else if (c == '\b' && index > 0) {
-                        index--;
+                }
+                else if (c == '\b' && i > 0)
+                {
+                        --i;
                         putc_at(' ', --x, y);
-                } else if (c >= ' ' && c <= '~') {
-                        buffer[index++] = c;
+                }
+                else if (c >= ' ' && c <= '~')
+                {
+                        b[i++] = c;
                         putc_at(c, x, y);
-                        if (++x >= TTY_WIDTH) {
+                        if (++x >= TTY_WIDTH)
+                        {
                                 x = 0;
                                 y++;
                         }
                 } else if (c == '\n') {
-                        buffer[index++] = c;
+                        b[i++] = c;
                         x = 0;
                         y++;
                 }
 
-                if (y >= TTY_HEIGHT) {
+                if (y >= TTY_HEIGHT)
+                {
                         y = TTY_HEIGHT - 1;
                 }
         }
 
-        buffer[index] = '\0';
+        b[i] = '\0';
 }
 
-void putsn(const char* s, uint32_t n) {
-        for (uint32_t i = 0; s[i] != '\0' && i < n; i++) {
-                putc(s[i]);
-        }
+void putsn(s,n)
+        const char * s;
+        int n;
+{
+        while(*s&&--n)putc(*(s++));
 }
 
-void puts_at(const char* s, uint16_t x, uint16_t y) {
-        for (int i = 0; s[i] != '\0'; i++) {
-                putc_at(s[i], x++, y);
-                if (s[i] == '\n') {
-                        ++y;
-                        x = 0;
-                }
-        }
+void puts_at(s,x,y)
+        const char* s;
+        int x,y;
+{
+        int tx=txtx;
+        int ty=txty;
+        txtx=x;
+        txty=y;
+        puts(s);
+        txtx=tx;
+        txty=ty;
 }
 
-void PrintByte(uint8_t a) {
+void PrintByte(uint8_t a)
+{
         char c = hchar(a>>4);
         putc(c);
         c = hchar(a&15);
@@ -470,7 +462,7 @@ int sscanf(const char *str, const char *format, ...) {
 }
 
 void put_int(int value) {
-        char buffer[12];
+        char b[12];
         int i = 0;
         bool is_negative = false;
 
@@ -480,21 +472,21 @@ void put_int(int value) {
         }
 
         do {
-                buffer[i++] = (value % 10) + '0';
+                b[i++] = (value % 10) + '0';
                 value /= 10;
         } while (value > 0);
 
         if (is_negative) {
-                buffer[i++] = '-';
+                b[i++] = '-';
         }
 
         while (--i >= 0) {
-                putc(buffer[i]);
+                putc(b[i]);
         }
 }
 
 void put_int_at(int value, int x, int y) {
-        char buffer[12];
+        char b[12];
         int i = 0;
         bool is_negative = false;
 
@@ -504,16 +496,16 @@ void put_int_at(int value, int x, int y) {
         }
 
         do {
-                buffer[i++] = (value % 10) + '0';
+                b[i++] = (value % 10) + '0';
                 value /= 10;
         } while (value > 0);
 
         if (is_negative) {
-                buffer[i++] = '-';
+                b[i++] = '-';
         }
 
         while (--i >= 0) {
-                putc_at(buffer[i], x+i, y);
+                putc_at(b[i], x+i, y);
         }
 }
 
