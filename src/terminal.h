@@ -3,23 +3,22 @@
 #include <stdbool.h>
 #include <stdarg.h>
 
-#define videobuff 0xB8000
 #define KEYBOARD_STATUS_PORT 0x64
 #define KEYBOARD_DATA_PORT 0x60
+
+char * videobuff = (char*)0xB8000;
 
 int TTY_WIDTH  = 80;
 int TTY_HEIGHT = 25;
 
 uint8_t termCol = 0x02;
-int txtx=0, txty=0;
 uint8_t Data[512];
-bool active = true;
+int txtx=0, txty=0;
 
 enum {
         KEY_NULL = 0,
-        KEY_ESC,
-        KEY_TAB = '\t',
-        KEY_CTRL = 0x7F,
+        KEY_ESC=0x100,
+        KEY_CTRL,
         KEY_ALT,
         KEY_NUML,
         KEY_SCRL,
@@ -51,7 +50,7 @@ enum {
 } keys;
 
 const uint16_t keyboard_map[256] = {
-        KEY_NULL, KEY_ESC, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b', KEY_TAB,
+        KEY_NULL, KEY_ESC, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b', '\t',
         'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n', KEY_CTRL, 'a', 's',
         'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', KEY_NULL, '#', 'z', 'x', 'c', 'v',
         'b', 'n', 'm', ',', '.', '/', KEY_ALT, '*', KEY_ALT, ' ',
@@ -61,7 +60,7 @@ const uint16_t keyboard_map[256] = {
 };
 
 const uint16_t keyboard_map_shifted[256] = {
-        KEY_NULL, KEY_ESC, '!', '"', '\\', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b', KEY_TAB,
+        KEY_NULL, KEY_ESC, '!', '"', '\\', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b', '\t',
         'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '\n', KEY_CTRL, 'A', 'S',
         'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '@', '`', KEY_NULL, '#', 'Z', 'X', 'C', 'V',
         'B', 'N', 'M', '<', '>', '?', KEY_ALT, '*', KEY_ALT, ' ',
@@ -557,7 +556,7 @@ int printf(const char* format, ...) {
                                         break;
                                 }
                                 case 'd': {
-                                        int i = va_arg(args, int);
+                                        int i = va_arg(args, int); 
                                         put_int(i);
                                         break;
                                 }

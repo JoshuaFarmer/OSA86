@@ -28,6 +28,7 @@ void init()
 void send_eoi(uint8_t irq);
 
 static int r=0;
+bool active = true;
 
 #include "io.h"
 #include "string.h"
@@ -292,4 +293,5 @@ void osa86()
         clearScreen(termCol);
         mode(0x2);
         puts_at("It is now safe to turn of your computer\n", 20, 11);
+        while(1);
 }
