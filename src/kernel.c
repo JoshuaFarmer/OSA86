@@ -282,9 +282,9 @@ void osa86()
 
         while (active)
         {
+                sti();
                 cli();
                 SystemTick();
-                sti();
         }
 
         cli();
