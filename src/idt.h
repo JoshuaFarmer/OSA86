@@ -93,31 +93,24 @@ void Int80(int eax, int ecx)
         );
 }
 
-void Int80Args(SysCall * x)
-{
-        __asm__ __volatile__
-        (
-                "movl %0, %%eax;"
-                "movl %1, %%ebx;"
-                "int $0x80;"
-                :
-                : "r"(x), "r"(1)
-                : "%eax", "%ebx"
-        );
-}
-
-void OSASyscallHandler(int eip, int cs, int none, int op, int b) {
+int OSASyscallHandler(int eip, int cs, int none, int op, int b) {
         cli();
         switch (op)
         {
                 case 0:
-                        MarkDead();
+                        MarkDead(); // end current process
                         r=b;
                         break;
                 case 1:
                         putc(b);
                         break;
+                case 2:
+                {
+                        return getch();
+                } break;
         }
+
+        return 0;
 }
 
 void SystemTick();

@@ -5,3 +5,5 @@ example.asm
 example.bin
 .vscode
 .zed
+*.o
+*.elf
