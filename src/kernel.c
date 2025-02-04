@@ -283,6 +283,7 @@ void osa86()
         while (active)
         {
                 sti();
+                for (int _=0;_<4096;++_);
                 cli();
                 SystemTick();
         }
