@@ -10,7 +10,7 @@ typedef uint32_t size_t;
 
 #define HEAP_SIZE 1024*1024
 #define HEAP_BASE MAX_ADDR-HEAP_SIZE
-#define ALIGNMENT 4
+#define ALIGNMENT 16
 #define ALIGN(size) (((size) + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1))
 typedef struct Block {
     size_t size;
@@ -19,7 +19,9 @@ typedef struct Block {
 
 static Block *free_list = (Block *)HEAP_BASE;
 
-void init_heap(void) {
+void init_heap(void)
+{
+    memset((void *)HEAP_BASE,0,HEAP_SIZE);
     free_list = (Block *)HEAP_BASE;
     free_list->size = HEAP_SIZE;
     free_list->next = NULL;
