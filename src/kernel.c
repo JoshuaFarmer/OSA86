@@ -244,7 +244,7 @@ void mode(int mod) {
 void SystemTick()
 {
         char kbbuff[128];
-        printf("%c: %s/%s> ", Drive_Letter, ActiveDirParen(), ActiveDir());
+        printf("%c:/%s%c%s> ", Drive_Letter, ActiveDirParen(), ActiveDirParen()[0]==0 ? '\0' : '/', ActiveDir());
         gets(kbbuff, 128);
         system(kbbuff);
 }
