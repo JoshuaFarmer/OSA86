@@ -165,9 +165,12 @@ void system(char* sys)
                 rtc_get_date(&day, &month, &year);
                 printf("Time: %d:%d:%d, ", hour, minute, second);
                 printf("Date: %d/%d/%d\n", day, month, year);
-        } else if (strcmp(cmd[0], "&") == 0 && argc==3) { 
-                ExecuteF(cmd[1]);
-                ExecuteF(cmd[2]);
+        } else if (strcmp(cmd[0], "&") == 0 && argc>1) {
+                int i;
+                for (i=1;i<argc;++i)
+                {
+                        ExecuteF(cmd[i]);
+                }
                 ListSchedule();
         } else if (strcmp(cmd[0], "cls") == 0) { 
                 clearScreen(termCol);
