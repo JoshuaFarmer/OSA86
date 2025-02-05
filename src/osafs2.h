@@ -419,7 +419,7 @@ int _ExecuteF(char *filename, int parentidx)
 {
         int idx = _Exists(filename, parentidx) - 1;
         if (idx == -1) {
-                return 2;
+                return -2;
         }
 
         int file_size = FDS0[idx].Size;

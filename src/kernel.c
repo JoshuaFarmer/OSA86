@@ -155,7 +155,11 @@ void system(char* sys)
         if (strncmp(cmd[0],"./",2)==0) {
                 char* path = cmd[0]+2;
                 while(path[0] == '/')path++;
-                ExecuteF(path);
+                int res = ExecuteF(path);
+                if (res!=0)
+                {
+                        r=res;
+                }
         } else if (strcmp(cmd[0], "info") == 0) { 
                 printf("OSA86 VERSION %s\n(C) JOSHUA F. 2024-2025\n",__VER__);
                 uint32_t remainingSpace = remaining_heap_space();
