@@ -190,7 +190,7 @@ void system(char* sys)
                 active = false;
                 cli();
         } else if (strcmp(cmd[0], "expr") == 0) {
-                if (argc == 2) BrainFuck(cmd[1]);
+                if (argc == 2) Interpreter(cmd[1]);
         } else if (strcmp(cmd[0], "view") == 0 && argc == 2) {
                 FILE fp = fgetf(cmd[1],current_path_idx);
                 fseek(fp,0,SEEK_END);
@@ -281,7 +281,6 @@ void osa86()
 
         WriteF("test.txt","Hellorld!\n",11);
         WriteF("test.tx","Hellorld!2\n",12);
-        Interpreter("1+1");
 
         char prog[] = {
                         'O','S','A','X',0xAA,0x0D,0x00,0x00,0x00,0x01,0x00,0x00,0x00,
