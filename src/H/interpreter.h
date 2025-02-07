@@ -23,15 +23,15 @@ enum
 
 typedef struct StackElem
 {
-        uint32_t x;
-        uint32_t type;
+        int x;
+        int type;
 } StackElem;
 
 StackElem stack[32];
-uint8_t   idestack[8][32];
-uint8_t   stackptr=0;
-uint8_t   idesp=0;
-int       inShell = 0;
+uint8_t idestack[8][32];
+uint8_t stackptr=0;
+uint8_t idesp=0;
+int  inShell = 0;
 
 void pushide()
 {
@@ -140,7 +140,7 @@ void next()
         while (*src == ' ' || *src == '\n' || *src == '\r') ++src;
         if (*src == '\'')
         {
-                size_t x=0;
+                uint32_t x=0;
                 memset(id,0,sizeof(id));
                 ++src;
                 while (*src != '\'' && x < sizeof(id))
@@ -202,7 +202,7 @@ void expr()
                 case TOK_STR:
                 {
                         char * x = strdup(id);
-                        push((uint32_t)x, STRINGLIT);
+                        push((int)x, STRINGLIT);
                 } break;
                 case TOK_SEMI:
                 {
@@ -223,7 +223,7 @@ void expr()
                                         }
                                         case STRING:
                                         {
-                                                push((uint32_t)x->value.str, STRING);
+                                                push((int)x->value.str, STRING);
                                                 break;
                                         }
                                 }
