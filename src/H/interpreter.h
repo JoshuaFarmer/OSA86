@@ -1,3 +1,6 @@
+#ifndef IL_H
+#define IL_H
+
 char id[32];
 int  tok=0;
 int  num=0;
@@ -18,7 +21,21 @@ typedef struct
 {
         char   name[32];
         char * start;
-} Function;
+        char * end;
+} Subroutine;
+
+int stack[1024];
+int stackptr=0;
+
+void push(int x)
+{
+        stack[stackptr++]=x;
+}
+
+int pop()
+{
+        return stack[--stackptr];
+}
 
 void next()
 {
@@ -31,7 +48,7 @@ void next()
                 {
                         id[x++]=*(src++);
                 }
-                if (strcmp(id,"fn")==0)
+                if (strcmp(id,"sub")==0)
                 {
                         tok=TOK_FN;
                 }
@@ -51,14 +68,25 @@ void next()
         tok = *(src++);
 }
 
-void JCompiler(char * s)
+void expr()
+{
+        next();
+        switch (tok)
+        {
+                case TOK_NUM:
+                {
+
+                }
+        }
+}
+
+void Interpreter(char * s)
 {
         src=s;
-        next();
         while (tok != 0)
         {
+                expr();
                 printf("TOK='%c',ID='%s',N=%d\n",tok,id,num);
-                next();
         }
 }
 
@@ -68,5 +96,7 @@ int main()
 {
         JCompiler("FN MAIN");
 }
+
+#endif
 
 #endif

@@ -47,7 +47,7 @@ bool active = true;
 #include "program.h"
 #include "schedule.h"
 #include "rtc.h"
-#include "compiler/jcc.h"
+#include "H/Interpreter.h"
 
 void mlmon(char * filename)
 {
@@ -281,7 +281,7 @@ void osa86()
 
         WriteF("test.txt","Hellorld!\n",11);
         WriteF("test.tx","Hellorld!2\n",12);
-        JCompiler("1+1");
+        Interpreter("1+1");
 
         char prog[] = {
                         'O','S','A','X',0xAA,0x0D,0x00,0x00,0x00,0x01,0x00,0x00,0x00,
