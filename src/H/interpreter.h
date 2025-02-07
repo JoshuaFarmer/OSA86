@@ -83,6 +83,7 @@ void expr()
 void Interpreter(char * s)
 {
         src=s;
+        tok=1;
         while (tok != 0)
         {
                 expr();
