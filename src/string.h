@@ -231,20 +231,31 @@ void wstrcpy(wchar_t* dst, const wchar_t* src) {
                 dst[x]=src[x];
 }
 
-char* strcat(const char* a, const char* b) {
-        // Allocate memory for the concatenated string + 8 for null terminator and just incase
+char * strcat(const char* a, const char* b) {
         char* s = malloc(strlen(a) + strlen(b) + 8);
         if (s == NULL) {
-                return NULL; // Handle memory allocation failure
+                return NULL;
         }
-        
-        // Copy the first string
         memcpy(s, a, strlen(a));
-        
-        // Copy the second string
-        memcpy(s + strlen(a), b, strlen(b) + 1); // +1 to copy the null terminator
-        
+        memcpy(s + strlen(a), b, strlen(b) + 1);
         return s;
+}
+
+char * concat(const char* str1, const char* str2)
+{
+        size_t len1 = strlen(str1);
+        size_t len2 = strlen(str2);
+        size_t total_len = len1 + len2;
+
+        char* result = (char*)malloc(total_len + 1);
+        if (result == NULL)
+        {
+                return NULL;
+        }
+        strcpy(result, str1);
+        strcpy(result+len1, str2);
+        result[total_len-1]=0;
+        return result;
 }
 
 void reverse(char* str, int length) {

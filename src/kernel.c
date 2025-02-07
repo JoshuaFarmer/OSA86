@@ -190,7 +190,9 @@ void system(char* sys)
                 active = false;
                 cli();
         } else if (strcmp(cmd[0], "expr") == 0) {
-                if (argc == 2) Interpreter(cmd[1]);
+                if (argc == 2) BrainFuck(cmd[1]);
+        } else if (strcmp(cmd[0], "HXPR") == 0) {
+                shell();
         } else if (strcmp(cmd[0], "view") == 0 && argc == 2) {
                 FILE fp = fgetf(cmd[1],current_path_idx);
                 fseek(fp,0,SEEK_END);
@@ -256,6 +258,7 @@ void SystemTick()
         printf("%c:/%s%c%s> ", Drive_Letter, ActiveDirParen(), ActiveDirParen()[0]==0 ? '\0' : '/', ActiveDir());
         gets(kbbuff, 128);
         system(kbbuff);
+        //Interpreter(kbbuff);
 }
 
 void loadfs() // org sector 128

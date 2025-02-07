@@ -62,7 +62,7 @@ const uint16_t keyboard_map[256] = {
 const uint16_t keyboard_map_shifted[256] = {
         KEY_NULL, KEY_ESC, '!', '"', '\\', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b', '\t',
         'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '\n', KEY_CTRL, 'A', 'S',
-        'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '@', '`', KEY_NULL, '#', 'Z', 'X', 'C', 'V',
+        'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '@', '`', KEY_NULL, '\\', 'Z', 'X', 'C', 'V',
         'B', 'N', 'M', '<', '>', '?', KEY_ALT, '*', KEY_ALT, ' ',
         KEY_CTRL, KEY_F1, KEY_F2, KEY_F3, KEY_F4, KEY_F5, KEY_F6, KEY_F7, KEY_F8, KEY_F9, KEY_F10, KEY_NUML, '/', '7',
         '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.', '\n',
