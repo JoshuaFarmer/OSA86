@@ -34,4 +34,24 @@ void rtc_get_date(uint8_t *day, uint8_t *month, uint8_t *year) {
         *year  = bcd_to_bin(rtc_read(RTC_YEAR));
 }
 
+typedef struct
+{
+        uint16_t D:5;
+        uint16_t M:4;
+        uint16_t Y:7;
+} DATE;
+
+#define BASE_YEAR (2000)
+
+DATE get_date()
+{
+        uint8_t day,month,year;
+        rtc_get_date(&day,&month,&year);
+        DATE date;
+        date.D = day;
+        date.M = month;
+        date.Y = year;
+        return date;
+}
+
 #endif

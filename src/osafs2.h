@@ -13,15 +13,17 @@ int current_path_idx = -1;
 
 typedef int FILE;
 
+#include "rtc.h"
+
 typedef struct
 {
         char Name[16];
-        char padd[2];
         bool Exists;
         bool HasChildren;
         int  FFAT;
         int  ParentIdx;
         int  Size;
+        DATE Modified;
 } FileDescriptor;
 
 typedef struct
@@ -251,6 +253,8 @@ void _WriteF(const char *name, int parent_idx, const char *data, int data_length
                 data_ptr += bytcpy;
                 data_length -= bytcpy;
         }
+
+        FDS0[idx].Modified = get_date();
 }
 
 FILE fgetf(const char * name, int parent_idx)
@@ -399,8 +403,11 @@ void ListF()
         {
                 if (FDS0[i].Exists && FDS0[i].ParentIdx == current_path_idx)
                 {
+                        printf("%d/%d/%d  %d",FDS0[i].Modified.D,FDS0[i].Modified.M,FDS0[i].Modified.Y+BASE_YEAR,FDS0[i].Size);
+                        putc('\t');
                         putsn(FDS0[i].Name,16);
-                        printf("%c .sz=%d\n",FDS0[i].HasChildren ? '/' : '*', FDS0[i].Size);
+                        putc(FDS0[i].HasChildren ? '/' : '*');
+                        putc('\n');
                 }
         }
 }

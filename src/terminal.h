@@ -276,6 +276,7 @@ void putc(char c) {
                         while ((txtx % 8) != 0)
                                 putc(' ');
                         update_cursor(txtx, txty);
+                        return;
                 }
                 default:
                 {
@@ -385,11 +386,13 @@ void getsf(b,s,x,y,end)
         b[i] = '\0';
 }
 
-void putsn(s,n)
+int putsn(s,n)
         const char * s;
         int n;
 {
-        while(*s&&--n)putc(*(s++));
+        int c=0;
+        while(*s&&--n)putc(*(s++)),++c;
+        return c;
 }
 
 void puts_at(s,x,y)
