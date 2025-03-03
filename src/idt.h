@@ -126,21 +126,6 @@ void timer_interrupt()
         LookForDead();
         Scheduler();
         send_eoi(0x0);
-        //dbgprintf("eax=%x\n",regs[EAX]);
-        //dbgprintf("ebx=%x\n",regs[EBX]);
-        //dbgprintf("ecx=%x\n",regs[ECX]);
-        //dbgprintf("edx=%x\n",regs[EDX]);
-        //dbgprintf("esp=%x\n",regs[ESP]);
-        //dbgprintf("ebp=%x\n",regs[EBP]);
-        //dbgprintf("esi=%x\n",regs[ESI]);
-        //dbgprintf("edi=%x\n",regs[EDI]);
-        //dbgprintf("eip=%x\n",regs[EIP]);
-        //dbgprintf("cs=%x\n",regs[CS]);
-        //dbgprintf("ds=%x\n",regs[DS]);
-        //dbgprintf("ss=%x\n",regs[SS]);
-        //dbgprintf("es=%x\n",regs[ES]);
-        //dbgprintf("fs=%x\n",regs[FS]);
-        //dbgprintf("gs=%x\n",regs[GS]);
         LoadAndJump();
         while(1);
 }
