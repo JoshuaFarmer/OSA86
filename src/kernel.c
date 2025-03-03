@@ -43,7 +43,6 @@ bool active = true;
 #include "osafs2.h"
 #include "video.h"
 #include "user.h"
-#include "gui.h"
 #include "program.h"
 #include "schedule.h"
 #include "rtc.h"
