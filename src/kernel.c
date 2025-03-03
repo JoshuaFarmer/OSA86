@@ -152,6 +152,7 @@ parse(b,cmd)
 void system(char* sys)
 {
         char cmd[MARGS][CMDM_LEN];
+        memset(cmd,0,sizeof(cmd));
         int argc=parse(sys,(char (*)[128])&cmd);
         if (strncmp(cmd[0],"./",2)==0) {
                 char* path = cmd[0]+2;
