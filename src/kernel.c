@@ -179,7 +179,7 @@ void system(char* sys)
                 }
                 ListSchedule();
         } else if (strcmp(cmd[0], "cls") == 0) { 
-                clearScreen(termCol);
+                clearScreen(TTY_COL);
         } else if (strcmp(cmd[0], "?") == 0) { 
                 printf("%d\n",r);
         } else if (strcmp(cmd[0], "ls") == 0) {
@@ -223,7 +223,8 @@ void system(char* sys)
         }
 }
 
-void mode(int mod) {
+void mode(int mod)
+{
         int x=0;
         switch (mod)
         {
@@ -247,7 +248,8 @@ void mode(int mod) {
         TTY_WIDTH = (x >> 16) & 0xFFFF;
         TTY_HEIGHT = x & 0xFFFF;
 
-        if (x == 0 && mod != 0) {
+        if (x == 0 && mod != 0)
+        {
                 mode(0x1);
         }
 }
@@ -258,18 +260,13 @@ void SystemTick()
         printf("%c:/%s%c%s> ", Drive_Letter, ActiveDirParen(), ActiveDirParen()[0]==0 ? '\0' : '/', ActiveDir());
         gets(kbbuff, 128);
         system(kbbuff);
-        //Interpreter(kbbuff);
-}
-
-void loadfs() // org sector 128
-{
-
 }
 
 void osa86()
 {
         cli();
         mode(0x02);
+        init_tty();
         init_heap();
         init_gdt();
         init_idt();
@@ -278,10 +275,8 @@ void osa86()
         init_ramfs();
         init_pit(128);
 
-        clearScreen(termCol);
         system("info");
         putc('\n');
-
         WriteF("test.txt","Hellorld!\n",11);
         WriteF("test.tx","Hellorld!2\n",12);
 
@@ -296,14 +291,12 @@ void osa86()
         while (active)
         {
                 sti();
-                for (int _=0;_<4096;++_);
-                cli();
                 SystemTick();
         }
 
         cli();
-        clearScreen(termCol);
         mode(0x2);
+        clearScreen(TTY_COL);
         puts_at("It is now safe to turn of your computer\n", 20, 11);
         while(1);
 }

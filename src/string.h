@@ -5,24 +5,30 @@
 
 void* malloc(size_t size);
 
-int strlen(const char* str) {
+int strlen(const char* str)
+{
         int l;
         for (l = 0; str[l] != '\0'; ++l);
         return l;
 }
 
-int strcmp(const char *s1, const char *s2) {
-        while (*s1 == *s2++) {
+int strcmp(const char *s1, const char *s2)
+{
+        while (*s1 == *s2++)
+        {
                 if (*s1++ == '\0')
                         return (0);
         }
         return (*(const unsigned char *)s1 - *(const unsigned char *)(s2 - 1));
 }
 
-const char* strrchr(const char* str, int ch) {
+const char* strrchr(const char* str, int ch)
+{
         const char* result = NULL;
-        while (*str) {
-                if (*str == ch) {
+        while (*str)
+        {
+                if (*str == ch)
+                {
                         result = str;
                 }
                 str++;

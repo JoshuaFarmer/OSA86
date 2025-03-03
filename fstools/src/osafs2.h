@@ -15,12 +15,12 @@ typedef int OsaFILE;
 typedef struct
 {
         char Name[16];
-        char padd[2];
         bool Exists;
         bool HasChildren;
         int  FFAT;
         int  ParentIdx;
         int  Size;
+        char padd[2];
 } FileDescriptor;
 
 typedef struct

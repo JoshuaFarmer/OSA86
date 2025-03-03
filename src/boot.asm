@@ -1,36 +1,27 @@
-[org 0x7C00]
-[bits 16]
+        [org 0x7C00]
+        [bits 16]
 
-KERNEL_SIZE equ 128
-
-jmp _start
-
-; We have to start somewhere, we use _start out of convention.
+        KERNEL_SIZE  equ 128
+        KERNEL_STACK equ 0xD00000
+        jmp _start
 _start:
 	push dx
-	; We don't want to be disturbed.
 	cli
 	xor ax, ax
 	mov ss, ax
 	mov ds, ax
 	mov es, ax
-
 	mov sp, 0x7C00
 	sti	 
-
 	pusha
 	mov ah, 0x3
 	int 10h
 	popa
-	
 	; Hide cursor
 	mov ah, 0x01
 	mov ch, 0x20
 	mov cl, 0x1f
 	int 0x10
-
-	; Now we're going to load data from disk.
-	; No filesystem yet.
 	mov ah, 2
 	mov al, KERNEL_SIZE
 	mov cx, 2
@@ -41,7 +32,6 @@ _start:
 	jge from_disk
 	mov dl, 0x80
 	jmp from_disk
-	; Floppies are unreliable, so we have to try a few times.
 from_floppy:
 	mov bp, 5
 	jmp from_disk
@@ -65,7 +55,6 @@ check_for_errors:
 done_with_disk:
 switch32:
 	lgdt [gdtinfo]
-
 	cli
 	mov eax, cr0
 	or  eax, 1
@@ -77,19 +66,16 @@ clear_prefetch:
 	mov ax, 0x10
 	mov ds, ax
 	mov ss, ax 
-	mov esp, 0xD00000
+	mov esp,KERNEL_STACK
 	mov ax, 0x8
 	mov es, ax
 	mov fs, ax
 	mov gs, ax
-
 	db 0x66
 	db 0xEA
 	dd Really32
 	dw 0x0008
-
-[bits 32]
-
+        [bits 32]
 Really32:
         mov eax, cr0
         test eax, 1
@@ -97,9 +83,7 @@ Really32:
 	call 0x10000
 .shutdown:
 	jmp $
-
-[bits 16]
-
+        [bits 16]
 bruh_fail:
         mov ah, 0x0E
         mov al, 'b'

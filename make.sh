@@ -3,7 +3,7 @@
 nasm src/boot.asm -o bin/raw/boot.bin -f bin
 nasm src/int.s -o bin/raw/int.o -f elf32
 nasm src/disk.s -o bin/raw/disk.o -f elf32
-clang src/kernel.c -o bin/raw/kernel.o -m32 -ffast-math -c -ffreestanding -Wall -Wextra -target i386 -Wunused-function -Wno-unused-parameter
+clang src/kernel.c -o bin/raw/kernel.o -m32 -ffast-math -c -ffreestanding -Wall -Wextra -target i386
 
 ld -m elf_i386 -T linker.ld -o bin/raw/kernel.elf -Os bin/raw/kernel.o bin/raw/int.o bin/raw/disk.o -nostdlib
 llvm-strip bin/raw/kernel.elf
@@ -21,4 +21,4 @@ clang fstools/src/diskutil.c -o fstools/bin/diskutil -O3 -Wall
 clang fstools/src/osafs2.c -o fstools/bin/osafs -O3 -Wall
 ./fstools/bin/diskutil "bin/raw/OSA86.img" "bin/OSA86.img"
 
-qemu-system-i386 -m 64 -drive file=bin/OSA86.img,format=raw,if=ide,readonly=off #-debugcon stdio
+qemu-system-i386 -m 64 -drive file=bin/OSA86.img,format=raw,if=ide,readonly=off -debugcon stdio

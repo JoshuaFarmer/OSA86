@@ -1,20 +1,13 @@
 #ifndef IDT_H
 #define IDT_H
+#define IDT_ENTRIES 256
 
+void SystemTick();
 #include <stdint.h>
 #include <stdbool.h>
 #include "malloc.h"
 #include "osafs2.h"
 #include "schedule.h"
-
-extern void default_exception_handler(void);
-extern void OSASyscall(void);
-extern void invalid_opcode_handler(void);
-extern void timer_interrupt_handler(void);
-extern void divide_by_zero_handler(void);
-extern void keyboard_interrupt_handler(void);
-extern void general_protection_fault_handler(void);
-extern void page_fault_handler(void);
 
 typedef struct
 {
@@ -24,6 +17,34 @@ typedef struct
         int c;
         int d;
 } SysCall;
+
+
+typedef struct idt_entry
+{
+        uint16_t base_low;
+        uint16_t selector;
+        uint8_t  always0;
+        uint8_t  flags;
+        uint16_t base_high;
+} idt_entry;
+
+typedef struct idt_ptr
+{
+        uint16_t limit;
+        uint32_t base;
+} idt_ptr;
+
+extern void LoadAndJump();
+extern void default_exception_handler(void);
+extern void OSASyscall(void);
+extern void invalid_opcode_handler(void);
+extern void timer_interrupt_handler(void);
+extern void divide_by_zero_handler(void);
+extern void keyboard_interrupt_handler(void);
+extern void general_protection_fault_handler(void);
+extern void page_fault_handler(void);
+
+idt_entry idt[256];
 
 void Exception(unsigned int addr)
 {
@@ -40,24 +61,8 @@ void invalid_opcode()
         PANIC("Invalid Opcode\n");
 }
 
-volatile uint8_t CharBuff=0;
-
 void keyboard_handler()
 {
-        if (!getching)
-        {
-                static uint8_t buffer[16];
-                static int head = 0, tail = 0;
-
-                uint8_t scancode = inb(KEYBOARD_DATA_PORT);
-                buffer[head] = scancode;
-                head = (head + 1) % 16;
-                if (CharBuff == 0)
-                {
-                        CharBuff = buffer[tail];
-                        tail = (tail + 1) % 16;
-                }
-        }
         send_eoi(1);
 }
 
@@ -93,12 +98,15 @@ void Int80(int eax, int ecx)
         );
 }
 
-int OSASyscallHandler(int eip, int cs, int none, int op, int b) {
-        cli();
+int OSASyscallHandler(int eip, int cs, int flags, int op, int b)
+{
+        (void)eip;
+        (void)cs;
+        (void)flags;
         switch (op)
         {
                 case 0:
-                        MarkDead(); // end current process
+                        MarkDead();
                         r=b;
                         break;
                 case 1:
@@ -113,57 +121,32 @@ int OSASyscallHandler(int eip, int cs, int none, int op, int b) {
         return 0;
 }
 
-void SystemTick();
-
-#include "schedule.h"
-
-extern void LoadAndJump(uint32_t * NewStack);
-
-void timer_interrupt(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx, uint32_t esi, uint32_t edi, uint32_t ebp, uint32_t esp, uint32_t eflags, uint32_t ds, uint32_t ss, uint32_t es, uint32_t fs, uint32_t gs, uint32_t eip, uint32_t cs)
+void timer_interrupt()
 {
-        static int tick=0;
         LookForDead();
-        Scheduler(&eax, &ebx, &ecx, &edx,
-                  &esi, &edi, &ebp, &esp,
-                  &eflags, &ds, &ss, &es,
-                  &fs, &gs, &eip, &cs, tick); // Get Next
-        tick=1;
-        uint32_t * new_stack=(uint32_t*)esp;
-        new_stack -= (14*4);
-        new_stack[0]=eax;
-        new_stack[1]=ebx;
-        new_stack[2]=ecx;
-        new_stack[3]=edx;
-        new_stack[4]=esi;
-        new_stack[5]=edi;
-        new_stack[6]=ebp;
-        new_stack[7]=eflags;
-        new_stack[8]=ds;
-        new_stack[9]=es;
-        new_stack[10]=fs;
-        new_stack[11]=gs;
-        new_stack[12]=eip;
-        new_stack[13]=cs;
+        Scheduler();
         send_eoi(0x0);
-        LoadAndJump(new_stack);
+        //dbgprintf("eax=%x\n",regs[EAX]);
+        //dbgprintf("ebx=%x\n",regs[EBX]);
+        //dbgprintf("ecx=%x\n",regs[ECX]);
+        //dbgprintf("edx=%x\n",regs[EDX]);
+        //dbgprintf("esp=%x\n",regs[ESP]);
+        //dbgprintf("ebp=%x\n",regs[EBP]);
+        //dbgprintf("esi=%x\n",regs[ESI]);
+        //dbgprintf("edi=%x\n",regs[EDI]);
+        //dbgprintf("eip=%x\n",regs[EIP]);
+        //dbgprintf("cs=%x\n",regs[CS]);
+        //dbgprintf("ds=%x\n",regs[DS]);
+        //dbgprintf("ss=%x\n",regs[SS]);
+        //dbgprintf("es=%x\n",regs[ES]);
+        //dbgprintf("fs=%x\n",regs[FS]);
+        //dbgprintf("gs=%x\n",regs[GS]);
+        LoadAndJump();
+        while(1);
 }
 
-struct idt_entry {
-        uint16_t base_low;         // Lower 16 bits of the handler address
-        uint16_t selector;         // Kernel segment selector
-        uint8_t  always0;          // This must always be zero
-        uint8_t  flags;            // Flags
-        uint16_t base_high;        // Upper 16 bits of the handler address
-};
-
-struct idt_ptr {
-        uint16_t limit;
-        uint32_t base;
-};
-
-#define IDT_ENTRIES 256
-
-void set_idt_entry(int n, uint32_t handler, struct idt_entry* idt) {
+void set_idt_entry(int n, uint32_t handler, struct idt_entry* idt)
+{
         idt[n].base_low = handler & 0xFFFF;
         idt[n].selector = 0x08;
         idt[n].always0 = 0;
@@ -171,18 +154,20 @@ void set_idt_entry(int n, uint32_t handler, struct idt_entry* idt) {
         idt[n].base_high = (handler >> 16) & 0xFFFF;
 }
 
-void load_idt(struct idt_entry* idt) {
+void load_idt(struct idt_entry* idt)
+{
         static struct idt_ptr idtp;
         idtp.limit = (sizeof(struct idt_entry) * IDT_ENTRIES) - 1;
         idtp.base = (uint32_t)idt;
         asm volatile ("lidt (%0)" : : "r" (&idtp));
 }
 
-struct idt_entry idt[256];
-void init_idt() {
+void init_idt()
+{
         cli();
 
-        for (int i = 0; i < IDT_ENTRIES; i++) {
+        for (int i = 0; i < IDT_ENTRIES; i++)
+        {
                 set_idt_entry(i, (uint32_t)default_exception_handler, idt);
         }
 

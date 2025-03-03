@@ -5,17 +5,14 @@
 
 #define KEYBOARD_STATUS_PORT 0x64
 #define KEYBOARD_DATA_PORT 0x60
+#define TTY_TAB_WIDTH 8
+#define ifsw(a,b) if (a) switch (b)
 
-char * videobuff = (char*)0xB8000;
+char * TTY_BUFFER = (char*)0xB8000;
+int    TTY_WIDTH,TTY_HEIGHT,TTY_X,TTY_Y,TTY_COL,TTY_XS,TTY_YS,TTY_XE,TTY_YE;
 
-int TTY_WIDTH  = 80;
-int TTY_HEIGHT = 25;
-
-uint8_t termCol = 0x02;
-uint8_t Data[512];
-int txtx=0, txty=0;
-
-enum {
+enum
+{
         KEY_NULL = 0,
         KEY_ESC=0x100,
         KEY_CTRL,
@@ -69,7 +66,6 @@ const uint16_t keyboard_map_shifted[256] = {
         KEY_ALT, '\\', KEY_F11, KEY_F12
 };
 
-/*
 char getc()
 {
         char status;
@@ -122,42 +118,12 @@ char getc()
                         }
                 }
         }
-}*/
-
-extern volatile uint8_t CharBuff;
-
-char getc()
-{
-        static int shift_pressed = 0;
-        int x = CharBuff;
-        CharBuff=0;
-
-        if (x == 0x2A || x == 0x36) {
-                shift_pressed = 1;
-                return 0;
-        } else if (x == 0xAA || x == 0xB6) {
-                shift_pressed = 0;
-                return 0;
-        }
-
-        if (x & 0x80) {
-                return 0;
-        } else {
-                if (shift_pressed) {
-                        return keyboard_map_shifted[x];
-                } else {
-                        return keyboard_map[x];
-                }
-        }
 }
-
-int getching = 0;
 
 int printf(const char *,...);
 
 char getch()
 {
-        outb(0x21,0x2);
         char status;
         static int shift_pressed = 0;
         static int alt_code_mode = 0;
@@ -170,7 +136,6 @@ char getch()
         } while ((status & 0x01) == 0);
 
         unsigned char scancode = inb(KEYBOARD_DATA_PORT);
-        outb(0x21,0x0);
         if (scancode == 0x2A || scancode == 0x36) {
                 shift_pressed = 1;
                 return 0;
@@ -209,33 +174,34 @@ char getch()
         }
 }
 
-void scroll_cursor()
+void ScrollScreen()
 {
-        for (int y = 1; y < TTY_HEIGHT; ++y)
+        for (int y = TTY_YS+1; y < TTY_YE; ++y)
         {
-                for (int x = 0; x < TTY_WIDTH; ++x)
+                for (int x = TTY_XS; x < TTY_XE; ++x)
                 {
                         int src=((y * TTY_WIDTH) << 1) + (x << 1);
                         int dst=(((y - 1) * TTY_WIDTH) << 1) + (x << 1);
-                        videobuff[dst]   = videobuff[src];
-                        videobuff[dst+1] = videobuff[src+1];
+                        TTY_BUFFER[dst]   = TTY_BUFFER[src];
+                        TTY_BUFFER[dst+1] = TTY_BUFFER[src+1];
                 }
         }
 
-        for (int x = 0; x < TTY_WIDTH; ++x)
+        for (int x = TTY_XS; x < TTY_XE; ++x)
         {
-                int pos = (((TTY_HEIGHT - 1) * TTY_WIDTH) << 1) + (x << 1);
-                videobuff[pos]   = '\0';
-                videobuff[pos+1] = termCol;
+                int pos = (((TTY_YE - 1) * TTY_WIDTH) << 1) + (x << 1);
+                TTY_BUFFER[pos]   = '\0';
+                TTY_BUFFER[pos+1] = TTY_COL;
         }
 
-        if (txty >= TTY_HEIGHT)
+        if (TTY_Y >= TTY_YE)
         {
-                txty = TTY_HEIGHT - 1;
+                TTY_Y = TTY_YE - 1;
         }
 }
 
-void update_cursor(const int x, const int y) {
+void update_cursor(const int x, const int y)
+{
         uint16_t pos = y * TTY_WIDTH + x;
         outb(0x3D4, 0x0F);
         outb(0x3D5, (uint8_t) (pos & 0xFF));
@@ -243,48 +209,47 @@ void update_cursor(const int x, const int y) {
         outb(0x3D5, (uint8_t) ((pos >> 8) & 0xFF));
 }
 
-void putc(char c) {
-        outb(0xE9, c);
-        if (txty < 0) txty = 0;
-        if (txtx < 0) txtx = 0;
-        update_cursor(txtx, txty);
+void putc(char c)
+{
+        if (TTY_Y < TTY_XS) TTY_Y = TTY_XS;
+        if (TTY_X < TTY_YS) TTY_X = TTY_YS;
+        update_cursor(TTY_X, TTY_Y);
 
         switch (c)
         {
                 case '\b':
                 {
-                        --txtx;
-                        if (txtx < 0)
+                        --TTY_X;
+                        if (TTY_X < TTY_YS && TTY_Y >= TTY_YS)
                         {
-                                txtx=0,--txty;
-                                for (;((char*)videobuff)[(txty * TTY_WIDTH * 2) + (txtx * 2)] != '\0';++txtx);
+                                TTY_X=TTY_XS,--TTY_Y;
+                                for (;((char*)TTY_BUFFER)[(TTY_Y * TTY_WIDTH * 2) + (TTY_X * 2)] != '\0';++TTY_X);
                         }
-                        ((char*)videobuff)[(txty * TTY_WIDTH * 2) + (txtx * 2)] = '\0';
-                        ((char*)videobuff)[(txty * TTY_WIDTH * 2) + (txtx * 2) + 1] = termCol;
-                        update_cursor(txtx, txty);
+                        ((char*)TTY_BUFFER)[(TTY_Y * TTY_WIDTH * 2) + (TTY_X * 2)] = '\0';
+                        ((char*)TTY_BUFFER)[(TTY_Y * TTY_WIDTH * 2) + (TTY_X * 2) + 1] = TTY_COL;
+                        update_cursor(TTY_X, TTY_Y);
                 } break;
                 case 0:
                         break;
                 case '\n':
                 {
-                        txtx=0;
-                        txty++;
-                        (txty >= TTY_HEIGHT) ? scroll_cursor(),update_cursor(txtx, txty) : 0;
+                        TTY_X=TTY_XS;
+                        (++TTY_Y >= TTY_YE) ? ScrollScreen(),update_cursor(TTY_X, TTY_Y) : 0;
                 } break;
                 case '\t':
                 {
-                        while ((txtx % 8) != 0)
+                        while ((TTY_X % TTY_TAB_WIDTH) != 0)
                                 putc(' ');
-                        update_cursor(txtx, txty);
+                        update_cursor(TTY_X, TTY_Y);
                         return;
                 }
                 default:
                 {
-                        ((char*)videobuff)[(txty * TTY_WIDTH * 2) + (txtx * 2)] = c;
-                        ((char*)videobuff)[(txty * TTY_WIDTH * 2) + (txtx * 2) + 1] = termCol;
-                        ++txtx;
-                        (txtx >= TTY_WIDTH) ? txtx=0,++txty,(txty >= TTY_HEIGHT) ? scroll_cursor() : 0 : 0;
-                        update_cursor(txtx, txty);
+                        ((char*)TTY_BUFFER)[(TTY_Y * TTY_WIDTH * 2) + (TTY_X * 2)] = c;
+                        ((char*)TTY_BUFFER)[(TTY_Y * TTY_WIDTH * 2) + (TTY_X * 2) + 1] = TTY_COL;
+                        ++TTY_X;
+                        (TTY_X >= TTY_XE) ? TTY_X=TTY_XS,++TTY_Y,(TTY_Y >= TTY_YE) ? ScrollScreen() : 0 : 0;
+                        update_cursor(TTY_X, TTY_Y);
                 } break;
         }
 }
@@ -297,13 +262,13 @@ void puts(s)
 
 void putc_at(char c, uint16_t x, uint16_t y)
 {
-        int tx=txtx;
-        int ty=txty;
-        txtx=x;
-        txty=y;
+        int tx=TTY_X;
+        int ty=TTY_Y;
+        TTY_X=x;
+        TTY_Y=y;
         putc(c);
-        txtx=tx;
-        txty=ty;
+        TTY_X=tx;
+        TTY_Y=ty;
 }
 
 void gets(b,s)
@@ -399,13 +364,13 @@ void puts_at(s,x,y)
         const char* s;
         int x,y;
 {
-        int tx=txtx;
-        int ty=txty;
-        txtx=x;
-        txty=y;
+        int tx=TTY_X;
+        int ty=TTY_Y;
+        TTY_X=x;
+        TTY_Y=y;
         puts(s);
-        txtx=tx;
-        txty=ty;
+        TTY_X=tx;
+        TTY_Y=ty;
 }
 
 void PrintByte(uint8_t a)
@@ -416,14 +381,17 @@ void PrintByte(uint8_t a)
         putc(c);
 }
 
-void clearScreen(uint8_t c) {
-        termCol = c;
-        for (int i = 0; i < TTY_WIDTH*TTY_HEIGHT*2; i++) {
-                ((char*)videobuff)[i++] = '\0';
-                ((char*)videobuff)[i] = c;
+void clearScreen(uint8_t c)
+{
+        TTY_COL = c;
+        for (int i = 0; i < TTY_WIDTH*TTY_HEIGHT*2; i++)
+        {
+                ((char*)TTY_BUFFER)[i++] = '\0';
+                ((char*)TTY_BUFFER)[i] = c;
         }
-        txtx=0;
-        txty=0;
+
+        TTY_X=TTY_XS;
+        TTY_Y=TTY_YS;
         update_cursor(0, 0);
 }
 
@@ -464,7 +432,8 @@ int sscanf(const char *str, const char *format, ...) {
         return count;
 }
 
-void put_int(int value) {
+void put_int(int value)
+{
         char b[12];
         int i = 0;
         bool is_negative = false;
@@ -474,10 +443,12 @@ void put_int(int value) {
                 value = -value;
         }
 
-        do {
+        do
+        {
                 b[i++] = (value % 10) + '0';
                 value /= 10;
-        } while (value > 0);
+        }
+        while (value > 0);
 
         if (is_negative) {
                 b[i++] = '-';
@@ -536,7 +507,8 @@ void PRINT_WORD(int X) {
         putc('\n');
 }
 
-int printf(const char* format, ...) {
+int printf(const char* format, ...)
+{
         va_list args;
         va_start(args, format);
         
@@ -597,6 +569,83 @@ int printf(const char* format, ...) {
 
         va_end(args);
         return 0;
+}
+
+int dbgprintf(const char* format, ...)
+{
+        va_list args;
+        va_start(args, format);
+        
+        for (const char *p = format;*p;++p)
+        {
+                ifsw (*p == '%' && *(p + 1), *(++p))
+                {
+                case 'c':
+                        {
+                        char c = (char) va_arg(args, int);
+                        outb(0xE9,c);
+                        break;
+                        }
+                case 's':
+                        {
+                        const char* str = va_arg(args, const char*);
+                        dbgprintf(str);
+                        break;
+                        }
+                case 'x':
+                        {
+                        int i = va_arg(args, int);
+                        int mask = 0xF;
+                        int shr  = 28;
+                        while (shr)
+                        {
+                                shr -= 4;
+                                uint32_t x = (i >> shr) & mask;
+                                if (x <= 9)
+                                {
+                                        outb(0xE9,x+'0');
+                                }
+                                else if (x <= 15)
+                                {
+                                        outb(0xE9,x+'A');
+                                }
+                        }
+                        break;
+                        }
+                case 'b':
+                        {
+                        uint32_t b = va_arg(args, int);
+                        for (int i = 0; i < 32; ++i)
+                        {
+                                outb(0xE9,((b>>(31-i))&(1)) ? '1' : '0');
+                        }
+                        break;
+                        }
+                case '%':
+                        outb(0xE9,'%');
+                        break;
+                }
+                else
+                {
+                        outb(0xE9,*p);
+                }
+        }
+
+        va_end(args);
+        return 0;
+}
+
+void init_tty()
+{
+        /* set system defaults */
+        TTY_COL    = 0x91;
+        TTY_WIDTH  = 80;
+        TTY_HEIGHT = 25;
+        TTY_XS     = 1;
+        TTY_YS     = 1;
+        TTY_XE     = TTY_WIDTH-1;
+        TTY_YE     = TTY_HEIGHT-1;
+        clearScreen(TTY_COL);
 }
 
 #define PANIC(x, ...) void StackDump(); StackDump(); printf("PANIC: "); printf(x, ##__VA_ARGS__); while(1)

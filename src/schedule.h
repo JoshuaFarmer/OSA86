@@ -1,6 +1,28 @@
 #ifndef SCHEDULE_H
 #define SCHEDULE_H
 
+typedef uint32_t REGS[16];
+
+enum REG
+{
+        EAX,
+        EBX,
+        ECX,
+        EDX,
+        ESP,
+        EBP,
+        ESI,
+        EDI,
+        EIP,
+        CS,
+        DS,
+        ES,
+        SS,
+        FS,
+        GS,
+        EFLAGS,
+};
+
 typedef struct Task
 {
         uint32_t eax,ecx,edx,ebx,esp,ebp,esi,edi,eip;
@@ -14,34 +36,19 @@ typedef struct Task
         char * name;
 } Task;
 
-Task RootTask; // on init, switch self to this, so that it's only called on interrupts
-Task * ActiveTask=&RootTask;
+Task RootTask,*ActiveTask;
+
+volatile uint32_t *regs = (uint32_t *)0xFF00;
 
 void Int80(int,int);
 void SystemTick();
-
-void test()
-{
-        putc('2');
-        while (true)
-        {
-        }
-}
-
-void test2()
-{
-        putc('3');
-        while (true)
-        {
-        }
-}
 
 void init_scheduler()
 {
         memset(&RootTask, 0, sizeof(Task));
         RootTask.next=NULL;
         RootTask.running=true;
-        RootTask.eip=(uint32_t)0;
+        RootTask.eip=(uint32_t)init;
         RootTask.cs=0x8;
         RootTask.ds=0x10;
         RootTask.ss=0x10;
@@ -51,6 +58,7 @@ void init_scheduler()
         RootTask.eflags=0x200;
         RootTask.name = "System";
         RootTask.esp = (uint32_t)&RootTask.stack[sizeof(RootTask.stack) - 4];
+        ActiveTask=&RootTask;
         printf("SCHED Initialized\n");
 }
 
@@ -190,59 +198,49 @@ void Next()
         }
 }
 
-void Scheduler(
-                uint32_t * eax, uint32_t * ebx,
-                uint32_t * ecx, uint32_t * edx,
-                uint32_t * esi, uint32_t * edi,
-                uint32_t * ebp, uint32_t * esp,
-                uint32_t * eflags, uint32_t * ds,
-                uint32_t * ss, uint32_t * es,
-                uint32_t * fs, uint32_t * gs,
-                uint32_t * eip, uint32_t * cs,
-                uint32_t tick
-              )
+void Scheduler()
 {
         cli();
         if (ActiveTask)
         {
-                ActiveTask->eax=*eax;
-                ActiveTask->ebx=*ebx;
-                ActiveTask->ecx=*ecx;
-                ActiveTask->edx=*edx;
-                ActiveTask->esi=*esi;
-                ActiveTask->edi=*edi;
-                ActiveTask->ebp=*ebp;
-                ActiveTask->esp=*esp;
-                ActiveTask->eip=*eip;
-                ActiveTask->eflags=*eflags;
-                ActiveTask->ds=*ds;
-                ActiveTask->ss=*ss;
-                ActiveTask->es=*es;
-                ActiveTask->fs=*fs;
-                ActiveTask->gs=*gs;
-                ActiveTask->cs=*cs;
+                ActiveTask->eax   =regs[EAX];
+                ActiveTask->ebx   =regs[EBX];
+                ActiveTask->ecx   =regs[ECX];
+                ActiveTask->edx   =regs[EDX];
+                ActiveTask->esi   =regs[ESI];
+                ActiveTask->edi   =regs[EDI];
+                ActiveTask->ebp   =regs[EBP];
+                ActiveTask->esp   =regs[ESP];
+                ActiveTask->eip   =regs[EIP];
+                ActiveTask->eflags=regs[EFLAGS];
+                ActiveTask->ds    =regs[DS];
+                ActiveTask->ss    =regs[SS];
+                ActiveTask->es    =regs[ES];
+                ActiveTask->fs    =regs[FS];
+                ActiveTask->gs    =regs[GS];
+                ActiveTask->cs    =regs[CS];
                 ActiveTask->tick++;
 
                 Next();
-                *eax = ActiveTask->eax;
-                *ebx = ActiveTask->ebx;
-                *ecx = ActiveTask->ecx;
-                *edx = ActiveTask->edx;
-                *esi = ActiveTask->esi;
-                *edi = ActiveTask->edi;
-                *esp = ActiveTask->esp;
-                *ebp = ActiveTask->ebp;
-                *eip = ActiveTask->eip;
-                *cs  = ActiveTask->cs;
-                *ds  = ActiveTask->ds;
-                *es  = ActiveTask->es;
-                *fs  = ActiveTask->fs;
-                *gs  = ActiveTask->gs;
+                regs[EAX]    = ActiveTask->eax;
+                regs[EBX]    = ActiveTask->ebx;
+                regs[ECX]    = ActiveTask->ecx;
+                regs[EDX]    = ActiveTask->edx;
+                regs[ESI]    = ActiveTask->esi;
+                regs[EDI]    = ActiveTask->edi;
+                regs[ESP]    = ActiveTask->esp;
+                regs[EBP]    = ActiveTask->ebp;
+                regs[EIP]    = ActiveTask->eip;
+                regs[EFLAGS] = ActiveTask->eflags;
+                regs[CS]     = ActiveTask->cs;
+                regs[DS]     = ActiveTask->ds;
+                regs[SS]     = ActiveTask->ss;
+                regs[ES]     = ActiveTask->es;
+                regs[FS]     = ActiveTask->fs;
+                regs[GS]     = ActiveTask->gs;
         }
 }
 
-void Schedule(const char * path)
-{
-}
+/*schedule(path (*)) would just be ExecuteF*/
 
 #endif
