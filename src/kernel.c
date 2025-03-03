@@ -11,7 +11,7 @@
 #define NULL (void*)(0)
 #define cli() asm ("cli")
 #define sti() asm ("sti")
-#define __VER__ "0.2"
+#define __VER__ "0.4"
 
 uint8_t Drive_Letter = 'A';
 
