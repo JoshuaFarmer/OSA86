@@ -145,12 +145,19 @@ void StackDump()
 
 void ListSchedule()
 {
-        printf("task list:\n");
         IterateSchedule(i)
         {
                 if (current)
-                        {putsn(current->name,64); putc('\n');}
+                {
+                        printf("%s\t\t",current->name);
+                        if (((i+1) % 4) == 0 && i != 0)
+                        {
+                                putc('\n');
+                        }
+                }
         }
+
+        putc('\n');
 }
 
 void LookForDead()

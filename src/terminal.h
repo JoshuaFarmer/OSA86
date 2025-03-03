@@ -238,6 +238,7 @@ void putc(char c)
                 } break;
                 case '\t':
                 {
+                        if ((TTY_X % TTY_TAB_WIDTH) == 0) putc(' ');
                         while ((TTY_X % TTY_TAB_WIDTH) != 0)
                                 putc(' ');
                         update_cursor(TTY_X, TTY_Y);
