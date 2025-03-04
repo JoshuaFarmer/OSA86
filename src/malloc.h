@@ -1,4 +1,5 @@
-#pragma once
+#ifndef HEAP_H
+#define HEAP_H
 #include <stdint.h>
 #include <stdbool.h>
 #include "string.h"
@@ -122,3 +123,5 @@ size_t remaining_heap_space(void)
         }
         return free_space;
 }
+
+#endif

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef STRING_H
+#define STRING_H
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -313,3 +315,5 @@ char* itoa(int num, char* str, int base) {
 
         return str;
 }
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PIT_H
+#define PIT_H
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -26,3 +27,5 @@ void init_pit(uint32_t frequency)
         outb(PIT_CHANNEL0, (divisor >> 8) & 0xFF);
         printf("PIT Initialized\n");
 }
+
+#endif

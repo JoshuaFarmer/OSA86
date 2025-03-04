@@ -1,4 +1,6 @@
-#pragma once
+#ifndef TTY_H
+#define TTY_H
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdarg.h>
@@ -650,3 +652,5 @@ void init_tty()
 }
 
 #define PANIC(x, ...) void StackDump(); StackDump(); printf("PANIC: "); printf(x, ##__VA_ARGS__); while(1)
+
+#endif

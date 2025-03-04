@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PIC_H
+#define PIC_H
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -38,3 +39,5 @@ void init_pic(void)
         uint8_t new_mask = current_mask | 0x02; // IRQ1 is bit 1 (0x02)
         outb(0x21, new_mask);
 }
+
+#endif

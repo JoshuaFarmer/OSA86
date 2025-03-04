@@ -1,6 +1,12 @@
-#pragma once
+#ifndef IO_H
+#define IO_H
 #include <stdint.h>
 #include <stdbool.h>
+
+#define	peekb(S,O)		*(unsigned char *)(16uL * (S) + (O))
+#define	pokeb(S,O,V)		*(unsigned char *)(16uL * (S) + (O)) = (V)
+#define	pokew(S,O,V)		*(unsigned short *)(16uL * (S) + (O)) = (V)
+#define	_vmemwr(DS,DO,S,N)	memcpy((char *)((DS) * 16 + (DO)), S, N)
 
 uint16_t inw(uint16_t port)
 {
@@ -26,7 +32,8 @@ void outb(unsigned short port, unsigned char value)
         asm("outb %0, %1" : : "a"(value), "Nd"(port));
 }
 
-/*
+/* ATA Shite */
+
 extern void __ata_lba_read();
 extern void __ata_lba_write();
 
@@ -115,4 +122,5 @@ void ata_select_drive(uint16_t base, uint8_t drive)
         outb(base + ATA_REG_DRIVE, drive);
         ata_io_wait(base);
 }
-*/
+
+#endif

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef GDT_H
+#define GDT_H
+
 #include <stdint.h>
 #include <stdbool.h>
 #define GDT_SIZE 6
@@ -107,3 +109,5 @@ void init_gdt() {
         puts("GDT Initialized\n");
 #endif
 }
+
+#endif
