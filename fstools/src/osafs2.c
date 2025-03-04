@@ -22,12 +22,11 @@ int main(int argc, char * argv[])
                 return 1;
         }
 
-        InitRamFS();
+        init_ramfs();
         if (exists(argv[1]))
         {
                 FILE * fp = fopen(argv[1],"rb");
                 fread(start,1,65536,fp);
-                fseek(fp,65536,SEEK_END);
                 fread(FAT0,1,sizeof(FAE)*MCC,fp);
                 fread(FDS0,1,sizeof(FileDescriptor)*MFC,fp);
                 fclose(fp); fp = NULL;
@@ -39,39 +38,34 @@ int main(int argc, char * argv[])
                 {
                         Cd(argv[++i]);
                 }
-                else if (strcmp(argv[i],"/start") == 0 && i-1 < argc)
-                {
-                        FILE * fp = fopen(argv[++i],"rb");
-                        fread(start,1,65536,fp);
-                        fclose(fp); fp = NULL;
-                }
-                else if (strcmp(argv[i],"/rm") == 0 && i-1 < argc)
-                {
-                        DeleteF(argv[++i]);
-                }
-                else if (strcmp(argv[i],"/view") == 0 && i-1 < argc)
-                {
-                        OsaFILE f = Osafgetf(argv[++i],current_path_idx)-1;
-                        char buff[FDS0[f].Size+1];
-                        buff[FDS0[f].Size]=0;
-                        ReadF(argv[i],buff,FDS0[f].Size);
-                        printf("%s\n",buff);
-                }
                 else if (strcmp(argv[i],"/ls") == 0)
                 {
                         ListF();
                 }
+                else if (strcmp(argv[i],"/view") == 0 && i-1 < argc)
+                {
+                        OSA_FILE *osf = osa_fopen(argv[++i],"r");
+                        char *buff = wfread(osf);
+                        printf("%s\n",buff);
+                        free(buff);
+                        osa_fclose(osf);
+                }
                 else
                 {
-                        CreateF(argv[i]);
-                        FILE * fp = fopen(argv[i],"rb");
-                        fseek(fp,0,2);
+                        FILE *fp = fopen(argv[i],"r");
+                        if (!fp) return -1;
+                        fseek(fp,0,SEEK_END);
                         int len = ftell(fp);
-                        fseek(fp,0,0);
-                        char buff[len+1];
-                        fread(buff,len,1,fp);
-                        WriteF(argv[i],buff,len);
-                        fclose(fp); fp = NULL;
+                        fseek(fp,0,SEEK_SET);
+                        char *x = malloc(len);
+                        if (!x) return -1;
+                        fread(x,1,len,fp);
+                        printf("data:%s\n",x);
+                        OSA_FILE *f = osa_fopen(argv[i],"w");
+                        osa_fwrite(x,1,len,f);
+                        osa_fclose(f);
+                        free(x);
+                        fclose(fp);
                 }
         }
         
