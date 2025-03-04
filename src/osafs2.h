@@ -58,8 +58,8 @@ typedef struct {
 #define CHECKSUM 0xAA
 #define PHVERSION 0x1
 
-FAE            * FAT0;
-FileDescriptor * FDS0;
+FAE            *FAT0;
+FileDescriptor *FDS0;
 
 void init_fs()
 {
