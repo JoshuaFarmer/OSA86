@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "string.h"
+#include "io.h"
 #define CLUSTSZ 503
 #define MFC 64
 #define MCC 64
@@ -57,11 +58,13 @@ typedef struct {
 #define CHECKSUM 0xAA
 #define PHVERSION 0x1
 
-FAE            * FAT0=(FAE*)0x1000000;
-FileDescriptor * FDS0=(FileDescriptor*)0x1000000+(sizeof(FAE)*MCC);
+FAE            * FAT0;
+FileDescriptor * FDS0;
 
-void init_ramfs()
+void init_fs()
 {
+        FAT0 = malloc(sizeof(FAE)*MCC);
+        FDS0 = malloc(sizeof(FileDescriptor)*MFC);
         memset(FAT0,0,sizeof(FAE)*MCC);
         memset(FDS0,0,sizeof(FileDescriptor)*MFC);
         printf("RAMFS Initialized\n");

@@ -39,16 +39,15 @@ extern void __ata_lba_write();
 
 void ata_lba_read(uint32_t sector, uint8_t sector_count, void* buffer) 
 {
-        asm volatile (
-                "movl %0, %%eax\n"
-                "movb %1, %%cl\n"
-                "movl %2, %%edi\n"
-                // Your assembly instructions here
-                :
-                : "r"(sector), "r"(sector_count), "r"(buffer)
-                : "%eax", "%cl", "%edi"
-        );
-        __ata_lba_read();
+    asm volatile (
+        "movl %0, %%eax\n"          // Move sector into EAX
+        "movb %1, %%cl\n"           // Move sector_count into CL
+        "movl %2, %%edi\n"          // Move buffer into EDI
+        "call __ata_lba_read\n"     // Call the __ata_lba_read function
+        :
+        : "r"(sector), "r"(sector_count), "r"(buffer)
+        : "%eax", "%cl", "%edi", "memory"
+    );
 }
 
 void ata_lba_write(uint32_t sector, uint8_t sector_count, void* buffer)
@@ -62,7 +61,7 @@ void ata_lba_write(uint32_t sector, uint8_t sector_count, void* buffer)
                 : "r"(sector), "r"(sector_count), "r"(buffer)
                 : "%eax", "%cl", "%edi"
         );
-         __ata_lba_write();
+        __ata_lba_write();
 }
 
 #include <stdint.h>

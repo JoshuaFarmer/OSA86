@@ -250,7 +250,7 @@ void osa86()
         init_idt();
         init_pic();
         init_scheduler();
-        init_ramfs();
+        init_fs();
         init_pit(128);
 
         system("info");

@@ -48,7 +48,7 @@ idt_entry idt[256];
 
 void Exception(unsigned int addr)
 {
-        printf("Exception Error At: %x",addr);
+        PANIC("Exception Error At: %x",addr);
 }
 
 void divide_by_zero()

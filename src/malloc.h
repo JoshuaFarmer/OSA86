@@ -6,7 +6,7 @@
 
 typedef uint32_t size_t;
 
-#define HEAP_SIZE (1024 * 1024)
+#define HEAP_SIZE (1024 * 1024 * 4)
 #define HEAP_BASE (MAX_ADDR - HEAP_SIZE)
 #define ALIGNMENT 4096
 #define ALIGN(size) (((size) + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1))
