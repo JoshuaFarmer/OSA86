@@ -141,7 +141,18 @@ void StackDump()
         }
 
         putc('\n');
- }
+}
+
+void PKill(int id)
+{
+        IterateSchedule(jd)
+        {
+                if (current && jd == id)
+                {
+                        current->running=false;
+                }
+        }
+}
 
 void ListSchedule()
 {
@@ -149,7 +160,7 @@ void ListSchedule()
         {
                 if (current)
                 {
-                        printf("%s\t\t",current->name);
+                        printf("%s (%d)\t\t",current->name,i);
                         if (((i+1) % 4) == 0 && i != 0)
                         {
                                 putc('\n');

@@ -193,6 +193,9 @@ void system(char* sys)
                 if (argc == 2) BrainFuck(cmd[1]);
         } else if (strcmp(cmd[0], "HXPR") == 0) {
                 shell();
+        } else if (strcmp(cmd[0], "PKill") == 0 && argc == 2) {
+                int i = atoi(cmd[1]);
+                PKill(i);
         } else if (strcmp(cmd[0], "view") == 0 && argc == 2) {
                 FILE fp = fgetf(cmd[1],current_path_idx);
                 fseek(fp,0,SEEK_END);
