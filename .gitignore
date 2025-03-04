@@ -7,3 +7,4 @@ example.bin
 .zed
 *.o
 *.elf
+tests
