@@ -11,7 +11,20 @@
 
 int current_path_idx = -1;
 
-typedef int FILE;
+enum
+{
+        MODE_ERR,
+        MODE_READ,
+        MODE_WRITE,
+        MODE_APPEND,
+};
+
+typedef struct
+{
+        int position;
+        int file;
+        int mode;
+} FILE;
 
 #include "rtc.h"
 
@@ -93,18 +106,6 @@ int _Exists(const char * name, int parent_idx) // return index + 1 if _Exists
         return 0;
 }
 
-FILE* fopen(const char * name, ...)
-{
-        FILE * f = malloc(sizeof(f));
-        *f = _Exists(name, current_path_idx);
-        return f;
-}
-
-void fclose(FILE * fp)
-{
-        free(fp);
-}
-
 void FreeFAE(int FAEIdx)
 {
         if (FAEIdx == -1 || FAEIdx >= MFC) return;
@@ -124,6 +125,27 @@ void _Empty(int fileIDX)
         if (fileIDX == -1 || fileIDX >= MFC || ffae == -1) return;
         FreeFAE(ffae);
         FDS0[fileIDX].FFAT=-1;
+}
+
+void _CreateF(const char *,int);
+FILE* fopen(const char * name, const char *mode)
+{
+        FILE * f = malloc(sizeof(f));
+        f->file = _Exists(name, current_path_idx);
+
+        f->position = 0;
+        if (strcmp(mode,"r")==0) {f->mode = MODE_READ;}
+        if (strcmp(mode,"w")==0) { _CreateF(name, current_path_idx); f->file = _Exists(name, current_path_idx); f->mode = MODE_WRITE; _Empty(f->file);}
+        if (strcmp(mode,"a")==0) {f->mode = MODE_APPEND;}
+        return f;
+}
+
+void fclose(FILE * fp)
+{
+        fp->file=0;
+        fp->mode=0;
+        fp->position=0;
+        free(fp);
 }
 
 int FlFAE(int fileIDX)
@@ -259,91 +281,91 @@ void _WriteF(const char *name, int parent_idx, const char *data, int data_length
 
 FILE fgetf(const char * name, int parent_idx)
 {
-        int f = _Exists(name,parent_idx);
+        FILE f;
+        f.position = 0;
+        f.file = _Exists(name,parent_idx);
         return f;
 }
 
-int fputc(char c, FILE * fp)
+int fputc(char c, FILE *fp)
 {
-    if (*fp <= 0 || *fp > MFC)
-        return -1;
+        if (!fp || fp->file == 0 || fp->file >= MFC)
+                return -1;
 
-    int fileIdx = *fp-1;
-    if (!FDS0[fileIdx].Exists)
-        return -1;
+        int fileIdx = fp->file-1;
+        if (!FDS0[fileIdx].Exists)
+                return -1;
 
-    int pos = FDS0[fileIdx].Size;
-    int clusterIdx = FDS0[fileIdx].FFAT;
-    int br = 0;
+        int pos = FDS0[fileIdx].Size;
+        int clusterIdx = FDS0[fileIdx].FFAT;
+        int br = 0;
 
-    while (clusterIdx != -1 && br + CLUSTSZ <= pos)
-    {
-        br += CLUSTSZ;
-        clusterIdx = FAT0[clusterIdx].NextFAEIdx;
-    }
+        while (clusterIdx != -1 && br + CLUSTSZ <= pos)
+        {
+                br += CLUSTSZ;
+                clusterIdx = FAT0[clusterIdx].NextFAEIdx;
+        }
 
-    if (clusterIdx == -1) // Allocate a new cluster if needed
-    {
-        AllocFAE(fileIdx);
-        clusterIdx = FlFAE(fileIdx);
         if (clusterIdx == -1)
-            return -1;
-    }
+        {
+                AllocFAE(fileIdx);
+                clusterIdx = FlFAE(fileIdx);
+                if (clusterIdx == -1)
+                return -1;
+        }
 
-    int clusterOffset = pos - br;
-    FAT0[clusterIdx].Cluster[clusterOffset] = c;
-    FDS0[fileIdx].Size++;
-    return 0;
+        int clusterOffset = pos - br;
+        FAT0[clusterIdx].Cluster[clusterOffset] = c;
+        FDS0[fileIdx].Size++;
+        return 0;
 }
 
-static int pos[MFC] = {0};
-
-enum    SEEK_T
+enum SEEK_T
 {
         SEEK_SET,
         SEEK_CUR,
         SEEK_END,
 };
 
-void fseek(FILE fp, int p, int t)
+void fseek(FILE *fp, int p, int t)
 {
-        if (fp <= 0 || fp > MFC)
+        if (fp->file <= 0 || fp->file > MFC)
                 return;
-        int fileIdx = fp-1;
+        int fileIdx = fp->file-1;
         if (!FDS0[fileIdx].Exists || FDS0[fileIdx].FFAT == -1)
                 return;
         
         if (t == (int)SEEK_SET)
         {
-                pos[fileIdx] = p;
+                fp->position = p;
         }
         else if (t == (int)SEEK_CUR)
         {
-                pos[fileIdx] += p;
+                fp->position += p;
         }
         else if (t == (int)SEEK_END)
         {
-                pos[fileIdx]  = FDS0[fileIdx].Size;
-                pos[fileIdx] += p;
+                fp->position  = FDS0[fileIdx].Size;
+                fp->position -= p;
         }
 }
 
-inline void rewind(FILE fp)
+inline void rewind(FILE *fp)
 {
         fseek(fp,0,SEEK_END);
 }
 
-char fgetc(FILE fp)
+char fgetc(FILE *fp)
 {
-        if (fp <= 0 || fp > MFC)
+        if (!fp || fp->file <= 0 || fp->file > MFC)
                 return -1;
 
-        int fileIdx = fp-1;
+        int fileIdx = fp->file-1;
         if (!FDS0[fileIdx].Exists || FDS0[fileIdx].FFAT == -1)
                 return -1;
 
         int ci = FDS0[fileIdx].FFAT;
-        int p = pos[fileIdx];
+        int p = fp->position;
         if (p>FDS0[fileIdx].Size)
         {
                 return -1;
@@ -360,7 +382,7 @@ char fgetc(FILE fp)
                 return -1;
 
         char ch = FAT0[ci].Cluster[p - br];
-        pos[fileIdx]++;
+        ++fp->position;
 
         return ch;
 }
@@ -412,11 +434,9 @@ void ListF()
         }
 }
 
-int ftell(FILE fp)
+int ftell(FILE *fp)
 {
-        if (fp <= 0 || fp > MFC)
-                return 0;
-        return pos[fp-1];
+        return fp->position;
 }
 
 extern void jump_usermode(int addr);
@@ -503,24 +523,61 @@ const char * ActiveDirParen()
         return FDS0[FDS0[current_path_idx].ParentIdx].Name;
 }
 
-void fwrite(void * buff, int size, int count, FILE * fp)
+int fwrite(void *src, int size, int count, FILE *fp)
 {
-        if (*fp == 0 || !size || !count)
+        char *buff = src;
+        if (!fp || fp->file == 0 || !size || !count)
+                return -1;
+        int len = size*count;
+        int idx = fp->file-1;
+        if (fp->mode == MODE_WRITE || fp->mode == MODE_APPEND)
         {
-                return;
+                /*:trollface:*/
+                int written = 0;
+                while (len--)
+                {
+                        fputc(*(buff++),fp);
+                        ++written;
+                }
+        
+                FDS0[idx].Modified = get_date();
+                return written;
         }
-        const char * name = FDS0[*fp-1].Name;
-        WriteF(name,buff,size*count);
+        return -1;
 }
 
-void fread(void * buff, int size, int count, FILE * fp)
+int fread(void *dst, int size, int count, FILE *fp)
 {
-        if (*fp == 0 || !size || !count)
+        char *buff = dst;
+        if (!fp || fp->file == 0 || !size || !count)
         {
-                return;
+                return -1;
         }
-        const char * name = FDS0[*fp-1].Name;
-        ReadF(name,buff,size*count);
+
+        int len = size*count;
+        if (fp->mode == MODE_READ)
+        {
+                /*:trollface:*/
+                char chr = 0;
+                int read = 0;
+                while (len-- && chr != EOF)
+                {
+                        *(buff++) = fgetc(fp);
+                        ++read;
+                }
+
+                return read;
+        }
+        return -1;
+}
+
+void *wfread(FILE *fp) /* read whole file */
+{
+        fp->position=0;
+        char *data = malloc(FDS0[fp->file-1].Size);
+        if (!data) return NULL;
+        fread(data,FDS0[fp->file-1].Size,1,fp);
+        return data;
 }
 
 #endif

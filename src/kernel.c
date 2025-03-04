@@ -46,7 +46,7 @@ bool active = true;
 #include "program.h"
 #include "schedule.h"
 #include "rtc.h"
-#include "H/Interpreter.h"
+#include "elf.h"
 
 void mlmon(char * filename)
 {
@@ -55,8 +55,8 @@ void mlmon(char * filename)
         if (Exists(filename)!=0)
         {
                 FILE fp = fgetf(filename,current_path_idx);
-                fseek(fp,0,SEEK_END);
-                int len = ftell(fp);
+                fseek(&fp,0,SEEK_END);
+                int len = ftell(&fp);
                 ReadF(filename, mem, len);
         }
 
@@ -68,7 +68,7 @@ void mlmon(char * filename)
         while (input != 'q')
         {
                 int pos=x+(y*16);
-                clearScreen(0x1F);
+                clearScreen(TTY_COL);
                 printf("Page: "); PrintByte(page); putc('\n');
                 for (int i = 1; i <= 256; ++i)
                 {
@@ -131,7 +131,7 @@ void mlmon(char * filename)
                 update_cursor(x*3,y+1);
                 input = getch();
         }
-        clearScreen(0x2);
+        clearScreen(TTY_COL);
 }
 
 #define CMDM_LEN 128
@@ -191,21 +191,15 @@ void system(char* sys)
                 cli();
         } else if (strcmp(cmd[0], "expr") == 0) {
                 if (argc == 2) BrainFuck(cmd[1]);
-        } else if (strcmp(cmd[0], "HXPR") == 0) {
-                shell();
         } else if (strcmp(cmd[0], "pKill") == 0 && argc == 2) {
                 int i = atoi(cmd[1]);
                 PKill(i);
         } else if (strcmp(cmd[0], "view") == 0 && argc == 2) {
-                FILE fp = fgetf(cmd[1],current_path_idx);
-                fseek(fp,0,SEEK_END);
-                int len = ftell(fp);
-                char* data = malloc(len);
-                char* path = cmd[1];
-                ReadF(path,data,len);
-                putsn((const char*)data, len);
+                FILE *fp = fopen(cmd[1],"r");
+                char *data = wfread(fp);
+                printf("%s",data);
                 free(data);
-                data=path=NULL;
+                fclose(fp);
         } else if (strcmp(cmd[0], "write") == 0 && argc == 3) {
                 WriteF(cmd[2],cmd[1],strlen(cmd[1]));
         } else if (strcmp(cmd[0], "create") == 0 && argc == 2) {
@@ -261,8 +255,14 @@ void osa86()
 
         system("info");
         putc('\n');
-        WriteF("test.txt","Hellorld!\n",11);
-        WriteF("test.tx","Hellorld!2\n",12);
+
+        FILE *test0 = fopen("test.txt","w");
+        FILE *test1 = fopen("test2.txt","w");
+        char msg[] = "Hello, World!";
+        fwrite(msg,1,sizeof(msg),test0);
+        fwrite(msg,1,sizeof(msg),test1);
+        fclose(test0);
+        fclose(test1);
 
         char prog[] = {
                         'O','S','A','X',0xAA,0x0D,0x00,0x00,0x00,0x01,0x00,0x00,0x00,
@@ -271,6 +271,10 @@ void osa86()
         WriteF("test",prog,sizeof(prog));
         char out[] = {79,83,65,88,-86,13,0,0,0,1,0,0,0,-24,16,0,0,0,-69,0,0,0,0,-72,1,0,0,0,80,83,-51,-128,-21,-2,-24,44,0,0,0,-61,-21,-2,-95,126,0,0,0,-93,122,0,0,0,-95,-126,0,0,0,-93,126,0,0,0,-95,122,0,0,0,-117,29,126,0,0,0,1,-40,-93,-126,0,0,0,-61,-21,-2,-72,1,0,0,0,-69,1,0,0,0,57,-40,15,-108,-64,117,19,-95,122,0,0,0,-69,1,0,0,0,1,-40,-93,122,0,0,0,-21,-36,-61,-21,-2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
         WriteF("out",out,sizeof(out));
+
+        FILE *outf = fopen("out","r");
+        elf(outf,0);
+        fclose(outf);
 
         char kbbuff[128];
         while (active)

@@ -486,7 +486,8 @@ void put_int_at(int value, int x, int y) {
         }
 }
 
-void PRINT_DWORD_NE(int X) {
+void PRINT_DWORD_NE(int X)
+{
         puts("0x");
         PrintByte((X >> 24) & 255);
         PrintByte((X >> 16) & 255);
@@ -494,21 +495,26 @@ void PRINT_DWORD_NE(int X) {
         PrintByte(X & 255);
 }
 
-void PRINT_DWORD(int X) {
+void PRINT_DWORD(int X)
+{
         PRINT_DWORD_NE(X);
         putc('\n');
 }
 
-void PRINT_WORD_NE(int X) {
+void PRINT_WORD_NE(int X)
+{
         puts("0x");
         PrintByte((X >> 8) & 255);
         PrintByte(X & 255);
 }
 
-void PRINT_WORD(int X) {
+void PRINT_WORD(int X)
+{
         PRINT_WORD_NE(X);
         putc('\n');
 }
+
+#define perror(fmt, ...) printf(fmt, ##__VA_ARGS__)
 
 int printf(const char* format, ...)
 {
@@ -574,69 +580,69 @@ int printf(const char* format, ...)
         return 0;
 }
 
-int dbgprintf(const char* format, ...)
-{
-        va_list args;
-        va_start(args, format);
-        
-        for (const char *p = format;*p;++p)
-        {
-                ifsw (*p == '%' && *(p + 1), *(++p))
-                {
-                case 'c':
-                        {
-                        char c = (char) va_arg(args, int);
-                        outb(0xE9,c);
-                        break;
-                        }
-                case 's':
-                        {
-                        const char* str = va_arg(args, const char*);
-                        dbgprintf(str);
-                        break;
-                        }
-                case 'x':
-                        {
-                        int i = va_arg(args, int);
-                        int mask = 0xF;
-                        int shr  = 28;
-                        while (shr)
-                        {
-                                shr -= 4;
-                                uint32_t x = (i >> shr) & mask;
-                                if (x <= 9)
-                                {
-                                        outb(0xE9,x+'0');
-                                }
-                                else if (x <= 15)
-                                {
-                                        outb(0xE9,x+'A');
-                                }
-                        }
-                        break;
-                        }
-                case 'b':
-                        {
-                        uint32_t b = va_arg(args, int);
-                        for (int i = 0; i < 32; ++i)
-                        {
-                                outb(0xE9,((b>>(31-i))&(1)) ? '1' : '0');
-                        }
-                        break;
-                        }
-                case '%':
-                        outb(0xE9,'%');
-                        break;
-                }
-                else
-                {
-                        outb(0xE9,*p);
-                }
-        }
-
-        va_end(args);
-        return 0;
-}
+//int dbgprintf(const char* format, ...)
+//{
+//        va_list args;
+//        va_start(args, format);
+//        
+//        for (const char *p = format;*p;++p)
+//        {
+//                ifsw (*p == '%' && *(p + 1), *(++p))
+//                {
+//                case 'c':
+//                        {
+//                        char c = (char) va_arg(args, int);
+//                        outb(0xE9,c);
+//                        break;
+//                        }
+//                case 's':
+//                        {
+//                        const char* str = va_arg(args, const char*);
+//                        dbgprintf(str);
+//                        break;
+//                        }
+//                case 'x':
+//                        {
+//                        int i = va_arg(args, int);
+//                        int mask = 0xF;
+//                        int shr  = 28;
+//                        while (shr)
+//                        {
+//                                shr -= 4;
+//                                uint32_t x = (i >> shr) & mask;
+//                                if (x <= 9)
+//                                {
+//                                        outb(0xE9,x+'0');
+//                                }
+//                                else if (x <= 15)
+//                                {
+//                                        outb(0xE9,x+'A');
+//                                }
+//                        }
+//                        break;
+//                        }
+//                case 'b':
+//                        {
+//                        uint32_t b = va_arg(args, int);
+//                        for (int i = 0; i < 32; ++i)
+//                        {
+//                                outb(0xE9,((b>>(31-i))&(1)) ? '1' : '0');
+//                        }
+//                        break;
+//                        }
+//                case '%':
+//                        outb(0xE9,'%');
+//                        break;
+//                }
+//                else
+//                {
+//                        outb(0xE9,*p);
+//                }
+//        }
+//
+//        va_end(args);
+//        return 0;
+//}
 
 void init_tty()
 {
