@@ -231,27 +231,16 @@ void mode(int mod)
                 case 0x00:
                         write_regs(g_320x200x256);
                         break;
-                case 0x01:
-                        x = set_text_mode(1);
-                        break;
                 case 0x02:
                         x = set_text_mode(0);
                         break;
                 case 0x03:
                         x = set_text_mode(2);
                         break;
-                case 0x04:
-                        write_regs(g_640x480x2);
-                        break;
         }
 
         TTY_WIDTH = (x >> 16) & 0xFFFF;
         TTY_HEIGHT = x & 0xFFFF;
-
-        if (x == 0 && mod != 0)
-        {
-                mode(0x1);
-        }
 }
 
 void osa86()
