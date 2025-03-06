@@ -516,47 +516,95 @@ void PRINT_WORD(int X)
 
 #define perror(fmt, ...) printf(fmt, ##__VA_ARGS__)
 
+typedef struct
+{
+        int min_x;
+        int min_y;
+        int max_y;
+        int max_x;
+        int width;
+        int height;
+        int colour;
+} TTY_STATE;
+
+static TTY_STATE tty[64];
+static uint8_t   ttyp;
+
+void PushTTYState()
+{
+        tty[ttyp].max_x  = TTY_XE;
+        tty[ttyp].max_y  = TTY_YE;
+        tty[ttyp].min_x  = TTY_XS;
+        tty[ttyp].min_y  = TTY_YS;
+        tty[ttyp].width  = TTY_WIDTH;
+        tty[ttyp].height = TTY_HEIGHT;
+        tty[ttyp].colour = TTY_COL;
+        ttyp = (ttyp + 1) % 64;
+}
+
+void PopTTYState()
+{
+        ttyp = (ttyp - 1) % 64;
+        TTY_XE     = tty[ttyp].max_x;
+        TTY_YE     = tty[ttyp].max_y;
+        TTY_XS     = tty[ttyp].min_x;
+        TTY_YS     = tty[ttyp].min_y;
+        TTY_WIDTH  = tty[ttyp].width;
+        TTY_HEIGHT = tty[ttyp].height;
+        TTY_COL    = tty[ttyp].colour;
+}
+
 int printf(const char* format, ...)
 {
         va_list args;
         va_start(args, format);
-        
+        PushTTYState();
         const char* p = format;
-        while (*p) {
-                if (*p == '%' && *(p + 1)) {
+        while (*p)
+        {
+                if (*p == '%' && *(p + 1))
+                {
                         p++;
-                        switch (*p) {
-                                case 'c': {
+                        switch (*p)
+                        {
+                                case 'c':
+                                {
                                         char c = (char) va_arg(args, int);
                                         putc(c);
                                         break;
                                 }
-                                case 'd': {
+                                case 'd':
+                                {
                                         int i = va_arg(args, int); 
                                         put_int(i);
                                         break;
                                 }
-                                case 's': {
+                                case 's':
+                                {
                                         const char* str = va_arg(args, const char*);
                                         puts(str);
                                         break;
                                 }
-                                case 'x': {
+                                case 'x':
+                                {
                                         int i = va_arg(args, int);
                                         PRINT_DWORD_NE(i);
                                         break;
                                 }
-                                case 'w': {
+                                case 'w':
+                                {
                                         int i = va_arg(args, int);
                                         PRINT_WORD_NE(i);
                                         break;
                                 }
-                                case 'X': {
+                                case 'X':
+                                {
                                         uint8_t i = va_arg(args, int);
                                         PrintByte(i);
                                         break;
                                 }
-                                case 'b': {
+                                case 'b':
+                                {
                                         uint32_t b = va_arg(args, int);
                                         for (int i = 0; i < 32; ++i)
                                         {
@@ -564,18 +612,48 @@ int printf(const char* format, ...)
                                         }
                                         break;
                                 }
-                                default: {
+                                default:
+                                {
                                         putc('%');
                                         putc(*p);
                                         break;
                                 }
                         }
-                } else {
+                }
+                else if ((uint8_t)*p == 255)
+                {
+                        int n=0;
+                        while (*(p) != ']')
+                        {
+                                if (*p >= '0' && *p <= '9')
+                                {
+                                        n = (n * 10) + (*p - '0');
+                                }
+                                else if (*p == 'c')
+                                {
+                                        TTY_COL = n;
+                                        n = 0;
+                                }
+                                else if (*p == 'x')
+                                {
+                                        TTY_X = n;
+                                        n = 0;
+                                }
+                                else if (*p == 'y')
+                                {
+                                        TTY_Y = n;
+                                        n = 0;
+                                }
+                                ++p;
+                        }
+                }
+                else
+                {
                         putc(*p);
                 }
                 p++;
         }
-
+        PopTTYState();
         va_end(args);
         return 0;
 }

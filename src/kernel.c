@@ -271,7 +271,6 @@ void osa86()
         init_scheduler();
         init_fs();
         init_pit(128);
-
         system("info");
         putc('\n');
 
@@ -311,6 +310,6 @@ void osa86()
         cli();
         mode(0x2);
         clearScreen(TTY_COL);
-        puts_at("It is now safe to turn of your computer\n", 20, 11);
+        printf("\xff[20x11y]It is now safe to turn of your computer\n");
         while(1);
 }
