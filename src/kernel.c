@@ -226,8 +226,27 @@ void mode(int mod)
         switch (mod)
         {
                 case 0x00:
+                {
                         write_regs(g_320x200x256);
+                        
+                        char PAL256[256 * 3];
+                        size_t x = 0;
+                        for (int r = 0; r < 4; ++r)
+                        {
+                                for (int g = 0; g < 4; ++g)
+                                {
+                                        for (int b = 0; b < 4; ++b)
+                                        {
+                                                PAL256[x++] = (r * 85);
+                                                PAL256[x++] = (g * 85);
+                                                PAL256[x++] = (b * 85);
+                                        }
+                                }
+                        }
+
+                        VGASetPal(PAL256, 0, 256);
                         break;
+                }
                 case 0x02:
                         x = set_text_mode(0);
                         break;

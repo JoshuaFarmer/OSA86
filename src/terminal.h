@@ -395,7 +395,7 @@ void clearScreen(uint8_t c)
 
         TTY_X=TTY_XS;
         TTY_Y=TTY_YS;
-        update_cursor(0, 0);
+        update_cursor(TTY_X, TTY_Y);
 }
 
 int sscanf(const char *str, const char *format, ...) {
@@ -658,5 +658,7 @@ void init_tty()
 }
 
 #define PANIC(x, ...) void StackDump(); StackDump(); printf("PANIC: "); printf(x, ##__VA_ARGS__); while(1)
+
+void mode();
 
 #endif
