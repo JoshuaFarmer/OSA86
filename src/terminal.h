@@ -634,6 +634,18 @@ int printf(const char* format, ...)
                                         TTY_COL = n;
                                         n = 0;
                                 }
+                                else if (*p == 'b')
+                                {
+                                        TTY_COL &= 0xF;
+                                        TTY_COL |= (n<<4);
+                                        n = 0;
+                                }
+                                else if (*p == 'f')
+                                {
+                                        TTY_COL &= 0xF0;
+                                        TTY_COL |= n;
+                                        n = 0;
+                                }
                                 else if (*p == 'x')
                                 {
                                         TTY_X = n;
@@ -642,6 +654,12 @@ int printf(const char* format, ...)
                                 else if (*p == 'y')
                                 {
                                         TTY_Y = n;
+                                        n = 0;
+                                }
+                                else if (*p == 'r')
+                                {
+                                        PopTTYState();
+                                        PushTTYState();
                                         n = 0;
                                 }
                                 ++p;
