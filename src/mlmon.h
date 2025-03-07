@@ -81,7 +81,7 @@ void mlmon(char * filename)
                                 }
                                 break;
                 }
-                update_cursor(x*3,y+1);
+                update_cursor(x*3+TTY_XS,y+1+TTY_YS);
                 input = getch();
         }
         clearScreen(TTY_COL);
