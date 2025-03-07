@@ -38,10 +38,8 @@ void system(char* sys)
         }
         else if (strcmp(cmd[0], "info") == 0)
         {
-                cli();
                 printf("\xff[3f]O\xff[5f]S\xff[7f]A\xff[5f]8\xff[3f]6\xff[r] VERSION %s\n(C) JOSHUA F. 2024-2025\n",__VER__);
-                printf("Heap: %dKiB\nRam:  %dMiB\n",remaining_heap_space()/1024,MAX_ADDR/1024/1024);
-                sti();
+                printf("Heap: %dKiB\nRam:  %dMiB\n",remaining_heap_space()/1024,MAX_ADDR/1024/1024 + 1);
         }
         else if (strcmp(cmd[0], "color") == 0 && argc == 1)
         {
