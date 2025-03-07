@@ -36,7 +36,8 @@
         TEMP_FLGS equ TEMP_REG+(15*4)
 
         ; stack during swapping program
-        TEMP_STCK equ TEMP_REG-4
+        TEMP_STCK  equ TEMP_REG-4
+        TEMP_STCKS equ 256
 LoadAndJump:
         mov esp,TEMP_STCK
         mov eax,[TEMP_FLGS]

@@ -56,7 +56,7 @@ void init_scheduler()
         RootTask.fs=0x10;
         RootTask.gs=0x10;
         RootTask.eflags=0x200;
-        RootTask.name = "System";
+        RootTask.name = "osa86";
         RootTask.esp = (uint32_t)&RootTask.stack[sizeof(RootTask.stack) - 4];
         ActiveTask=&RootTask;
         printf("SCHED Initialized\n");

@@ -317,4 +317,51 @@ void VGASetPal(char*pal,char first,short num)
         }
 }
 
+void set_color_palette(uint8_t index, uint8_t red, uint8_t green, uint8_t blue)
+{
+        outb(0x3C8, index);
+        outb(0x3C9, red);
+        outb(0x3C9, green);
+        outb(0x3C9, blue);
+}
+
+void mode(int mod)
+{
+        int x=0;
+        switch (mod)
+        {
+                case 0x00:
+                {
+                        write_regs(g_320x200x256);
+                        
+                        char PAL256[256 * 3];
+                        size_t x = 0;
+                        for (int r = 0; r < 4; ++r)
+                        {
+                                for (int g = 0; g < 4; ++g)
+                                {
+                                        for (int b = 0; b < 4; ++b)
+                                        {
+                                                PAL256[x++] = (r * 85);
+                                                PAL256[x++] = (g * 85);
+                                                PAL256[x++] = (b * 85);
+                                        }
+                                }
+                        }
+
+                        VGASetPal(PAL256, 0, 256);
+                        break;
+                }
+                case 0x02:
+                        x = set_text_mode(0);
+                        break;
+                case 0x03:
+                        x = set_text_mode(2);
+                        break;
+        }
+
+        TTY_WIDTH = (x >> 16) & 0xFFFF;
+        TTY_HEIGHT = x & 0xFFFF;
+}
+
 #endif

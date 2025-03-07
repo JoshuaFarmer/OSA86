@@ -2,7 +2,7 @@
         [bits 16]
 
         KERNEL_SIZE  equ 128
-        KERNEL_STACK equ 0xD00000
+        KERNEL_STACK equ 0xF000
         jmp _start
 _start:
 	push dx
@@ -48,11 +48,13 @@ from_disk:
 	je check_for_errors
 check_for_errors:
 	jnc done_with_disk
-	cmp ah, 0
-	je done_with_disk
-	jmp spin
-
+	test ah,ah
+	jnz spin
 done_with_disk:
+        mov ah, 0x88
+        int 0x15
+        jc spin
+        mov [0x1000],ax
 switch32:
 	lgdt [gdtinfo]
 	cli
@@ -71,6 +73,9 @@ clear_prefetch:
 	mov es, ax
 	mov fs, ax
 	mov gs, ax
+        xor eax,eax
+        mov ax,[0x1000]
+        push eax
 	db 0x66
 	db 0xEA
 	dd Really32
