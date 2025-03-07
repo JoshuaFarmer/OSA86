@@ -45,17 +45,35 @@ int     MAX_ADDR;
 
 int printf(const char* format, ...);
 void refresh();
+void initputs(char *);
+
 void init(int memSize)
 {
         if (memSize == 0)
         {
-                printf("invalid memory");
-                refresh();
+                uint16_t *b = (uint16_t *)0xB8000;
+                for (int i = 0; i < 80*25; ++i)
+                {
+                        b[i] = 0x1720;
+                }
+                initputs("sorry, but you need at least two megabytes of ram to use osa86");
                 while(1);
         }
         MAX_ADDR=(memSize*1024)+1024*1024;
         osa86();
 }
+
+void initputs(char *s)
+{
+        char *buff = (char *)0xB8000;
+        while (*s)
+        {
+                *buff = *(s++);
+                *(buff+1) = 0x17;
+                buff += 2;
+        }
+}
+
 
 void send_eoi(uint8_t irq);
 
