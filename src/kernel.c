@@ -43,8 +43,16 @@ uint8_t hour, minute, second;
 uint8_t day, month, year;
 int     MAX_ADDR;
 
+int printf(const char* format, ...);
+void refresh();
 void init(int memSize)
 {
+        if (memSize == 0)
+        {
+                printf("invalid memory");
+                refresh();
+                while(1);
+        }
         MAX_ADDR=(memSize*1024)+1024*1024;
         osa86();
 }

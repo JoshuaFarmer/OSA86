@@ -21,7 +21,7 @@ static Block *free_list = NULL;
 
 void init_heap(void)
 {
-        HEAP_SIZE = MAX_ADDR >> 5; /* 1/32 the size of memory */
+        HEAP_SIZE = MAX_ADDR / 8;
         HEAP_BASE = (MAX_ADDR - HEAP_SIZE);
         memset((void *)HEAP_BASE, 0, HEAP_SIZE);
         free_list = (Block *)HEAP_BASE;

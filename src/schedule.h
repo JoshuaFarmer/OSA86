@@ -162,9 +162,9 @@ int Name2PID(const char *s, int i)
         }
 
         if (i & 1)
-                return rol(res,(int)s) / 100;
+                return res + 0xFFF;
         else
-                return ror(res,(int)s) / 100;
+                return res;
 }
 
 void PKill(int id)

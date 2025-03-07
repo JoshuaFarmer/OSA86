@@ -53,7 +53,7 @@ check_for_errors:
 done_with_disk:
         mov ah, 0x88
         int 0x15
-        jc spin
+        jc no_ram
         mov [0x1000],ax
 switch32:
 	lgdt [gdtinfo]
@@ -80,6 +80,10 @@ clear_prefetch:
 	db 0xEA
 	dd Really32
 	dw 0x0008
+no_ram:
+        xor ax,ax
+        mov [0x1000],ax
+        jmp switch32
         [bits 32]
 Really32:
         mov eax, cr0
