@@ -662,6 +662,10 @@ int printf(const char* format, ...)
                                         PushTTYState();
                                         n = 0;
                                 }
+                                else if (*p == '*')
+                                {
+                                        n = va_arg(args, int);
+                                }
                                 ++p;
                         }
                 }

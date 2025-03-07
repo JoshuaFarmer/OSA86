@@ -77,9 +77,11 @@ int chex(unsigned char c) {
         return -1;
 }
 
-int strhex(char* s) {
+int strhex(char* s)
+{
         int a=0;
-        for (int i = 0; s[i] != '\0'; i++) {
+        for (int i = 0; s[i] != '\0'; i++)
+        {
                 a<<=4;
                 char c = chex(s[i]);
                 if (c == -1) return a;

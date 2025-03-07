@@ -6,6 +6,28 @@
 #define MAX_ADDR (1<<25)
 #define _OSA86
 
+typedef uint8_t PALETTE16[16][3];
+
+//PALETTE16 PalExample =
+//{
+//        /*black*/  {23,24,33},
+//        /*blue*/   {1,100,188},
+//        /*green*/  {80,161,79},
+//        /*cyan*/   {9,151,179},
+//        /*red*/    {229,86,73},
+//        /*magent*/ {166,38,164},
+//        /*yellow*/ {192,131,1},
+//        /*white*/  {250,250,250},
+//        /*black*/  {23,24,33},
+//        /*blue*/   {1,100,188},
+//        /*green*/  {80,161,79},
+//        /*cyan*/   {9,151,179},
+//        /*red*/    {229,86,73},
+//        /*magent*/ {166,38,164},
+//        /*yellow*/ {192,131,1},
+//        /*white*/  {250,250,250},
+//};
+
 #pragma pack(1)
 
 #define NULL (void*)(0)
@@ -149,6 +171,14 @@ parse(b,cmd)
         return N;
 }
 
+void set_color_palette(uint8_t index, uint8_t red, uint8_t green, uint8_t blue)
+{
+        outb(0x3C8, index);
+        outb(0x3C9, red);
+        outb(0x3C9, green);
+        outb(0x3C9, blue);
+}
+
 void system(char* sys)
 {
         char cmd[MARGS][CMDM_LEN];
@@ -164,13 +194,23 @@ void system(char* sys)
                 }
         } else if (strcmp(cmd[0], "info") == 0) { 
                 printf("\xff[3f]O\xff[5f]S\xff[7f]A\xff[5f]8\xff[3f]6\xff[r] VERSION %s\n(C) JOSHUA F. 2024-2025\n",__VER__);
-                uint32_t remainingSpace = remaining_heap_space();
-                printf("Heap Size Is %d Bytes\n",remainingSpace);
-                printf("File Descriptor Size Is %d Bytes\n",sizeof(FileDescriptor));
+                //uint32_t remainingSpace = remaining_heap_space();
+                //printf("Heap Size Is %d Bytes\n",remainingSpace);
+                //printf("File Descriptor Size Is %d Bytes\n",sizeof(FileDescriptor));
                 rtc_get_time(&hour, &minute, &second);
                 rtc_get_date(&day, &month, &year);
                 printf("Time: %d:%d:%d, ", hour, minute, second);
                 printf("Date: %d/%d/%d\n", day, month, year);
+        } else if (strcmp(cmd[0], "color") == 0 && argc == 1)
+        {
+                for (int i = 0; i < 16; ++i)  printf("%c%c", (i < 10) ? (i + '0') : (i + 'A' - 10), (i == 15) ? '\n' : '\0');
+                for (int i = 0; i < 16; ++i)  printf("\xff[*b] %c", i, (i == 15) ? '\n' : '\0');
+        }
+        else if (strcmp(cmd[0], "color") == 0 && argc == 2)
+        {
+                TTY_COL = 0;
+                TTY_COL = strhex(cmd[1]);
+                clearScreen(TTY_COL);
         } else if (strcmp(cmd[0], "&") == 0 && argc>1) {
                 int i;
                 for (i=1;i<argc;++i)
@@ -273,6 +313,9 @@ void osa86()
         init_pit(128);
         system("info");
         putc('\n');
+
+        //for (int i = 0; i < 16; ++i)
+        //        set_color_palette(i, PalExample[i][0] / 4, PalExample[i][1] / 4, PalExample[i][2] / 4);
 
         FILE *test0 = fopen("test.txt","w");
         FILE *test1 = fopen("test2.txt","w");
