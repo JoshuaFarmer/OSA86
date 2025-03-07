@@ -143,11 +143,35 @@ void StackDump()
         putc('\n');
 }
 
+uint32_t rol(uint32_t value, uint32_t shift)
+{
+    return (value << shift) | (value >> (32 - shift));
+}
+
+uint32_t ror(uint32_t value, uint32_t shift)
+{
+    return (value >> shift) | (value << (32 - shift));
+}
+
+int Name2PID(const char *s, int i)
+{
+        int res=0;
+        for (int u = 0; u < strlen(s); ++u)
+        {
+                res = res + (s[u] * u) - i;
+        }
+
+        if (i & 1)
+                return rol(res,(int)s) / 100;
+        else
+                return ror(res,(int)s) / 100;
+}
+
 void PKill(int id)
 {
         IterateSchedule(jd)
         {
-                if (current && jd == id)
+                if (current && Name2PID(current->name,jd) == id)
                 {
                         current->running=false;
                 }
@@ -160,7 +184,7 @@ void ListSchedule()
         {
                 if (current)
                 {
-                        printf("%s (%d)\t\t",current->name,i);
+                        printf("%s (%d)\t\t",current->name,Name2PID(current->name,i));
                         if (((i+1) % 4) == 0 && i != 0)
                         {
                                 putc('\n');
