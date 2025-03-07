@@ -163,7 +163,7 @@ void system(char* sys)
                         r=res;
                 }
         } else if (strcmp(cmd[0], "info") == 0) { 
-                printf("OSA86 VERSION %s\n(C) JOSHUA F. 2024-2025\n",__VER__);
+                printf("\xff[3f]O\xff[5f]S\xff[7f]A\xff[5f]8\xff[3f]6\xff[r] VERSION %s\n(C) JOSHUA F. 2024-2025\n",__VER__);
                 uint32_t remainingSpace = remaining_heap_space();
                 printf("Heap Size Is %d Bytes\n",remainingSpace);
                 printf("File Descriptor Size Is %d Bytes\n",sizeof(FileDescriptor));

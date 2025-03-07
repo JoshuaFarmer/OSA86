@@ -743,7 +743,7 @@ int printf(const char* format, ...)
 void init_tty()
 {
         /* set system defaults */
-        TTY_COL    = 0x91;
+        TTY_COL    = 0x07;
         TTY_WIDTH  = 80;
         TTY_HEIGHT = 25;
         TTY_XS     = 1;
