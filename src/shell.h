@@ -111,9 +111,13 @@ void system(char* sys)
         {
                 DeleteF(cmd[1]);
         }
-        else if (strcmp(cmd[0], "tasks") == 0)
+        else if (strcmp(cmd[0], "tasks") == 0 && argc == 1)
         {
                 ListSchedule();
+        }
+        else if (strcmp(cmd[0], "tasks") == 0 && argc == 2 && strcmp(cmd[1], "-pid") == 0)
+        {
+                ListPID();
         }
         else if (strcmp(cmd[0], "mlmon") == 0 && argc == 2)
         {

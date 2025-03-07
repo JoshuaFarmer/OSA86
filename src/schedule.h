@@ -184,11 +184,24 @@ void ListSchedule()
         {
                 if (current)
                 {
-                        printf("%s (%d)\t\t",current->name,Name2PID(current->name,i));
+                        printf("%s\t\t",current->name,Name2PID(current->name,i));
                         if (((i+1) % 4) == 0 && i != 0)
                         {
                                 putc('\n');
                         }
+                }
+        }
+
+        putc('\n');
+}
+
+void ListPID()
+{
+        IterateSchedule(i)
+        {
+                if (current)
+                {
+                        printf("%s\t\t%d\n",current->name,Name2PID(current->name,i));
                 }
         }
 
