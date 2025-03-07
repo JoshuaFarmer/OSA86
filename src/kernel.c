@@ -32,7 +32,7 @@ typedef uint8_t PALETTE16[16][3];
 #define NULL (void*)(0)
 #define cli() asm ("cli")
 #define sti() asm ("sti")
-#define __VER__ "0.4"
+#define __VER__ "0.4.1"
 
 uint8_t Drive_Letter = 'A';
 
