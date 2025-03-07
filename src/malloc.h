@@ -7,8 +7,8 @@
 typedef uint32_t size_t;
 
 uint32_t HEAP_SIZE;
-#define HEAP_BASE (MAX_ADDR - HEAP_SIZE)
-#define ALIGNMENT 1024
+uint32_t HEAP_BASE;
+#define ALIGNMENT 16
 #define ALIGN(size) (((size) + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1))
 
 typedef struct Block 
@@ -22,6 +22,7 @@ static Block *free_list = NULL;
 void init_heap(void)
 {
         HEAP_SIZE = MAX_ADDR >> 5; /* 1/32 the size of memory */
+        HEAP_BASE = (MAX_ADDR - HEAP_SIZE);
         memset((void *)HEAP_BASE, 0, HEAP_SIZE);
         free_list = (Block *)HEAP_BASE;
         free_list->size = HEAP_SIZE - sizeof(Block);
@@ -49,11 +50,11 @@ void *malloc(size_t size)
                                 new_block->next = curr->next;
                                 if (prev)
                                 {
-                                prev->next = new_block;
+                                        prev->next = new_block;
                                 }
                                 else
                                 {
-                                free_list = new_block;
+                                        free_list = new_block;
                                 }
                                 curr->size = total_size;
                         }
@@ -61,11 +62,11 @@ void *malloc(size_t size)
                         {
                                 if (prev)
                                 {
-                                prev->next = curr->next;
+                                        prev->next = curr->next;
                                 }
                                 else
                                 {
-                                free_list = curr->next;
+                                        free_list = curr->next;
                                 }
                         }
                         return (void *)((uint8_t *)curr + ALIGN(sizeof(Block)));

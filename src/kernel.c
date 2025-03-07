@@ -86,8 +86,6 @@ void osa86()
         init_scheduler();
         init_fs();
         init_pit(128);
-        system("info");
-        putc('\n');
         FILE *test0 = fopen("test.txt","w");
         FILE *test1 = fopen("test2.txt","w");
         char msg[] = "Hello, World!";
@@ -105,11 +103,12 @@ void osa86()
         WriteF("out",out,sizeof(out));
 
         FILE *outf = fopen("out","r");
-        elf(outf,0);
         fclose(outf);
 
+        system("info");
         AppendTask("tty",refresh);
         AppendTask("shell",shell);
+        putc('\n');
         while (active)
         {
                 /* Yes */
