@@ -23,7 +23,7 @@ typedef struct
 
 void init_heap(void)
 {
-        HEAP_SIZE   = MAX_ADDR / 8;
+        HEAP_SIZE   = MAX_ADDR / 4;
         HEAP_BASE   = MAX_ADDR - HEAP_SIZE;
         BITMAP_SIZE = (HEAP_SIZE + ALIGNMENT - 1) / ALIGNMENT;
         BITMAP_SIZE = (BITMAP_SIZE + 7) & ~7;
