@@ -1,9 +1,0 @@
-bin
-bx_enh_dbg.ini
-diskutil.o
-example.asm
-example.bin
-.vscode
-.zed
-*.o
-*.elf
