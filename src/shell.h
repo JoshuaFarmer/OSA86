@@ -80,7 +80,6 @@ void system(char* sys)
         else if (strcmp(cmd[0], "shutdown") == 0)
         {
                 active = false;
-                cli();
         }
         else if (strcmp(cmd[0], "bf") == 0)
         {

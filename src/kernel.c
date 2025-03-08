@@ -136,10 +136,18 @@ void osa86()
                 /* Yes */
                 sti();
         }
-
         cli();
+
+        clearScreen(TTY_COL);
+        IterateSchedule(i)
+        {
+                printf("ending %s\n", current->name);
+                PKill(i);
+        }
+
         mode(0x2);
         clearScreen(TTY_COL);
         printf("\xff[20x11y]It is now safe to turn of your computer\n");
+        flush();
         while(1);
 }
