@@ -258,7 +258,7 @@ void Scheduler()
                 ActiveTask->ebp   =regs[EBP];
                 ActiveTask->esp   =regs[ESP];
                 ActiveTask->eip   =regs[EIP];
-                ActiveTask->eflags=regs[EFLAGS];
+                ActiveTask->eflags=regs[EFLAGS]|0x200;
                 ActiveTask->ds    =regs[DS];
                 ActiveTask->ss    =regs[SS];
                 ActiveTask->es    =regs[ES];
@@ -277,7 +277,7 @@ void Scheduler()
                 regs[ESP]    = ActiveTask->esp;
                 regs[EBP]    = ActiveTask->ebp;
                 regs[EIP]    = ActiveTask->eip;
-                regs[EFLAGS] = ActiveTask->eflags;
+                regs[EFLAGS] = ActiveTask->eflags|0x200;
                 regs[CS]     = ActiveTask->cs;
                 regs[DS]     = ActiveTask->ds;
                 regs[SS]     = ActiveTask->ss;
