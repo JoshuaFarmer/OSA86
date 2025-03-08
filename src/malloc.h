@@ -9,7 +9,7 @@ typedef uint32_t size_t;
 
 uint32_t HEAP_SIZE;
 uint32_t HEAP_BASE;
-#define ALIGNMENT 128
+#define ALIGNMENT 16
 #define ALIGN(size) (((size) + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1))
 
 static uint8_t *BITMAP = NULL;
