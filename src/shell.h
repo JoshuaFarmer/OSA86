@@ -92,10 +92,6 @@ void system(char* sys)
         {
                 active = false;
         }
-        else if (strcmp(cmd[0], "bf") == 0)
-        {
-                if (argc == 2) BrainFuck(cmd[1]);
-        }
         else if (strcmp(cmd[0], "pKill") == 0 && argc == 2)
         {
                 int i = atoi(cmd[1]);
