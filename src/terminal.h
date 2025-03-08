@@ -266,6 +266,7 @@ void update_cursor(const int x, const int y)
 
 void putc(char c)
 {
+        outb(0xE9,c);
         if (TTY_Y < TTY_XS) TTY_Y = TTY_XS;
         if (TTY_X < TTY_YS) TTY_X = TTY_YS;
         update_cursor(TTY_X, TTY_Y);
