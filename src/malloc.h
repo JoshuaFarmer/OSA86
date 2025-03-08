@@ -9,7 +9,7 @@ typedef uint32_t size_t;
 
 uint32_t HEAP_SIZE;
 uint32_t HEAP_BASE;
-#define ALIGNMENT 16
+#define ALIGNMENT 128
 #define ALIGN(size) (((size) + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1))
 
 static uint8_t *BITMAP = NULL;
@@ -30,6 +30,7 @@ void init_heap(void)
         BITMAP      = (uint8_t *)(HEAP_BASE - (BITMAP_SIZE / 8));
         memset((void *)HEAP_BASE, 0, HEAP_SIZE);
         memset((void *)BITMAP, 0, BITMAP_SIZE / 8);
+        printf("HEAP Initialized\n");
 }
 
 MAPPED mmap(size_t size)
