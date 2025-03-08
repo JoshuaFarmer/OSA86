@@ -130,10 +130,9 @@ void osa86()
         FILE *outf = fopen("out","r");
         fclose(outf);
 
-        system("info");
         AppendTask("tty",refresh);
         AppendTask("shell",shell);
-        putc('\n');
+        system("info");
         while (active)
         {
                 /* Yes */

@@ -28,7 +28,7 @@ typedef struct Task
         uint32_t eax,ecx,edx,ebx,esp,ebp,esi,edi,eip;
         uint16_t ds,es,fs,gs,cs,ss;
         uint32_t eflags;
-        uint8_t stack[8192*4];
+        uint8_t stack[8192*2];
         void * start;
         int tick;
         struct Task * next;
