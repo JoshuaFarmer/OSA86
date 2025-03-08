@@ -65,7 +65,7 @@ void init(int memSize)
 
 void initputs(char *s)
 {
-        char *buff = (char *)0xB8000;
+        char *buff = (char *)((10*160)+(0xB8000)+16);
         while (*s)
         {
                 *buff = *(s++);
@@ -73,7 +73,6 @@ void initputs(char *s)
                 buff += 2;
         }
 }
-
 
 void send_eoi(uint8_t irq);
 
