@@ -31,6 +31,7 @@ typedef struct Task
         uint8_t stack[8192*2];
         void * start;
         int tick;
+        int pid;
         struct Task * next;
         bool running;
         char * name;
@@ -55,6 +56,7 @@ void init_scheduler()
         RootTask.es=0x10;
         RootTask.fs=0x10;
         RootTask.gs=0x10;
+        RootTask.pid=0;
         RootTask.eflags=0x200;
         RootTask.name = "osa86";
         RootTask.esp = (uint32_t)&RootTask.stack[sizeof(RootTask.stack) - 4];
@@ -68,8 +70,20 @@ void MarkDead()
         ActiveTask->running=false;
 }
 
+Task *Tail()
+{
+        Task *curr = &RootTask;
+        while (curr->next)
+        {
+                curr = curr->next;
+        }
+
+        return curr;
+}
+
 void AppendTask(char * name, void (*start)(void))
 {
+        static int pid=1;
         if (!name || !start) return;
         Task * new = malloc(sizeof(Task));
         if (!new) {
@@ -77,8 +91,8 @@ void AppendTask(char * name, void (*start)(void))
                 return;
         }
         memset(new, 0, sizeof(Task));
-        new->next=RootTask.next;
-        RootTask.next=new;
+        new->next=Tail()->next;
+        Tail()->next=new;
         new->name=strdup(name);
         new->start=(void*)start;
         new->cs=0x8;
@@ -91,6 +105,7 @@ void AppendTask(char * name, void (*start)(void))
         new->esp = (uint32_t)&new->stack[sizeof(new->stack) - 4];
         new->eip = (uint32_t)start;
         new->running = true;
+        new->pid = pid++;
 }
 
 int ScheduleLength()
@@ -143,35 +158,11 @@ void StackDump()
         putc('\n');
 }
 
-uint32_t rol(uint32_t value, uint32_t shift)
-{
-    return (value << shift) | (value >> (32 - shift));
-}
-
-uint32_t ror(uint32_t value, uint32_t shift)
-{
-    return (value >> shift) | (value << (32 - shift));
-}
-
-int Name2PID(const char *s, int i)
-{
-        int res=0;
-        for (int u = 0; u < strlen(s); ++u)
-        {
-                res = res + (s[u] * u) - i;
-        }
-
-        if (i & 1)
-                return res + 0xFFF;
-        else
-                return res;
-}
-
 void PKill(int id)
 {
         IterateSchedule(jd)
         {
-                if (current && Name2PID(current->name,jd) == id)
+                if (current && current->pid == id)
                 {
                         current->running=false;
                 }
@@ -184,7 +175,7 @@ void ListSchedule()
         {
                 if (current)
                 {
-                        printf("%s\t\t",current->name,Name2PID(current->name,i));
+                        printf("%s\t\t",current->name);
                         if (((i+1) % 4) == 0 && i != 0)
                         {
                                 putc('\n');
@@ -201,7 +192,7 @@ void ListPID()
         {
                 if (current)
                 {
-                        printf("%s\t\t%d\n",current->name,Name2PID(current->name,i));
+                        printf("%s\t\t%d\n",current->name,current->pid);
                 }
         }
 

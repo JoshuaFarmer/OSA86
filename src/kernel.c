@@ -34,18 +34,12 @@ typedef uint8_t PALETTE16[16][3];
 #define sti() asm ("sti")
 #define __VER__ "0.4.1"
 
-uint8_t Drive_Letter = 'A';
-
 void osa86();
 void clearScreen(uint8_t c);
-
-uint8_t hour, minute, second;
-uint8_t day, month, year;
-int     MAX_ADDR;
-
-int printf(const char* format, ...);
 void refresh();
 void initputs(char *);
+
+int  MAX_ADDR;
 
 void init(int memSize)
 {
@@ -73,6 +67,10 @@ void initputs(char *s)
                 buff += 2;
         }
 }
+
+uint8_t Drive_Letter = 'A';
+uint8_t hour, minute, second;
+uint8_t day, month, year;
 
 void send_eoi(uint8_t irq);
 

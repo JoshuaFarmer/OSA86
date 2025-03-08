@@ -1,5 +1,6 @@
 #ifndef HEAP_H
 #define HEAP_H
+
 #include <stdint.h>
 #include <stdbool.h>
 #include "string.h"
@@ -11,119 +12,105 @@ uint32_t HEAP_BASE;
 #define ALIGNMENT 16
 #define ALIGN(size) (((size) + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1))
 
-typedef struct Block 
-{
-        size_t size;
-        struct Block *next;
-} Block;
+static uint8_t *BITMAP = NULL;
+static size_t   BITMAP_SIZE = 0;
 
-static Block *free_list = NULL;
+typedef struct
+{
+        void    *d;
+        uint32_t sz;
+} MAPPED;
 
 void init_heap(void)
 {
-        HEAP_SIZE = MAX_ADDR / 8;
-        HEAP_BASE = (MAX_ADDR - HEAP_SIZE);
+        HEAP_SIZE   = MAX_ADDR / 8;
+        HEAP_BASE   = MAX_ADDR - HEAP_SIZE;
+        BITMAP_SIZE = (HEAP_SIZE + ALIGNMENT - 1) / ALIGNMENT;
+        BITMAP_SIZE = (BITMAP_SIZE + 7) & ~7;
+        BITMAP      = (uint8_t *)(HEAP_BASE - (BITMAP_SIZE / 8));
         memset((void *)HEAP_BASE, 0, HEAP_SIZE);
-        free_list = (Block *)HEAP_BASE;
-        free_list->size = HEAP_SIZE - sizeof(Block);
-        free_list->next = NULL;
+        memset((void *)BITMAP, 0, BITMAP_SIZE / 8);
 }
 
-void *malloc(size_t size)
+MAPPED mmap(size_t size)
 {
-        if (size == 0) return NULL;
-        if (free_list == NULL)
+        MAPPED empty={0};
+        if (size == 0) return empty;
+
+        size_t aligned_size = ALIGN(size);
+        size_t num_bits = aligned_size / ALIGNMENT;
+
+        for (size_t i = 0; i < BITMAP_SIZE; i++)
         {
-                init_heap();
-        }
-        size_t total_size = ALIGN(size) + ALIGN(sizeof(Block));
-        Block *prev = NULL;
-        Block *curr = free_list;
-        while (curr)
-        {
-                if (curr->size >= total_size)
+                if ((BITMAP[i / 8] & (1 << (i % 8)))) continue;
+
+                bool found = true;
+                for (size_t j = 0; j < num_bits; j++)
                 {
-                        if (curr->size >= total_size + sizeof(Block))
+                        if (i + j >= BITMAP_SIZE || (BITMAP[(i + j) / 8] & (1 << ((i + j) % 8))))
                         {
-                                Block *new_block = (Block *)((uint8_t *)curr + total_size);
-                                new_block->size = curr->size - total_size;
-                                new_block->next = curr->next;
-                                if (prev)
-                                {
-                                        prev->next = new_block;
-                                }
-                                else
-                                {
-                                        free_list = new_block;
-                                }
-                                curr->size = total_size;
+                                found = false;
+                                break;
                         }
-                        else
-                        {
-                                if (prev)
-                                {
-                                        prev->next = curr->next;
-                                }
-                                else
-                                {
-                                        free_list = curr->next;
-                                }
-                        }
-                        return (void *)((uint8_t *)curr + ALIGN(sizeof(Block)));
                 }
-                prev = curr;
-                curr = curr->next;
+
+                if (found)
+                {
+                        for (size_t j = 0; j < num_bits; j++)
+                        {
+                                BITMAP[(i + j) / 8] |= (1 << ((i + j) % 8));
+                        }
+
+                        MAPPED map = {.d=(void *)(HEAP_BASE + i * ALIGNMENT),.sz=aligned_size};
+                        return map;
+                }
         }
-        return NULL;
+
+        return empty;
 }
 
-void free(void *ptr)
+void umap(MAPPED map)
 {
-        if (!ptr) return;
-        Block *block = (Block *)((uint8_t *)ptr - ALIGN(sizeof(Block)));
-        Block *prev = NULL;
-        Block *curr = free_list;
-        while (curr && curr < block)
-        {
-                prev = curr;
-                curr = curr->next;
-        }
+        if (!map.d) return;
 
-        if (prev && (uint8_t *)prev + prev->size == (uint8_t *)block)
-        {
-                prev->size += block->size;
-                block = prev;
-        }
-        else
-        {
-                block->next = curr;
-                if (prev)
-                {
-                        prev->next = block;
-                }
-                else
-                {
-                        free_list = block;
-                }
-        }
+        size_t index    = (int)((uint8_t *)map.d - HEAP_BASE) / ALIGNMENT;
+        size_t num_bits = map.sz/ALIGNMENT;
 
-        if (curr && (uint8_t *)block + block->size == (uint8_t *)curr)
+        for (size_t i = 0; i < num_bits; i++)
         {
-                block->size += curr->size;
-                block->next = curr->next;
+                BITMAP[(index + i) / 8] &= ~(1 << ((index + i) % 8));
         }
 }
 
 size_t remaining_heap_space(void)
 {
         size_t free_space = 0;
-        Block *curr = free_list;
-        while (curr)
+        for (size_t i = 0; i < BITMAP_SIZE; i++)
         {
-                free_space += curr->size;
-                curr = curr->next;
+                if (!(BITMAP[i >> 3] & (1 << (i % 8))))
+                {
+                        free_space += ALIGNMENT;
+                }
         }
         return free_space;
+}
+
+void *malloc(size_t sz)
+{
+        if (sz == 0) return NULL;
+        MAPPED map = mmap(sz+4);
+        if (!map.d)  return NULL;
+        *(uint32_t *)map.d = map.sz;
+        map.d += 4;
+        return map.d;
+}
+
+void free(void *d)
+{
+        MAPPED map;
+        map.d  = (void *)((int)d-4);
+        map.sz = *(uint32_t *)map.d;
+        umap(map);
 }
 
 #endif
