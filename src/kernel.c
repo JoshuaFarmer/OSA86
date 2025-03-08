@@ -37,29 +37,31 @@ typedef uint8_t PALETTE16[16][3];
 void osa86();
 void clearScreen(uint8_t c);
 void refresh();
-void initputs(char *);
+void initputs(char *,int,int);
 
 int  MAX_ADDR;
 
 void init(int memSize)
 {
+        uint16_t *b = (uint16_t *)0xB8000;
+        for (int i = 0; i < 80*25; ++i)
+        {
+                b[i] = 0x1720;
+        }
         if (memSize == 0)
         {
-                uint16_t *b = (uint16_t *)0xB8000;
-                for (int i = 0; i < 80*25; ++i)
-                {
-                        b[i] = 0x1720;
-                }
-                initputs("sorry, but you need at least two megabytes of ram to use osa86");
+                initputs("sorry, but you need at least two megabytes of ram to use osa86",8,10);
                 while(1);
         }
+        initputs("Starting OSA86",(80-15)/2,10);
+        initputs("Please Wait",(80-12)/2,11);
         MAX_ADDR=(memSize*1024)+1024*1024;
         osa86();
 }
 
-void initputs(char *s)
+void initputs(char *s, int x, int y)
 {
-        char *buff = (char *)((10*160)+(0xB8000)+16);
+        char *buff = (char *)((y*160)+(0xB8000)+(x*2));
         while (*s)
         {
                 *buff = *(s++);
@@ -108,7 +110,7 @@ void osa86()
         init_pic();
         init_scheduler();
         init_fs();
-        init_pit(256);
+        init_pit(512);
         FILE *test0 = fopen("test.txt","w");
         FILE *test1 = fopen("test2.txt","w");
         char msg[] = "Hello, World!";
@@ -131,6 +133,7 @@ void osa86()
         AppendTask("shell",shell);
         AppendTask("tty",refresh);
         system("info");
+
         while (active)
         {
                 /* Yes */

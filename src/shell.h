@@ -46,6 +46,17 @@ void system(char* sys)
                 for (int i = 0; i < 16; ++i)  printf("%c%c", (i < 10) ? (i + '0') : (i + 'A' - 10), (i == 15) ? '\n' : '\0');
                 for (int i = 0; i < 16; ++i)  printf("\xff[*b] %c", i, (i == 15) ? '\n' : '\0');
         }
+        else if (strcmp(cmd[0], "KillEmAll") == 0)
+        {
+                IterateSchedule(i)
+                {
+                        if (i > 2)
+                        {
+                                printf("ending %s\n", current->name);
+                                PKill(i);
+                        }
+                }
+        }
         else if (strcmp(cmd[0], "color") == 0 && argc == 2)
         {
                 TTY_COL = 0;
