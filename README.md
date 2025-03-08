@@ -1,7 +1,8 @@
-Simple 32 Bit Operating System
+<h1>Simple 32 Bit Operating System</h1>
 
-Features:
-Custom "OSAFS" File System.
-Built in Simple Editor
-BrainF interpreter
-9999+ bugs
+Features:<br>
+Custom "OSAFS" File System.<br>
+MultiTasking (RTOS i think idfk)<br>
+Built in Machine Language Monitor<br>
+built in shell<br>
+custom bootloader<br>
