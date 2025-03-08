@@ -2,19 +2,19 @@ ENTRY(init)
 
 SECTIONS {
 	. = 0x10000;
-	.text ALIGN(32) : {
+	.text ALIGN(16) : {
 		*(.text)
 	}
 
-	.rodata ALIGN(32) : {
+	.rodata ALIGN(16) : {
 		*(.rodata)
 	}
 
-	.data ALIGN(32) : {
+	.data ALIGN(16) : {
 		*(.data)
 	}
 
-	.bss ALIGN(32) : {
+	.bss ALIGN(16) : {
 		*(.bss)
 	}
 
