@@ -180,4 +180,4 @@ test_custom_opcodes:
         db 21
         ret
 .msg:
-        db "hi",0
+        db "hi"

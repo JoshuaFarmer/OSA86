@@ -69,6 +69,7 @@ enum INST
         CMP_RN_EXX,
         CMP_RD_RS,
         PUTS_EDI_ECX,
+        ATOI_EAX_ESI,
 };
 
 #include "schedule.h"
@@ -153,6 +154,13 @@ uint32_t invalid_opcode(uint8_t *op)
                 {
                         i8A &= 15;
                         putsn((char *)TMP_REGS[EDI],TMP_REGS[ECX]+1);
+                        return (uint32_t)op + 3;
+                }
+
+                case ATOI_EAX_ESI:
+                {
+                        i8A &= 15;
+                        TMP_REGS[EAX] = atoi((char*)TMP_REGS[EDI]);
                         return (uint32_t)op + 3;
                 }
 
