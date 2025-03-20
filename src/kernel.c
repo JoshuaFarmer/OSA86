@@ -59,6 +59,10 @@ void init(int memSize)
                 initputs("Please get more ram",(80-20)/2,11);
                 while(1);
         }
+        else if (MAX_ADDR >= (132*1024*1024))
+        {
+                MAX_ADDR = (132*1024*1024);
+        }
         osa86();
 }
 
@@ -137,11 +141,6 @@ void setup_paging()
                         uint32_t physical_addr = (i * 1024 + j) * PAGE_SIZE;
                         page_tables[i][j] = physical_addr | 0x03; // Present + Read/Write
                 }
-        }
-
-        for (uint32_t i = 0; i < PAGE_DIRECTORY_ENTRIES; i++)
-        {
-                page_directory[i] = 0x00000002; // Not present
         }
 
         for (uint32_t i = 0; i < num_page_tables; i++)
