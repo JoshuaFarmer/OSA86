@@ -49,15 +49,16 @@ void init(int memSize)
         {
                 b[i] = 0x1720;
         }
-        if (memSize == 0)
-        {
-                initputs("sorry, but you need at least two megabytes of ram to use osa86",8,10);
-                while(1);
-        }
         initputs("Starting OSA86",(80-15)/2,10);
         initputs("Please Wait",(80-12)/2,11);
         MAX_ADDR=(memSize*1024)+1024*1024;
-        if (MAX_ADDR > MAXIMUM_SUPPORTED_RAM)
+        if (MAX_ADDR <= 1024*1024)
+        {
+                initputs("Sorry, but you need at least two megabytes of ram to use osa86",8,10);
+                initputs("Please get more ram",(80-20)/2,11);
+                while(1);
+        }
+        else if (MAX_ADDR > MAXIMUM_SUPPORTED_RAM)
         {
                 MAX_ADDR = MAXIMUM_SUPPORTED_RAM;
         }
@@ -109,10 +110,6 @@ bool active = true;
 uint32_t page_directory[PAGE_DIRECTORY_ENTRIES] __attribute__((aligned(PAGE_SIZE)));
 
 uint8_t bitmap[PAGE_TABLE_ENTRIES/8];
-void init_memory_manager()
-{
-        memset(bitmap, 0, BITMAP_SIZE); // Mark all pages as free
-}
 
 void* alloc_page()
 {
@@ -129,6 +126,7 @@ void* alloc_page()
 
 void setup_paging()
 {
+        initputs("Setting up pages",(80-17)/2,11);
         uint32_t num_page_tables = ((MAX_ADDR + 0x3FFFFF) / 0x400000); // Round up
         uint32_t *page_tables[num_page_tables];
         for (uint32_t i = 0; i < num_page_tables; i++)
@@ -163,7 +161,7 @@ void setup_paging()
 void osa86()
 {
         cli();
-        init_memory_manager();
+        memset(bitmap, 0, BITMAP_SIZE); // Mark all pages as free
         setup_paging();
 
         init_tty();
