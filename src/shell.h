@@ -21,6 +21,8 @@ int parse_args(b,cmd)
         return N;
 }
 
+extern void test_custom_opcodes(void);
+
 void system(char* sys)
 {
         char cmd[MARGS][CMDM_LEN];
@@ -35,6 +37,10 @@ void system(char* sys)
                 {
                         r=res;
                 }
+        }
+        else if (strcmp(cmd[0], "opcode") == 0)
+        {
+                test_custom_opcodes();
         }
         else if (strcmp(cmd[0], "info") == 0)
         {

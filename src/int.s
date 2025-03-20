@@ -14,7 +14,9 @@
         extern keyboard_handler
         extern general_protection_fault
         extern page_fault
+        extern putc
         global LoadAndJump
+        global test_custom_opcodes
 
         ; location of temporary registers
         TEMP_REG  equ 0xFF00
@@ -71,8 +73,22 @@ LoadAndJump:
         jmp far [TEMP_EIP]
 invalid_opcode_handler:
         cli
+        mov [TEMP_EAX],eax
+        mov [TEMP_EBX],ebx
+        mov [TEMP_ECX],ecx
+        mov [TEMP_EDX],edx
+        mov [TEMP_ESI],esi
+        mov [TEMP_EDI],edi
+        mov [TEMP_EBP],ebp
         call invalid_opcode
-        jmp $
+        mov [esp],eax
+        mov eax,[TEMP_EAX]
+        mov ebx,[TEMP_EBX]
+        mov ecx,[TEMP_ECX]
+        mov edx,[TEMP_EDX]
+        mov esi,[TEMP_ESI]
+        mov edi,[TEMP_EDI]
+        mov ebp,[TEMP_EBP]
         sti
         iret
 general_protection_fault_handler:
@@ -145,3 +161,17 @@ OSASyscall:
 	call OSASyscallHandler
         sti
 	iret
+test_custom_opcodes:
+        mov eax,33
+        ud2 ; mov r32,eax
+        db 0
+        db 32
+        db 0
+        ud2 ; add eax,r32
+        db 3
+        db 0
+        db 32
+        push eax
+        call putc
+        add esp,4
+        ret

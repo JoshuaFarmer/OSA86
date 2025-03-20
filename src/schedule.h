@@ -3,29 +3,9 @@
 
 typedef uint32_t REGS[16];
 
-enum REG
-{
-        EAX,
-        EBX,
-        ECX,
-        EDX,
-        ESP,
-        EBP,
-        ESI,
-        EDI,
-        EIP,
-        CS,
-        DS,
-        ES,
-        SS,
-        FS,
-        GS,
-        EFLAGS,
-};
-
 typedef struct Task
 {
-        uint32_t eax,ecx,edx,ebx,esp,ebp,esi,edi,eip;
+        uint32_t eax,ecx,edx,ebx,esp,ebp,esi,edi,eip,psuedo_regs[64]; /*r0-r63*/
         uint16_t ds,es,fs,gs,cs,ss;
         uint32_t eflags;
         uint8_t stack[8192*2];

@@ -7,7 +7,60 @@ void SystemTick();
 #include <stdbool.h>
 #include "malloc.h"
 #include "osafs2.h"
+
+enum FLAG
+{
+        CF,
+        A1,
+        PF,
+        RESERVED0,
+        AF,
+        RESERVED1,
+        ZF,
+        SF,
+        TF,
+        IF,
+        DF,
+        OF,
+};
+
+enum REG
+{
+        EAX,
+        EBX,
+        ECX,
+        EDX,
+        ESP,
+        EBP,
+        ESI,
+        EDI,
+        EIP,
+        CS,
+        DS,
+        ES,
+        SS,
+        FS,
+        GS,
+        EFLAGS,
+};
+
+/* PSEUDO-INST */
+enum INST
+{
+        MOV_RN_EXX,
+        MOV_EXX_RN,
+        MOV_RD_RS,
+        ADD_EXX_RN,
+        ADD_RN_EXX,
+        ADD_RD_RS,
+        SUB_EXX_RN,
+        SUB_RN_EXX,
+        SUB_RD_RS,
+};
+
 #include "schedule.h"
+
+uint32_t *TMP_REGS = (uint32_t *)0xff00;
 
 typedef struct
 {
@@ -17,7 +70,6 @@ typedef struct
         int c;
         int d;
 } SysCall;
-
 
 typedef struct idt_entry
 {
@@ -56,9 +108,149 @@ void divide_by_zero()
         PANIC("You can't divide by zero, Silly!\n");
 }
 
-void invalid_opcode()
+uint32_t update_flags(uint32_t result, uint32_t operand1, uint32_t operand2, int is_addition)
 {
-        PANIC("Invalid Opcode\n");
+        TMP_REGS[EFLAGS] = TMP_REGS[EFLAGS] & ~(1 << ZF);
+        TMP_REGS[EFLAGS] |= (result == 0) << ZF;
+        TMP_REGS[EFLAGS] = TMP_REGS[EFLAGS] & ~(1 << CF);
+        if (is_addition)
+        {
+                TMP_REGS[EFLAGS] |= (result < operand1 || result < operand2) << CF;
+        }
+        else
+        {
+                TMP_REGS[EFLAGS] |= (result > operand1) << CF;
+        }
+
+        return result;
+}
+
+uint32_t invalid_opcode(uint8_t *op)
+{
+        int opcode = op[2];
+        int prefix = op[0] | (op[1] << 8);
+        int i8A = op[3];
+        int i8B = op[4];
+        
+        if (prefix != 0xB0F) { PANIC("Invalid Opcode: %x\n",*op); } /* hang */
+
+        switch (opcode)
+        {
+                case MOV_RN_EXX: /* MOV Rn,ExX */
+                {
+                        i8A = i8A & 63;
+                        i8B = i8B & 15;
+                        ActiveTask->psuedo_regs[i8A] = TMP_REGS[i8B];
+                        break;
+                }
+
+                case MOV_EXX_RN: /* MOV ExX,Rn */
+                {
+                        i8A = i8A & 15;
+                        i8B = i8B & 63;
+                        TMP_REGS[i8A] = ActiveTask->psuedo_regs[i8B];
+                        break;
+                }
+
+                case MOV_RD_RS: /* MOV Rd,Rs */
+                {
+                        i8A = i8A & 63;
+                        i8B = i8B & 63;
+                        ActiveTask->psuedo_regs[i8A] = ActiveTask->psuedo_regs[i8B];
+                        break;
+                }
+
+                case ADD_EXX_RN: /* ADD ExX,Rn */
+                {
+                        i8A = i8A & 15;
+                        i8B = i8B & 63;
+                        TMP_REGS[i8A]=update_flags
+                        (
+                                TMP_REGS[i8A]+ActiveTask->psuedo_regs[i8B],
+                                TMP_REGS[i8A],
+                                ActiveTask->psuedo_regs[i8B],
+                                true
+                        );
+                        break;
+                }
+
+                case ADD_RN_EXX: /* ADD Rn,ExX */
+                {
+                        i8A = i8A & 63;
+                        i8B = i8B & 15;
+                        ActiveTask->psuedo_regs[i8A]=update_flags
+                        (
+                                TMP_REGS[i8B]+ActiveTask->psuedo_regs[i8A],
+                                TMP_REGS[i8A],
+                                ActiveTask->psuedo_regs[i8B],
+                                true
+                        );
+                        break;
+                }
+
+                case ADD_RD_RS: /* ADD Rd,Rs */
+                {
+                        i8A = i8A & 63;
+                        i8B = i8B & 63;
+                        ActiveTask->psuedo_regs[i8A]=update_flags
+                        (
+                                ActiveTask->psuedo_regs[i8A]+ActiveTask->psuedo_regs[i8B],
+                                ActiveTask->psuedo_regs[i8A],
+                                ActiveTask->psuedo_regs[i8B],
+                                true
+                        );
+                        break;
+                }
+
+                case SUB_EXX_RN: /* SUB ExX,Rn */
+                {
+                        i8A = i8A & 15;
+                        i8B = i8B & 63;
+                        TMP_REGS[i8A]=update_flags
+                        (
+                                TMP_REGS[i8A]-ActiveTask->psuedo_regs[i8B],
+                                TMP_REGS[i8A],
+                                ActiveTask->psuedo_regs[i8B],
+                                false
+                        );
+                        break;
+                }
+
+                case SUB_RN_EXX: /* SUB Rn,ExX */
+                {
+                        i8A = i8A & 63;
+                        i8B = i8B & 15;
+                        ActiveTask->psuedo_regs[i8A]=update_flags
+                        (
+                                ActiveTask->psuedo_regs[i8A]-TMP_REGS[i8B],
+                                ActiveTask->psuedo_regs[i8B],
+                                TMP_REGS[i8A],
+                                false
+                        );
+                        break;
+                }
+
+                case SUB_RD_RS:
+                {
+                        i8A = i8A & 63;
+                        i8B = i8B & 63;
+                        ActiveTask->psuedo_regs[i8A]=update_flags
+                        (
+                                ActiveTask->psuedo_regs[i8A]-ActiveTask->psuedo_regs[i8B],
+                                ActiveTask->psuedo_regs[i8A],
+                                ActiveTask->psuedo_regs[i8B],
+                                false
+                        );
+                        break;
+                }
+
+                default:
+                {
+                        PANIC("Invalid Opcode: %x\n",*op);
+                }
+        }
+
+        return (uint32_t) op + 5;
 }
 
 void keyboard_handler()
