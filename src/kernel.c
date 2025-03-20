@@ -39,7 +39,8 @@ void clearScreen(uint8_t c);
 void refresh();
 void initputs(char *,int,int);
 
-int  MAX_ADDR;
+int     MAX_ADDR;
+#define MAXIMUM_SUPPORTED_RAM (56*1024*1024)
 
 void init(int memSize)
 {
@@ -56,6 +57,10 @@ void init(int memSize)
         initputs("Starting OSA86",(80-15)/2,10);
         initputs("Please Wait",(80-12)/2,11);
         MAX_ADDR=(memSize*1024)+1024*1024;
+        if (MAX_ADDR > MAXIMUM_SUPPORTED_RAM)
+        {
+                MAX_ADDR = MAXIMUM_SUPPORTED_RAM;
+        }
         osa86();
 }
 
@@ -125,7 +130,6 @@ void* alloc_page()
 void setup_paging()
 {
         uint32_t num_page_tables = ((MAX_ADDR + 0x3FFFFF) / 0x400000); // Round up
-
         uint32_t *page_tables[num_page_tables];
         for (uint32_t i = 0; i < num_page_tables; i++)
         {
