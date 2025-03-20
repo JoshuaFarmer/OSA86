@@ -21,4 +21,4 @@ clang fstools/src/diskutil.c -o fstools/bin/diskutil -O3 -Wall
 clang fstools/src/osafs2.c -o fstools/bin/osafs -O3 -Wall
 ./fstools/bin/diskutil "bin/raw/OSA86.img" "bin/OSA86.img"
 
-qemu-system-i386 -m 64 -hda bin/OSA86.img -debugcon stdio
+qemu-system-i386 -m 56 -hda bin/OSA86.img -debugcon stdio

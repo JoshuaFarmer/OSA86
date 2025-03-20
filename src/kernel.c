@@ -39,28 +39,25 @@ void clearScreen(uint8_t c);
 void refresh();
 void initputs(char *,int,int);
 
-int     MAX_ADDR;
-#define MAXIMUM_SUPPORTED_RAM (56*1024*1024)
+int MAX_ADDR;
+int ram_size(int);
 
 void init(int memSize)
 {
+        (void)memSize;
         uint16_t *b = (uint16_t *)0xB8000;
         for (int i = 0; i < 80*25; ++i)
         {
                 b[i] = 0x1720;
         }
         initputs("Starting OSA86",(80-15)/2,10);
-        initputs("Please Wait",(80-12)/2,11);
-        MAX_ADDR=(memSize*1024)+1024*1024;
+        initputs("Detecting Memory",(80-17)/2,11);
+        MAX_ADDR=ram_size(0);
         if (MAX_ADDR <= 1024*1024)
         {
                 initputs("Sorry, but you need at least two megabytes of ram to use osa86",8,10);
                 initputs("Please get more ram",(80-20)/2,11);
                 while(1);
-        }
-        else if (MAX_ADDR > MAXIMUM_SUPPORTED_RAM)
-        {
-                MAX_ADDR = MAXIMUM_SUPPORTED_RAM;
         }
         osa86();
 }
@@ -122,6 +119,23 @@ void* alloc_page()
                 }
         }
         return NULL;
+}
+
+int ram_size(int off)
+{
+        uint32_t *addr = (uint32_t *)(0x100000+off);
+        int size = 0;
+        while(1)
+        {
+                *addr = 0x69696969;
+                if (*addr == 0x69696969)
+                {
+                        addr += 1;
+                        size += 4;
+                        continue;
+                }
+                return size + 1024*1024;
+        }
 }
 
 void setup_paging()
