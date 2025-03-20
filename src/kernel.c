@@ -32,7 +32,7 @@ typedef uint8_t PALETTE16[16][3];
 #define NULL (void*)(0)
 #define cli() asm ("cli")
 #define sti() asm ("sti")
-#define __VER__ "0.4.1"
+#define __VER__ "0.4.2"
 
 void osa86();
 void clearScreen(uint8_t c);
@@ -103,44 +103,30 @@ bool active = true;
 #define PAGE_SIZE 4096
 #define PAGE_TABLE_ENTRIES 1024
 #define PAGE_DIRECTORY_ENTRIES 1024
+#define TOTAL_PAGES ((MAX_ADDR + 0x3FFFFF) / 0x400000)
+#define PAGES_BASE 0x40000
 
 uint32_t page_directory[PAGE_DIRECTORY_ENTRIES] __attribute__((aligned(PAGE_SIZE)));
-
-uint8_t bitmap[PAGE_TABLE_ENTRIES/8];
+uint8_t *bitmap;
 
 void* alloc_page()
 {
-        for (size_t i = 0; i < PAGE_TABLE_ENTRIES; i++)
+        for (int i = 0; i < TOTAL_PAGES; i++)
         {
                 if (!(bitmap[i / 8] & (1 << (i % 8))))
                 {
                         bitmap[i / 8] |= (1 << (i % 8));
-                        return (void*)(i * PAGE_SIZE); 
+                        return (void*)((i * PAGE_SIZE) + PAGES_BASE); 
                 }
         }
         return NULL;
 }
 
-int ram_size(int off)
-{
-        uint32_t *addr = (uint32_t *)(0x100000+off);
-        int size = 0;
-        while(1)
-        {
-                *addr = 0x69696969;
-                if (*addr == 0x69696969)
-                {
-                        addr += 1;
-                        size += 4;
-                        continue;
-                }
-                return size + 1024*1024;
-        }
-}
-
 void setup_paging()
 {
         initputs("Setting up pages",(80-17)/2,11);
+        bitmap = (uint8_t*) PAGES_BASE - (TOTAL_PAGES/8);
+        memset(bitmap, 0, BITMAP_SIZE); // Mark all pages as free
         uint32_t num_page_tables = ((MAX_ADDR + 0x3FFFFF) / 0x400000); // Round up
         uint32_t *page_tables[num_page_tables];
         for (uint32_t i = 0; i < num_page_tables; i++)
@@ -168,14 +154,28 @@ void setup_paging()
         asm volatile("mov %%cr0, %0" : "=r"(cr0));
         cr0 |= 0x80000000; // Set PG bit
         asm volatile("mov %0, %%cr0" : : "r"(cr0));
-        ((uint8_t*)0xB8000)[0] = 'P';
-        ((uint8_t*)0xB8000)[1] = 0x1F;
+}
+
+int ram_size(int off)
+{
+        uint32_t *addr = (uint32_t *)(0x100000+off);
+        int size = 0;
+        while(1)
+        {
+                *addr = 0x69696969;
+                if (*addr == 0x69696969)
+                {
+                        addr += 1;
+                        size += 4;
+                        continue;
+                }
+                return size + 1024*1024;
+        }
 }
 
 void osa86()
 {
         cli();
-        memset(bitmap, 0, BITMAP_SIZE); // Mark all pages as free
         setup_paging();
 
         init_tty();
