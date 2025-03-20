@@ -68,6 +68,7 @@ enum INST
         CMP_EXX_RN,
         CMP_RN_EXX,
         CMP_RD_RS,
+        PUTS_EDI_ECX,
 };
 
 #include "schedule.h"
@@ -148,6 +149,13 @@ uint32_t invalid_opcode(uint8_t *op)
 
         switch (opcode)
         {
+                case PUTS_EDI_ECX:
+                {
+                        i8A &= 15;
+                        putsn((char *)TMP_REGS[EDI],TMP_REGS[ECX]+1);
+                        return (uint32_t)op + 3;
+                }
+
                 case MOV_RN_EXX: /* MOV Rn,ExX */
                 {
                         i8A = i8A & 63;

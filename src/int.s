@@ -174,4 +174,10 @@ test_custom_opcodes:
         push eax
         call putc
         add esp,4
+        mov edi,.msg ; putsn edi
+        mov ecx,2
+        ud2
+        db 21
         ret
+.msg:
+        db "hi",0
