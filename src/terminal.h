@@ -10,8 +10,8 @@
 #define TTY_TAB_WIDTH 8
 #define ifsw(a,b) if (a) switch (b)
 
-char   TTY_BUFFER[160*50];
-int    TTY_WIDTH,TTY_HEIGHT,TTY_X,TTY_Y,TTY_COL,TTY_XS,TTY_YS,TTY_XE,TTY_YE;
+wchar_t   TTY_BUFFER[160*50];
+int       TTY_WIDTH,TTY_HEIGHT,TTY_X,TTY_Y,TTY_COL,TTY_XS,TTY_YS,TTY_XE,TTY_YE;
 
 #define flush()\
 {\

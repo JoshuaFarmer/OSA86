@@ -41,6 +41,7 @@
 LoadAndJump:
         mov esp,TEMP_STCK
         mov eax,[TEMP_FLGS]
+        and eax,0xFFFFFDFF
         push eax
 
         ; segments

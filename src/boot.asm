@@ -12,16 +12,10 @@ _start:
 	mov ds, ax
 	mov es, ax
 	mov sp, 0x7C00
-	sti	 
-	pusha
-	mov ah, 0x3
-	int 10h
-	popa
-	; Hide cursor
-	mov ah, 0x01
-	mov ch, 0x20
-	mov cl, 0x1f
-	int 0x10
+	sti
+        ;mov ax,0x4F02
+        ;mov bx,256
+        ;int 0x10
 	mov ah, 2
 	mov al, KERNEL_SIZE
 	mov cx, 2

@@ -97,10 +97,70 @@ bool active = true;
 #include "shell.h"
 #include "mlmon.h"
 
+#define PAGE_SIZE 4096
+#define PAGE_TABLE_ENTRIES 1024
+#define PAGE_DIRECTORY_ENTRIES 1024
+
+uint32_t page_directory[PAGE_DIRECTORY_ENTRIES] __attribute__((aligned(PAGE_SIZE)));
+
+uint8_t bitmap[PAGE_TABLE_ENTRIES/8];
+void init_memory_manager()
+{
+        memset(bitmap, 0, BITMAP_SIZE); // Mark all pages as free
+}
+
+void* alloc_page()
+{
+        for (size_t i = 0; i < PAGE_TABLE_ENTRIES; i++)
+        {
+                if (!(bitmap[i / 8] & (1 << (i % 8))))
+                {
+                        bitmap[i / 8] |= (1 << (i % 8));
+                        return (void*)(i * PAGE_SIZE); 
+                }
+        }
+        return NULL;
+}
+
+void setup_paging()
+{
+        uint32_t num_page_tables = ((MAX_ADDR + 0x3FFFFF) / 0x400000); // Round up
+
+        uint32_t *page_tables[num_page_tables];
+        for (uint32_t i = 0; i < num_page_tables; i++)
+        {
+                page_tables[i] = (uint32_t*)alloc_page(); // Allocate a 4 KB page for each page table
+                for (uint32_t j = 0; j < PAGE_TABLE_ENTRIES; j++)
+                {
+                        uint32_t physical_addr = (i * 1024 + j) * PAGE_SIZE;
+                        page_tables[i][j] = physical_addr | 0x03; // Present + Read/Write
+                }
+        }
+
+        for (uint32_t i = 0; i < PAGE_DIRECTORY_ENTRIES; i++)
+        {
+                page_directory[i] = 0x00000002; // Not present
+        }
+
+        for (uint32_t i = 0; i < num_page_tables; i++)
+        {
+                page_directory[i] = ((uint32_t)page_tables[i]) | 0x03; // Present + Read/Write
+        }
+
+        asm volatile("mov %0, %%cr3" : : "r"((uint32_t)page_directory));
+        uint32_t cr0;
+        asm volatile("mov %%cr0, %0" : "=r"(cr0));
+        cr0 |= 0x80000000; // Set PG bit
+        asm volatile("mov %0, %%cr0" : : "r"(cr0));
+        ((uint8_t*)0xB8000)[0] = 'P';
+        ((uint8_t*)0xB8000)[1] = 0x1F;
+}
+
 void osa86()
 {
         cli();
-        mode(0x02);
+        init_memory_manager();
+        setup_paging();
 
         init_tty();
         init_heap();
