@@ -1,6 +1,6 @@
 #ifndef ELF_H
 #define ELF_H
-
+/*
 #include <stdint.h>
 #include "string.h"
 #include "osafs2.h"
@@ -8,7 +8,6 @@
 #define EI_NIDENT 16
 static FILE *file=NULL;
 
-/* no libc */
 uint64_t __udivdi3(uint64_t dividend, uint64_t divisor)
 {
         if (divisor == 0)
@@ -251,5 +250,5 @@ int elf(FILE *f, uint8_t *base_addr)
         file=NULL;
         return 0;
 }
-
+*/
 #endif
