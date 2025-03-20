@@ -158,6 +158,8 @@ void StackDump()
         putc('\n');
 }
 
+extern void timer_interrupt_handler(void);
+
 void PKill(int id)
 {
         IterateSchedule(jd)
@@ -165,6 +167,10 @@ void PKill(int id)
                 if (current && current->pid == id)
                 {
                         current->running=false;
+                        if (current == ActiveTask)
+                        {
+                                timer_interrupt_handler();
+                        }
                 }
         }
 }
