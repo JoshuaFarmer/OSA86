@@ -84,20 +84,6 @@ void general_protection_fault()
         PANIC("General Protection Fault!\nHalting...\n");
 }
 
-void Int80(int eax, int ecx)
-{
-        __asm__ __volatile__
-        (
-                "movl %0, %%eax;"
-                "movl $0, %%ebx;"
-                "movl %1, %%ecx;"
-                "int $0x80;"
-                :
-                : "r"(eax), "r"(ecx)
-                : "%eax", "%ecx"
-        );
-}
-
 int OSASyscallHandler(int eip, int cs, int flags, int op, int b)
 {
         (void)eip;

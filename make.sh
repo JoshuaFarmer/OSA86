@@ -3,7 +3,7 @@
 nasm src/boot.asm -o bin/raw/boot.bin -f bin
 nasm src/int.s -o bin/raw/int.o -f elf32
 nasm src/disk.s -o bin/raw/disk.o -f elf32
-clang src/kernel.c -o bin/raw/kernel.o -m32 -ffast-math -c -ffreestanding -Wall -Wextra -target i386
+clang src/kernel.c -o bin/raw/kernel.o -m32 -ffast-math -c -ffreestanding -Wall -Wextra -target i386 -Wunused-function
 
 ld -m elf_i386 -T linker.ld -o bin/raw/kernel.elf -Os bin/raw/kernel.o bin/raw/int.o bin/raw/disk.o -nostdlib
 llvm-strip bin/raw/kernel.elf

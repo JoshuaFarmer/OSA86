@@ -161,6 +161,7 @@ int ram_size(int off)
         int size = 0;
         while(1)
         {
+                if (size >= (132*1024*1024)) return (132*1024*1024);
                 *addr = 0x69696969;
                 if (*addr == 0x69696969)
                 {
