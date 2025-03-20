@@ -10,12 +10,12 @@
 #define TTY_TAB_WIDTH 8
 #define ifsw(a,b) if (a) switch (b)
 
-wchar_t   TTY_BUFFER[160*50];
-int       TTY_WIDTH,TTY_HEIGHT,TTY_X,TTY_Y,TTY_COL,TTY_XS,TTY_YS,TTY_XE,TTY_YE;
+char TTY_BUFFER[160*50];
+int  TTY_WIDTH,TTY_HEIGHT,TTY_X,TTY_Y,TTY_COL,TTY_XS,TTY_YS,TTY_XE,TTY_YE;
 
-#define flush()\
-{\
-        memcpy((void*)0xB8000,TTY_BUFFER,sizeof(TTY_BUFFER));\
+void flush()
+{
+        memcpy((void*)0xB8000,TTY_BUFFER,160*50);
 }
 
 void refresh()
