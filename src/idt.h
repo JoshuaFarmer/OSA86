@@ -74,8 +74,6 @@ enum INST
 
 #include "schedule.h"
 
-uint32_t *TMP_REGS = (uint32_t *)0xff00;
-
 typedef struct
 {
         int code;
@@ -124,16 +122,16 @@ void divide_by_zero()
 
 uint32_t update_flags(uint32_t result, uint32_t operand1, uint32_t operand2, int is_addition)
 {
-        TMP_REGS[EFLAGS] = TMP_REGS[EFLAGS] & ~(1 << ZF);
-        TMP_REGS[EFLAGS] |= (result == 0) << ZF;
-        TMP_REGS[EFLAGS] = TMP_REGS[EFLAGS] & ~(1 << CF);
+        regs[EFLAGS] = regs[EFLAGS] & ~(1 << ZF);
+        regs[EFLAGS] |= (result == 0) << ZF;
+        regs[EFLAGS] = regs[EFLAGS] & ~(1 << CF);
         if (is_addition)
         {
-                TMP_REGS[EFLAGS] |= (result < operand1 || result < operand2) << CF;
+                regs[EFLAGS] |= (result < operand1 || result < operand2) << CF;
         }
         else
         {
-                TMP_REGS[EFLAGS] |= (result > operand1) << CF;
+                regs[EFLAGS] |= (result > operand1) << CF;
         }
 
         return result;
@@ -153,14 +151,14 @@ uint32_t invalid_opcode(uint8_t *op)
                 case PUTS_EDI_ECX:
                 {
                         i8A &= 15;
-                        putsn((char *)TMP_REGS[EDI],TMP_REGS[ECX]+1);
+                        putsn((char *)regs[EDI],regs[ECX]+1);
                         return (uint32_t)op + 3;
                 }
 
                 case ATOI_EAX_ESI:
                 {
                         i8A &= 15;
-                        TMP_REGS[EAX] = atoi((char*)TMP_REGS[EDI]);
+                        regs[EAX] = atoi((char*)regs[EDI]);
                         return (uint32_t)op + 3;
                 }
 
@@ -168,7 +166,7 @@ uint32_t invalid_opcode(uint8_t *op)
                 {
                         i8A = i8A & 63;
                         i8B = i8B & 15;
-                        ActiveTask->psuedo_regs[i8A] = TMP_REGS[i8B];
+                        ActiveTask->psuedo_regs[i8A] = regs[i8B];
                         break;
                 }
 
@@ -176,7 +174,7 @@ uint32_t invalid_opcode(uint8_t *op)
                 {
                         i8A = i8A & 15;
                         i8B = i8B & 63;
-                        TMP_REGS[i8A] = ActiveTask->psuedo_regs[i8B];
+                        regs[i8A] = ActiveTask->psuedo_regs[i8B];
                         break;
                 }
 
@@ -192,7 +190,7 @@ uint32_t invalid_opcode(uint8_t *op)
                 {
                         i8A = i8A & 63;
                         i8B = i8B & 15;
-                        ActiveTask->psuedo_regs[i8A] &= TMP_REGS[i8B];
+                        ActiveTask->psuedo_regs[i8A] &= regs[i8B];
                         break;
                 }
 
@@ -200,7 +198,7 @@ uint32_t invalid_opcode(uint8_t *op)
                 {
                         i8A = i8A & 15;
                         i8B = i8B & 63;
-                        TMP_REGS[i8A] &= ActiveTask->psuedo_regs[i8B];
+                        regs[i8A] &= ActiveTask->psuedo_regs[i8B];
                         break;
                 }
 
@@ -216,7 +214,7 @@ uint32_t invalid_opcode(uint8_t *op)
                 {
                         i8A = i8A & 63;
                         i8B = i8B & 15;
-                        ActiveTask->psuedo_regs[i8A] ^= TMP_REGS[i8B];
+                        ActiveTask->psuedo_regs[i8A] ^= regs[i8B];
                         break;
                 }
 
@@ -224,7 +222,7 @@ uint32_t invalid_opcode(uint8_t *op)
                 {
                         i8A = i8A & 15;
                         i8B = i8B & 63;
-                        TMP_REGS[i8A] ^= ActiveTask->psuedo_regs[i8B];
+                        regs[i8A] ^= ActiveTask->psuedo_regs[i8B];
                         break;
                 }
 
@@ -240,7 +238,7 @@ uint32_t invalid_opcode(uint8_t *op)
                 {
                         i8A = i8A & 63;
                         i8B = i8B & 15;
-                        ActiveTask->psuedo_regs[i8A] |= TMP_REGS[i8B];
+                        ActiveTask->psuedo_regs[i8A] |= regs[i8B];
                         break;
                 }
 
@@ -248,7 +246,7 @@ uint32_t invalid_opcode(uint8_t *op)
                 {
                         i8A = i8A & 15;
                         i8B = i8B & 63;
-                        TMP_REGS[i8A] |= ActiveTask->psuedo_regs[i8B];
+                        regs[i8A] |= ActiveTask->psuedo_regs[i8B];
                         break;
                 }
 
@@ -264,10 +262,10 @@ uint32_t invalid_opcode(uint8_t *op)
                 {
                         i8A = i8A & 15;
                         i8B = i8B & 63;
-                        TMP_REGS[i8A]=update_flags
+                        regs[i8A]=update_flags
                         (
-                                TMP_REGS[i8A]+ActiveTask->psuedo_regs[i8B],
-                                TMP_REGS[i8A],
+                                regs[i8A]+ActiveTask->psuedo_regs[i8B],
+                                regs[i8A],
                                 ActiveTask->psuedo_regs[i8B],
                                 true
                         );
@@ -280,8 +278,8 @@ uint32_t invalid_opcode(uint8_t *op)
                         i8B = i8B & 15;
                         ActiveTask->psuedo_regs[i8A]=update_flags
                         (
-                                TMP_REGS[i8B]+ActiveTask->psuedo_regs[i8A],
-                                TMP_REGS[i8A],
+                                regs[i8B]+ActiveTask->psuedo_regs[i8A],
+                                regs[i8A],
                                 ActiveTask->psuedo_regs[i8B],
                                 true
                         );
@@ -306,10 +304,10 @@ uint32_t invalid_opcode(uint8_t *op)
                 {
                         i8A = i8A & 15;
                         i8B = i8B & 63;
-                        TMP_REGS[i8A]=update_flags
+                        regs[i8A]=update_flags
                         (
-                                TMP_REGS[i8A]-ActiveTask->psuedo_regs[i8B],
-                                TMP_REGS[i8A],
+                                regs[i8A]-ActiveTask->psuedo_regs[i8B],
+                                regs[i8A],
                                 ActiveTask->psuedo_regs[i8B],
                                 false
                         );
@@ -322,9 +320,9 @@ uint32_t invalid_opcode(uint8_t *op)
                         i8B = i8B & 15;
                         ActiveTask->psuedo_regs[i8A]=update_flags
                         (
-                                ActiveTask->psuedo_regs[i8A]-TMP_REGS[i8B],
+                                ActiveTask->psuedo_regs[i8A]-regs[i8B],
                                 ActiveTask->psuedo_regs[i8B],
-                                TMP_REGS[i8A],
+                                regs[i8A],
                                 false
                         );
                         break;
@@ -350,8 +348,8 @@ uint32_t invalid_opcode(uint8_t *op)
                         i8B = i8B & 63;
                         update_flags
                         (
-                                TMP_REGS[i8A]-ActiveTask->psuedo_regs[i8B],
-                                TMP_REGS[i8A],
+                                regs[i8A]-ActiveTask->psuedo_regs[i8B],
+                                regs[i8A],
                                 ActiveTask->psuedo_regs[i8B],
                                 false
                         );
@@ -364,9 +362,9 @@ uint32_t invalid_opcode(uint8_t *op)
                         i8B = i8B & 15;
                         update_flags
                         (
-                                ActiveTask->psuedo_regs[i8A]-TMP_REGS[i8B],
+                                ActiveTask->psuedo_regs[i8A]-regs[i8B],
                                 ActiveTask->psuedo_regs[i8B],
-                                TMP_REGS[i8A],
+                                regs[i8A],
                                 false
                         );
                         break;
@@ -443,7 +441,10 @@ int OSASyscallHandler(int eip, int cs, int flags, int op, int b)
 
 void timer_interrupt()
 {
-        LookForDead();
+        static int tick = 0;
+        ++tick;
+        if ((tick % 32) == 0)
+                LookForDead();
         Scheduler();
         send_eoi(0x0);
         LoadAndJump();
@@ -478,6 +479,7 @@ void init_idt()
 
         set_idt_entry(0x80, (uint32_t)OSASyscall, idt);
         set_idt_entry(0x20, (uint32_t)timer_interrupt_handler, idt);
+        set_idt_entry(0x81, (uint32_t)timer_interrupt_handler, idt);
         set_idt_entry(0x21, (uint32_t)keyboard_interrupt_handler, idt);
         set_idt_entry(0x00, (uint32_t)divide_by_zero_handler, idt);
         set_idt_entry(0x0E, (uint32_t)page_fault_handler, idt);

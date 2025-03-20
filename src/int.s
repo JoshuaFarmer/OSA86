@@ -178,6 +178,8 @@ test_custom_opcodes:
         mov ecx,2
         ud2
         db 21
+
+        int 0x20 ; yield
         ret
 .msg:
         db "hi"
