@@ -56,6 +56,18 @@ enum INST
         SUB_EXX_RN,
         SUB_RN_EXX,
         SUB_RD_RS,
+        AND_EXX_RN,
+        AND_RN_EXX,
+        AND_RD_RS,
+        OR_EXX_RN,
+        OR_RN_EXX,
+        OR_RD_RS,
+        XOR_EXX_RN,
+        XOR_RN_EXX,
+        XOR_RD_RS,
+        CMP_EXX_RN,
+        CMP_RN_EXX,
+        CMP_RD_RS,
 };
 
 #include "schedule.h"
@@ -160,6 +172,78 @@ uint32_t invalid_opcode(uint8_t *op)
                         break;
                 }
 
+                case AND_RN_EXX:
+                {
+                        i8A = i8A & 63;
+                        i8B = i8B & 15;
+                        ActiveTask->psuedo_regs[i8A] &= TMP_REGS[i8B];
+                        break;
+                }
+
+                case AND_EXX_RN:
+                {
+                        i8A = i8A & 15;
+                        i8B = i8B & 63;
+                        TMP_REGS[i8A] &= ActiveTask->psuedo_regs[i8B];
+                        break;
+                }
+
+                case AND_RD_RS:
+                {
+                        i8A = i8A & 63;
+                        i8B = i8B & 63;
+                        ActiveTask->psuedo_regs[i8A] &= ActiveTask->psuedo_regs[i8B];
+                        break;
+                }
+
+                case XOR_RN_EXX:
+                {
+                        i8A = i8A & 63;
+                        i8B = i8B & 15;
+                        ActiveTask->psuedo_regs[i8A] ^= TMP_REGS[i8B];
+                        break;
+                }
+
+                case XOR_EXX_RN:
+                {
+                        i8A = i8A & 15;
+                        i8B = i8B & 63;
+                        TMP_REGS[i8A] ^= ActiveTask->psuedo_regs[i8B];
+                        break;
+                }
+
+                case XOR_RD_RS:
+                {
+                        i8A = i8A & 63;
+                        i8B = i8B & 63;
+                        ActiveTask->psuedo_regs[i8A] ^= ActiveTask->psuedo_regs[i8B];
+                        break;
+                }
+
+                case OR_RN_EXX:
+                {
+                        i8A = i8A & 63;
+                        i8B = i8B & 15;
+                        ActiveTask->psuedo_regs[i8A] |= TMP_REGS[i8B];
+                        break;
+                }
+
+                case OR_EXX_RN:
+                {
+                        i8A = i8A & 15;
+                        i8B = i8B & 63;
+                        TMP_REGS[i8A] |= ActiveTask->psuedo_regs[i8B];
+                        break;
+                }
+
+                case OR_RD_RS:
+                {
+                        i8A = i8A & 63;
+                        i8B = i8B & 63;
+                        ActiveTask->psuedo_regs[i8A] |= ActiveTask->psuedo_regs[i8B];
+                        break;
+                }
+
                 case ADD_EXX_RN: /* ADD ExX,Rn */
                 {
                         i8A = i8A & 15;
@@ -235,6 +319,48 @@ uint32_t invalid_opcode(uint8_t *op)
                         i8A = i8A & 63;
                         i8B = i8B & 63;
                         ActiveTask->psuedo_regs[i8A]=update_flags
+                        (
+                                ActiveTask->psuedo_regs[i8A]-ActiveTask->psuedo_regs[i8B],
+                                ActiveTask->psuedo_regs[i8A],
+                                ActiveTask->psuedo_regs[i8B],
+                                false
+                        );
+                        break;
+                }
+
+                case CMP_EXX_RN: /* SUB ExX,Rn */
+                {
+                        i8A = i8A & 15;
+                        i8B = i8B & 63;
+                        update_flags
+                        (
+                                TMP_REGS[i8A]-ActiveTask->psuedo_regs[i8B],
+                                TMP_REGS[i8A],
+                                ActiveTask->psuedo_regs[i8B],
+                                false
+                        );
+                        break;
+                }
+
+                case CMP_RN_EXX: /* SUB Rn,ExX */
+                {
+                        i8A = i8A & 63;
+                        i8B = i8B & 15;
+                        update_flags
+                        (
+                                ActiveTask->psuedo_regs[i8A]-TMP_REGS[i8B],
+                                ActiveTask->psuedo_regs[i8B],
+                                TMP_REGS[i8A],
+                                false
+                        );
+                        break;
+                }
+
+                case CMP_RD_RS:
+                {
+                        i8A = i8A & 63;
+                        i8B = i8B & 63;
+                        update_flags
                         (
                                 ActiveTask->psuedo_regs[i8A]-ActiveTask->psuedo_regs[i8B],
                                 ActiveTask->psuedo_regs[i8A],
