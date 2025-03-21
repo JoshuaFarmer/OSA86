@@ -209,9 +209,6 @@ void osa86()
         AppendTask("tty",refresh);
         system("info");
 
-        for (int i = 0; i < 64; ++i)
-                system("./out");
-
         while (active)
         {
                 /* Yes */
