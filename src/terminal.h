@@ -84,10 +84,13 @@ const uint16_t keyboard_map_shifted[256] = {
         KEY_ALT, '\\', KEY_F11, KEY_F12
 };
 
+int printf(const char *fmt,...);
+
 char getc()
 {
         char status;
         static int shift_pressed = 0;
+        static int ctrl_pressed = 0;
         static int alt_code_mode = 0;
         static int alt_code = 0;
 
@@ -99,6 +102,7 @@ char getc()
 
         unsigned char scancode = inb(KEYBOARD_DATA_PORT);
 
+        // Handle shift key
         if (scancode == 0x2A || scancode == 0x36)
         {
                 shift_pressed = 1;
@@ -109,7 +113,21 @@ char getc()
                 shift_pressed = 0;
                 return 0;
         }
-        else if (scancode == 0x38)
+
+        // Handle ctrl key
+        if (scancode == 0x1D)
+        {
+                ctrl_pressed = 1;
+                return 0;
+        }
+        else if (scancode == 0x9D)
+        {
+                ctrl_pressed = 0;
+                return 0;
+        }
+
+        // Handle alt key
+        if (scancode == 0x38)
         {
                 alt_code_mode = 1;
                 alt_code = 0;
@@ -132,7 +150,8 @@ char getc()
                         if (keyboard_map[scancode] >= '0' && keyboard_map[scancode] <= '9')
                         {
                                 alt_code = alt_code * 10 + (keyboard_map[scancode] - '0');
-                        } else if (keyboard_map[scancode] == '\n')
+                        }
+                        else if (keyboard_map[scancode] == '\n')
                         {
                                 if (alt_code >= 0 && alt_code <= 255)
                                 {
@@ -145,19 +164,25 @@ char getc()
                 }
                 else
                 {
-                        if (shift_pressed)
+                        char key = shift_pressed ? keyboard_map_shifted[scancode] : keyboard_map[scancode];
+
+                        // Handle Ctrl key combinations
+                        if (ctrl_pressed)
                         {
-                                return keyboard_map_shifted[scancode];
+                                if (key >= 'a' && key <= 'z')
+                                {
+                                        return key - 'a' + 1;  // Ctrl+A -> 1, Ctrl+B -> 2, ..., Ctrl+Z -> 26
+                                }
+                                else if (key >= 'A' && key <= 'Z')
+                                {
+                                        return key - 'A' + 1;  // Ctrl+A -> 1, Ctrl+B -> 2, ..., Ctrl+Z -> 26
+                                }
                         }
-                        else
-                        {
-                                return keyboard_map[scancode];
-                        }
+
+                        return key;
                 }
         }
 }
-
-int printf(const char *,...);
 
 char getch()
 {
@@ -165,6 +190,7 @@ char getch()
         static int shift_pressed = 0;
         static int alt_code_mode = 0;
         static int alt_code = 0;
+        static int ctrl_pressed = 0;
 
         status = inb(KEYBOARD_STATUS_PORT);
         do
@@ -174,6 +200,8 @@ char getch()
         while ((status & 0x01) == 0);
 
         unsigned char scancode = inb(KEYBOARD_DATA_PORT);
+
+        // Handle shift key
         if (scancode == 0x2A || scancode == 0x36)
         {
                 shift_pressed = 1;
@@ -184,7 +212,21 @@ char getch()
                 shift_pressed = 0;
                 return 0;
         }
-        else if (scancode == 0x38)
+
+        // Handle ctrl key
+        if (scancode == 0x1D)
+        {
+                ctrl_pressed = 1;
+                return 0;
+        }
+        else if (scancode == 0x9D)
+        {
+                ctrl_pressed = 0;
+                return 0;
+        }
+
+        // Handle alt key
+        if (scancode == 0x38)
         {
                 alt_code_mode = 1;
                 alt_code = 0;
@@ -207,7 +249,8 @@ char getch()
                         if (keyboard_map[scancode] >= '0' && keyboard_map[scancode] <= '9')
                         {
                                 alt_code = alt_code * 10 + (keyboard_map[scancode] - '0');
-                        } else if (keyboard_map[scancode] == '\n')
+                        }
+                        else if (keyboard_map[scancode] == '\n')
                         {
                                 if (alt_code >= 0 && alt_code <= 255)
                                 {
@@ -215,18 +258,27 @@ char getch()
                                         return (char)alt_code;
                                 }
                         }
+                        getc();
                         return 0;
                 }
                 else
                 {
-                        if (shift_pressed)
+                        char key = shift_pressed ? keyboard_map_shifted[scancode] : keyboard_map[scancode];
+
+                        // Handle Ctrl key combinations
+                        if (ctrl_pressed)
                         {
-                                return keyboard_map_shifted[scancode];
+                                if (key >= 'a' && key <= 'z')
+                                {
+                                        return key - 'a' + 1;  // Ctrl+A -> 1, Ctrl+B -> 2, ..., Ctrl+Z -> 26
+                                }
+                                else if (key >= 'A' && key <= 'Z')
+                                {
+                                        return key - 'A' + 1;  // Ctrl+A -> 1, Ctrl+B -> 2, ..., Ctrl+Z -> 26
+                                }
                         }
-                        else
-                        {
-                                return keyboard_map[scancode];
-                        }
+
+                        return key;
                 }
         }
 }
@@ -456,12 +508,12 @@ void clearScreen(uint8_t c)
         update_cursor(TTY_X, TTY_Y);
 }
 
-int sscanf(const char *str, const char *format, ...)
+int sscanf(const char *str, const char *fmt, ...)
 {
         va_list args;
-        va_start(args, format);
+        va_start(args, fmt);
         int count = 0;
-        const char *p = format;
+        const char *p = fmt;
 
         while (*p)
         {
@@ -629,12 +681,12 @@ void PopTTYState()
         TTY_COL    = tty[ttyp].colour;
 }
 
-int printf(const char* format, ...)
+int printf(const char *fmt, ...)
 {
         va_list args;
-        va_start(args, format);
+        va_start(args, fmt);
         PushTTYState();
-        const char* p = format;
+        const char* p = fmt;
         while (*p)
         {
                 if (*p == '%' && *(p + 1))

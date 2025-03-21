@@ -36,6 +36,8 @@ void system(char* sys)
                 while (1)
                 {
                         if (!ProcessIsActive(res)) return;
+                        /* CTRL+C */
+                        if (getc() == ('C'-'@')) return;
                 }
         }
         else if (strcmp(cmd[0], "opcode") == 0)
