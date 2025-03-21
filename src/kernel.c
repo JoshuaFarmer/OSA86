@@ -185,7 +185,7 @@ void osa86()
         init_pic();
         init_scheduler();
         init_fs();
-        init_pit(512);
+        init_pit(100000);
         FILE *test0 = fopen("test.txt","w");
         FILE *test1 = fopen("test2.txt","w");
         char msg[] = "Hello, World!";
@@ -208,6 +208,9 @@ void osa86()
         AppendTask("shell",shell);
         AppendTask("tty",refresh);
         system("info");
+
+        for (int i = 0; i < 64; ++i)
+                system("./out");
 
         while (active)
         {

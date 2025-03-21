@@ -443,7 +443,7 @@ void timer_interrupt()
 {
         static int tick = 0;
         ++tick;
-        if ((tick % 32) == 0)
+        if ((tick % 8192) == 0)
                 LookForDead();
         Scheduler();
         send_eoi(0x0);

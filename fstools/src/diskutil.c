@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define DISK_SIZE 0x200000
+#define DISK_SIZE 0x100000
 #define NULL_FILE "|0|"
 
 void write_disk_image(size_t size, char name[32], char* data)

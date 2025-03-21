@@ -15,7 +15,9 @@ int  TTY_WIDTH,TTY_HEIGHT,TTY_X,TTY_Y,TTY_COL,TTY_XS,TTY_YS,TTY_XE,TTY_YE;
 
 void flush()
 {
+        cli();
         memcpy((void*)0xB8000,TTY_BUFFER,160*50);
+        sti();
 }
 
 void refresh()
