@@ -185,7 +185,7 @@ void osa86()
         init_pic();
         init_scheduler();
         init_fs();
-        init_pit(100000);
+        init_pit(25000);
         FILE *test0 = fopen("test.txt","w");
         FILE *test1 = fopen("test2.txt","w");
         char msg[] = "Hello, World!";
