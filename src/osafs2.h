@@ -444,16 +444,18 @@ int ftell(FILE *fp)
 
 extern void jump_usermode(int addr);
 
-void AppendTask(char * name, void (*start)(void));
+int AppendTask(char * name, void (*start)(void));
 int _ExecuteF(char *filename, int parentidx)
 {
         int idx = _Exists(filename, parentidx) - 1;
-        if (idx == -1) {
-                return -2;
+        if (idx == -1)
+        {
+                return -1;
         }
 
         int file_size = FDS0[idx].Size;
-        if (file_size <= 0) {
+        if (file_size <= 0)
+        {
                 return 0;
         }
 
@@ -467,14 +469,13 @@ int _ExecuteF(char *filename, int parentidx)
         if (progh->Checksum == CHECKSUM && strncmp(progh->Sign,"OSAX",4)==0 && progh->Version == PHVERSION && progh->StartOffset>0)
         {
                 void (*func_ptr)() = (void (*)())progh->StartOffset+(int)buffer;
-                AppendTask(filename,func_ptr);                
-                return 0;
+                return AppendTask(filename,func_ptr);
         }
         else
         {
                 free(buffer);
                 buffer=NULL;
-                return -2;
+                return -1;
         }
 }
 

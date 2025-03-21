@@ -61,14 +61,15 @@ Task *Tail()
         return curr;
 }
 
-void AppendTask(char * name, void (*start)(void))
+int AppendTask(char * name, void (*start)(void))
 {
         static int pid=1;
-        if (!name || !start) return;
+        if (!name || !start) return -1;
         Task * new = malloc(sizeof(Task));
-        if (!new) {
+        if (!new)
+        {
                 printf("outta ram bitch\n");
-                return;
+                return -1;
         }
         memset(new, 0, sizeof(Task));
         new->next=Tail()->next;
@@ -86,6 +87,7 @@ void AppendTask(char * name, void (*start)(void))
         new->eip = (uint32_t)start;
         new->running = true;
         new->pid = pid++;
+        return new->pid;
 }
 
 int ScheduleLength()
@@ -153,6 +155,19 @@ void PKill(int id)
                         }
                 }
         }
+}
+
+bool ProcessIsActive(int PID)
+{
+        IterateSchedule(_)
+        {
+                if (current && current->pid == PID)
+                {
+                        return current->running;
+                }
+        }
+
+        return false;
 }
 
 void ListSchedule()

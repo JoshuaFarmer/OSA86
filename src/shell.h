@@ -33,9 +33,9 @@ void system(char* sys)
                 char* path = cmd[0]+2;
                 while(path[0] == '/')path++;
                 int res = ExecuteF(path);
-                if (res!=0)
+                while (1)
                 {
-                        r=res;
+                        if (!ProcessIsActive(res)) return;
                 }
         }
         else if (strcmp(cmd[0], "opcode") == 0)
