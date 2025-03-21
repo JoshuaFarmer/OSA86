@@ -10,13 +10,11 @@
 
 void delay(unsigned int milliseconds)
 {
-        cli();
         unsigned int count = 11932 * milliseconds;
         outb(count & 0xFF, PIT_CHANNEL0);
         outb((count >> 8) & 0xFF, PIT_CHANNEL0);
         outb(0x36, PIT_COMMAND);
         while ((inb(PIT_STATUS) & 0x80) == 0) {}
-        sti();
 }
 
 void init_pit(uint32_t frequency)
