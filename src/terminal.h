@@ -555,7 +555,7 @@ int sscanf(const char *str, const char *fmt, ...)
 
 void put_int(int value)
 {
-        char b[12];
+        char b[32];
         int i = 0;
         bool is_negative = false;
 
