@@ -35,7 +35,7 @@ typedef uint8_t PALETTE16[16][3];
 #define __VER__ "0.4.2"
 
 void osa86();
-void clearScreen(uint8_t c);
+void clearScreen(uint32_t c);
 void refresh();
 void initputs(char *,int,int);
 
@@ -223,8 +223,11 @@ void osa86()
 {
         cli();
         setup_paging();
-
+        mode(0x00); /* 320x200x8bpp (64 colour palette) */
+        memset((void*)0xA0000,0,320*200);
         init_tty();
+        printf("please wait\n");
+        flush();
         init_heap();
         init_gdt();
         init_idt();

@@ -10,14 +10,39 @@
 #define TTY_TAB_WIDTH 8
 #define ifsw(a,b) if (a) switch (b)
 
-char TTY_BUFFER[160*50];
-int  TTY_WIDTH,TTY_HEIGHT,TTY_X,TTY_Y,TTY_COL,TTY_XS,TTY_YS,TTY_XE,TTY_YE;
+typedef unsigned char uchar;
+
+int TTY_BUFFER[160*50];
+int TTY_WIDTH,TTY_HEIGHT,TTY_X,TTY_Y,TTY_COL,TTY_XS,TTY_YS,TTY_XE,TTY_YE;
+
+int printf(const char *fmt, ...);
+
+#include "font.h"
+
+void drawcharacter(int ch, int x, int y, int bg, int fg)
+{
+        char *buff = (char*)0xA0000;
+        for (int row = 0; row < 8; ++row)
+        {
+                int byte = font8x8_basic[ch][row];
+                for (int bit = 7; bit >= 0; --bit)
+                {
+                        buff[(y + row) * 320 + x + bit] = ((byte >> bit) & 1) ? fg : bg;
+                }
+        }
+}
 
 void flush()
 {
-        cli();
-        memcpy((void*)0xB8000,TTY_BUFFER,160*50);
-        sti();
+        //memcpy((void*)0xB8000,TTY_BUFFER,160*50);
+        for (int y = 0; y < 25; ++y)
+        {
+                for (int x = 0; x < 40; ++x)
+                {
+                        int col = TTY_BUFFER[(TTY_WIDTH * y + x) * 2 + 1];
+                        drawcharacter(TTY_BUFFER[(TTY_WIDTH * y + x) * 2],x*8,y*8,col >> 8,col & 255);
+                }
+        }
 }
 
 void refresh()
@@ -333,10 +358,10 @@ void putc(char c)
                         if (TTY_X < TTY_YS && TTY_Y >= TTY_YS)
                         {
                                 TTY_X=TTY_XS,--TTY_Y;
-                                for (;((char*)TTY_BUFFER)[(TTY_Y * TTY_WIDTH * 2) + (TTY_X * 2)] != '\0';++TTY_X);
+                                for (;((int*)TTY_BUFFER)[(TTY_Y * TTY_WIDTH * 2) + (TTY_X * 2)] != '\0';++TTY_X);
                         }
-                        ((char*)TTY_BUFFER)[(TTY_Y * TTY_WIDTH * 2) + (TTY_X * 2)] = '\0';
-                        ((char*)TTY_BUFFER)[(TTY_Y * TTY_WIDTH * 2) + (TTY_X * 2) + 1] = TTY_COL;
+                        ((int*)TTY_BUFFER)[(TTY_Y * TTY_WIDTH * 2) + (TTY_X * 2)] = '\0';
+                        ((int*)TTY_BUFFER)[(TTY_Y * TTY_WIDTH * 2) + (TTY_X * 2) + 1] = TTY_COL;
                         update_cursor(TTY_X, TTY_Y);
                 } break;
                 case 0:
@@ -356,8 +381,8 @@ void putc(char c)
                 }
                 default:
                 {
-                        ((char*)TTY_BUFFER)[(TTY_Y * TTY_WIDTH * 2) + (TTY_X * 2)] = c;
-                        ((char*)TTY_BUFFER)[(TTY_Y * TTY_WIDTH * 2) + (TTY_X * 2) + 1] = TTY_COL;
+                        ((int*)TTY_BUFFER)[(TTY_Y * TTY_WIDTH * 2) + (TTY_X * 2)] = c;
+                        ((int*)TTY_BUFFER)[(TTY_Y * TTY_WIDTH * 2) + (TTY_X * 2) + 1] = TTY_COL;
                         ++TTY_X;
                         (TTY_X >= TTY_XE) ? TTY_X=TTY_XS,++TTY_Y,(TTY_Y >= TTY_YE) ? ScrollScreen() : 0 : 0;
                         update_cursor(TTY_X, TTY_Y);
@@ -494,13 +519,13 @@ void PrintByte(uint8_t a)
         putc(c);
 }
 
-void clearScreen(uint8_t c)
+void clearScreen(uint32_t c)
 {
         TTY_COL = c;
         for (int i = 0; i < TTY_WIDTH*TTY_HEIGHT*2; i++)
         {
-                ((char*)TTY_BUFFER)[i++] = '\0';
-                ((char*)TTY_BUFFER)[i] = c;
+                ((int*)TTY_BUFFER)[i++] = '\0';
+                ((int*)TTY_BUFFER)[i] = c;
         }
 
         TTY_X=TTY_XS;
@@ -763,13 +788,13 @@ int printf(const char *fmt, ...)
                                 }
                                 else if (*p == 'b')
                                 {
-                                        TTY_COL &= 0xF;
-                                        TTY_COL |= (n<<4);
+                                        TTY_COL &= 0xFF;
+                                        TTY_COL |= (n<<8);
                                         n = 0;
                                 }
                                 else if (*p == 'f')
                                 {
-                                        TTY_COL &= 0xF0;
+                                        TTY_COL &= 0xFF00;
                                         TTY_COL |= n;
                                         n = 0;
                                 }
@@ -810,14 +835,13 @@ int printf(const char *fmt, ...)
 void init_tty()
 {
         /* set system defaults */
-        TTY_COL    = 0x07;
-        TTY_WIDTH  = 80;
+        TTY_COL    = 0x003F;
+        TTY_WIDTH  = 40;
         TTY_HEIGHT = 25;
         TTY_XS     = 1;
         TTY_YS     = 1;
         TTY_XE     = TTY_WIDTH-1;
         TTY_YE     = TTY_HEIGHT-1;
-        clearScreen(TTY_COL);
 }
 
 #define PANIC(x, ...) void StackDump(); StackDump(); printf("PANIC: "); printf(x, ##__VA_ARGS__); while(1)

@@ -48,7 +48,7 @@ void system(char* sys)
         }
         else if (strcmp(cmd[0], "info") == 0)
         {
-                printf("\xff[3f]O\xff[5f]S\xff[7f]A\xff[5f]8\xff[3f]6\xff[r] VERSION %s\n(C) JOSHUA F. 2024-2025\n",__VER__);
+                printf("\xff[*f]O\xff[*f]S\xff[*f]A\xff[*f]8\xff[*f]6\xff[r] VERSION %s\n(C) JOSHUA F. 2024-2025\n",0b11,0b110101,0b111111,0b110101,0b11,__VER__);
                 printf("Heap: %dKiB\nRam:  %dMiB\n",remaining_heap_space()/1024,MAX_ADDR/1024/1024);
         }
         else if (strcmp(cmd[0], "yield") == 0 && argc == 2)
@@ -63,8 +63,15 @@ void system(char* sys)
         }
         else if (strcmp(cmd[0], "color") == 0 && argc == 1)
         {
-                for (int i = 0; i < 16; ++i)  printf("%c%c", (i < 10) ? (i + '0') : (i + 'A' - 10), (i == 15) ? '\n' : '\0');
-                for (int i = 0; i < 16; ++i)  printf("\xff[*b] %c", i, (i == 15) ? '\n' : '\0');
+                int colour = 0;
+                for (int y = 0; y < (64/16); ++y)
+                {
+                        for (int x = 0; x < (16); ++x)
+                        {
+                                printf("\xff[*b] ",colour++);
+                        }
+                        printf("\n");
+                }
         }
         else if (strcmp(cmd[0], "KillEmAll") == 0)
         {
@@ -77,10 +84,10 @@ void system(char* sys)
                         }
                 }
         }
-        else if (strcmp(cmd[0], "color") == 0 && argc == 2)
+        else if (strcmp(cmd[0], "color") == 0 && argc == 3)
         {
-                TTY_COL = 0;
-                TTY_COL = strhex(cmd[1]);
+                TTY_COL  = strhex(cmd[1]);
+                TTY_COL |= strhex(cmd[2]) << 8;
                 clearScreen(TTY_COL);
         }
         else if (strcmp(cmd[0], "&") == 0 && argc>1)
