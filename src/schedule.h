@@ -176,11 +176,7 @@ void ListSchedule()
         {
                 if (current)
                 {
-                        printf("%s\t\t",current->name);
-                        if (((i+1) % 4) == 0 && i != 0)
-                        {
-                                putc('\n');
-                        }
+                        printf("%s; ",current->name);
                 }
         }
 
