@@ -61,7 +61,7 @@ void system(char* sys)
                         if (getc() == ('C'-'@')) {PKill(pid); LookForDead(); return;}
                 }
         }
-        else if (strcmp(cmd[0], "color") == 0 && argc == 1)
+        else if (strcmp(cmd[0], "colour") == 0 && argc == 1)
         {
                 int colour = 0;
                 for (int y = 0; y < (64/16); ++y)
@@ -84,7 +84,7 @@ void system(char* sys)
                         }
                 }
         }
-        else if (strcmp(cmd[0], "color") == 0 && argc == 3)
+        else if (strcmp(cmd[0], "colour") == 0 && argc == 3)
         {
                 TTY_COL  = strhex(cmd[1]);
                 TTY_COL |= strhex(cmd[2]) << 8;
