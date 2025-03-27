@@ -22,6 +22,7 @@ int parse_args(b,cmd)
 }
 
 extern void test_custom_opcodes(void);
+void PKill(int);
 
 void system(char* sys)
 {
@@ -32,12 +33,13 @@ void system(char* sys)
         {
                 char* path = cmd[0]+2;
                 while(path[0] == '/')path++;
-                int res = ExecuteF(path);
+                int pid = ExecuteF(path);
+                if (pid == -1) return;
                 while (1)
                 {
-                        if (!ProcessIsActive(res)) return;
+                        if (!ProcessIsActive(pid)) {PKill(pid); return;}
                         /* CTRL+C */
-                        if (getc() == ('C'-'@')) return;
+                        if (getc() == ('C'-'@')) {PKill(pid); LookForDead(); return;}
                 }
         }
         else if (strcmp(cmd[0], "opcode") == 0)

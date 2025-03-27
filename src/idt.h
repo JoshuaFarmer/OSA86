@@ -425,6 +425,7 @@ int OSASyscallHandler(int eip, int cs, int flags, int op, int b)
         {
                 case 0:
                         MarkDead();
+                        LookForDead();
                         r=b;
                         break;
                 case 1:
@@ -443,8 +444,11 @@ void timer_interrupt()
 {
         static int tick = 0;
         ++tick;
-        if ((tick % 8192) == 0)
+        if (tick == 2048)
+        {
                 LookForDead();
+                tick = 0;
+        }
         Scheduler();
         send_eoi(0x0);
         LoadAndJump();
