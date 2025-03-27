@@ -23,10 +23,10 @@ void mlmon(char * filename)
                 int pos=x+(y*16);
                 clearScreen(TTY_COL);
                 printf("Page: "); PrintByte(page); putc('\n');
-                for (int i = 1; i <= 256; ++i)
+                for (int i = 1; i <= 128; ++i)
                 {
-                        PrintByte(mem[(i-1)+(256*page)]); putc(' ');
-                        if ((i % 16) == 0)
+                        PrintByte(mem[(i-1)+(128*page)]); putc(' ');
+                        if ((i % 8) == 0)
                         {
                                 putc('\n');
                         }
@@ -44,7 +44,7 @@ void mlmon(char * filename)
                                         --page;
                                 break;
                         case 'L':
-                                if (page < 31)
+                                if (page < 63)
                                         ++page;
                                 break;
                         case 'h':
@@ -65,7 +65,7 @@ void mlmon(char * filename)
                                 break;
                         case '\n':
                                 getsf(buff,3,x*3,y+1,'\n');
-                                mem[pos+(256*page)]=strhex(buff);
+                                mem[pos+(128*page)]=strhex(buff);
                                 if (x < 15)
                                         ++x;
                                 else if (y < 15)
