@@ -176,7 +176,7 @@ void shell()
         {
                 /* Shell Mainloop */
                 memset(kbbuff,0,sizeof(kbbuff));
-                printf("%c:/%s%c%s>", Drive_Letter, ActiveDirParen(), ActiveDirParen()[0]==0 ? '\0' : '/', ActiveDir());
+                printf("/%s%c%s>", ActiveDirParen(), ActiveDirParen()[0]==0 ? '\0' : '/', ActiveDir());
                 gets(kbbuff, 128);
                 system(kbbuff);
         }
