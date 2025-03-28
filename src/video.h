@@ -349,6 +349,13 @@ void mode(int mod)
                                 }
                         }
 
+                        for (int level = 0; level < 32; ++level)
+                        {
+                                PAL256[x++] = level*2;
+                                PAL256[x++] = level*2;
+                                PAL256[x++] = level*2;
+                        }
+
                         VGASetPal(PAL256, 0, 256);
                         break;
                 }

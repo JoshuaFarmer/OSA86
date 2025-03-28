@@ -223,7 +223,7 @@ void osa86()
 {
         cli();
         setup_paging();
-        mode(0x00); /* 320x200x8bpp (64 colour palette) */
+        mode(0x00); /* 320x200x8bpp */
         memset((void*)0xA0000,0,320*200);
         init_tty();
         printf("please wait\n");

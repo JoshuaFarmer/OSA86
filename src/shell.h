@@ -64,7 +64,7 @@ void system(char* sys)
         else if (strcmp(cmd[0], "colour") == 0 && argc == 1)
         {
                 int colour = 0;
-                for (int y = 0; y < (64/16); ++y)
+                for (int y = 0; y < (64/16)+2; ++y)
                 {
                         for (int x = 0; x < (16); ++x)
                         {
