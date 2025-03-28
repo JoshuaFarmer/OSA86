@@ -437,6 +437,30 @@ void ListF()
         }
 }
 
+void ListPath(char *path)
+{
+        int tmp = current_path_idx;
+        char *name = strtok(path,"/");
+        while (name)
+        {
+                name = strtok(NULL,"/");
+                Cd(name);
+        }
+
+        for (int i = 0; i < MFC; ++i)
+        {
+                if (FDS0[i].Exists && FDS0[i].ParentIdx == current_path_idx)
+                {
+                        printf("%d/%d/%d  %d",FDS0[i].Modified.D,FDS0[i].Modified.M,FDS0[i].Modified.Y+BASE_YEAR,FDS0[i].Size);
+                        putc('\t');
+                        putsn(FDS0[i].Name,16);
+                        putc(FDS0[i].HasChildren ? '/' : '*');
+                        putc('\n');
+                }
+        }
+        current_path_idx = tmp;
+}
+
 int ftell(FILE *fp)
 {
         return fp->position;

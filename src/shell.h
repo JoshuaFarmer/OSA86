@@ -107,9 +107,13 @@ void system(char* sys)
         { 
                 printf("%d\n",r);
         }
-        else if (strcmp(cmd[0], "ls") == 0)
+        else if (strcmp(cmd[0], "ls") == 0 && argc == 1)
         {
                 ListF();
+        }
+        else if (strcmp(cmd[0], "ls") == 0 && argc == 2)
+        {
+                ListPath(cmd[1]);
         }
         else if (strcmp(cmd[0], "cd") == 0 && argc==2)
         {

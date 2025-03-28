@@ -236,7 +236,9 @@ void osa86()
         init_fs();
         init_pit(10000);
         FILE *test0 = fopen("test.txt","w");
+        Cd("test.txt");
         FILE *test1 = fopen("test2.txt","w");
+        Cd("..");
         char msg[] = "Hello, World!";
         fwrite(msg,1,sizeof(msg),test0);
         fwrite(msg,1,sizeof(msg),test1);
