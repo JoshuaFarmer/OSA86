@@ -588,7 +588,7 @@ int sscanf(const char *str, const char *fmt, ...)
         return count;
 }
 
-void put_int(int value)
+int put_int(int value)
 {
         char b[32];
         int i = 0;
@@ -616,6 +616,8 @@ void put_int(int value)
         {
                 putc(b[i]);
         }
+
+        return strlen(b);
 }
 
 void put_int_at(int value, int x, int y)
@@ -650,7 +652,6 @@ void put_int_at(int value, int x, int y)
 
 void PRINT_DWORD_NE(int X)
 {
-        puts("0x");
         PrintByte((X >> 24) & 255);
         PrintByte((X >> 16) & 255);
         PrintByte((X >> 8) & 255);
@@ -665,7 +666,6 @@ void PRINT_DWORD(int X)
 
 void PRINT_WORD_NE(int X)
 {
-        puts("0x");
         PrintByte((X >> 8) & 255);
         PrintByte(X & 255);
 }
@@ -722,6 +722,7 @@ int printf(const char *fmt, ...)
         va_start(args, fmt);
         PushTTYState();
         const char* p = fmt;
+        int length = 0;
         while (*p)
         {
                 if (*p == '%' && *(p + 1))
@@ -732,18 +733,20 @@ int printf(const char *fmt, ...)
                                 case 'c':
                                 {
                                         char c = (char) va_arg(args, int);
+                                        ++length;
                                         putc(c);
                                         break;
                                 }
                                 case 'd':
                                 {
                                         int i = va_arg(args, int); 
-                                        put_int(i);
+                                        length += put_int(i);
                                         break;
                                 }
                                 case 's':
                                 {
                                         const char* str = va_arg(args, const char*);
+                                        length += strlen(str);
                                         puts(str);
                                         break;
                                 }
@@ -751,18 +754,21 @@ int printf(const char *fmt, ...)
                                 {
                                         int i = va_arg(args, int);
                                         PRINT_DWORD_NE(i);
+                                        length += 8;
                                         break;
                                 }
                                 case 'w':
                                 {
                                         int i = va_arg(args, int);
                                         PRINT_WORD_NE(i);
+                                        length += 4;
                                         break;
                                 }
                                 case 'X':
                                 {
                                         uint8_t i = va_arg(args, int);
                                         PrintByte(i);
+                                        length += 1;
                                         break;
                                 }
                                 case 'b':
@@ -771,6 +777,7 @@ int printf(const char *fmt, ...)
                                         for (int i = 0; i < 32; ++i)
                                         {
                                                 putc(((b>>(31-i))&(1)) ? '1' : '0');
+                                                ++length;
                                         }
                                         break;
                                 }
@@ -778,6 +785,7 @@ int printf(const char *fmt, ...)
                                 {
                                         putc('%');
                                         putc(*p);
+                                        length+=2;
                                         break;
                                 }
                         }
@@ -834,12 +842,13 @@ int printf(const char *fmt, ...)
                 else
                 {
                         putc(*p);
+                        ++length;
                 }
                 p++;
         }
         PopTTYState();
         va_end(args);
-        return 0;
+        return length;
 }
 
 void init_tty()
@@ -854,7 +863,7 @@ void init_tty()
         TTY_YE     = TTY_HEIGHT-1;
 }
 
-#define PANIC(x, ...) void StackDump(); StackDump(); printf("PANIC: "); printf(x, ##__VA_ARGS__); while(1)
+#define PANIC(x, ...) int PANIC_TMP = printf(x, ##__VA_ARGS__); clearScreen(0x073F); printf("\xff[12x]- KERNEL PANIC -\n\xff[*x]",(TTY_WIDTH-PANIC_TMP)/2); printf(x, ##__VA_ARGS__); flush(); while(1)
 
 void mode();
 

@@ -52,7 +52,8 @@ struct gdt_ptr {
 struct gdt_entry gdt[GDT_SIZE];
 struct gdt_ptr gdtp;
 
-void set_gdt_entry(int num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) {
+void set_gdt_entry(int num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran)
+{
         gdt[num].base_low = (base & 0xFFFF);
         gdt[num].base_middle = (base >> 16) & 0xFF;
         gdt[num].base_high = (base >> 24) & 0xFF;
@@ -63,37 +64,38 @@ void set_gdt_entry(int num, uint32_t base, uint32_t limit, uint8_t access, uint8
         gdt[num].access = access;
 }
 
-void set_tss_entry(int num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) {
-    gdt[num].base_low = (base & 0xFFFF);
-    gdt[num].base_middle = (base >> 16) & 0xFF;
-    gdt[num].base_high = (base >> 24) & 0xFF;
+void set_tss_entry(int num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran)
+{
+        gdt[num].base_low = (base & 0xFFFF);
+        gdt[num].base_middle = (base >> 16) & 0xFF;
+        gdt[num].base_high = (base >> 24) & 0xFF;
 
-    gdt[num].limit_low = (limit & 0xFFFF);
-    gdt[num].granularity = (limit >> 16) & 0x0F;
-    gdt[num].granularity |= (gran & 0xF0);
-    gdt[num].access = access;
+        gdt[num].limit_low = (limit & 0xFFFF);
+        gdt[num].granularity = (limit >> 16) & 0x0F;
+        gdt[num].granularity |= (gran & 0xF0);
+        gdt[num].access = access;
 }
 
 struct tss_entry tss;
 
-void init_tss() {
-    // Set the kernel stack pointer (ESP0) and stack segment (SS0)
-    tss.esp0 = 0x10000; // Replace with your kernel stack address
-    tss.ss0 = 0x10;     // Kernel data segment selector
-
-    // Set the I/O Map Base Address to the end of the TSS
-    tss.iomap_base = sizeof(struct tss_entry);
+void init_tss()
+{
+        memset(&tss,0,sizeof(tss));
+        tss.esp0 = 0x10000;
+        tss.ss0 = 0x10;
+        tss.iomap_base = sizeof(tss);
 }
 
-void init_gdt() {
+void init_gdt()
+{
         gdtp.limit = (sizeof(struct gdt_entry) * GDT_SIZE) - 1;
         gdtp.base = (uint32_t)&gdt;
         set_gdt_entry(0, 0, 0, 0, 0);
-        set_gdt_entry(1, 0x00000000, 0x01FFFFFF, 0x9A, 0xCF);
-        set_gdt_entry(2, 0x00000000, 0x01FFFFFF, 0x92, 0xCF);
-        set_gdt_entry(3, 0x02000000, 0x00FFFFFF, 0xFA, 0xCF);
-        set_gdt_entry(4, 0x02000000, 0x00FFFFFF, 0xF2, 0xCF);
-        set_tss_entry(5, (uint32_t)&tss, sizeof(struct tss_entry) - 1, 0x89, 0x40);
+        set_gdt_entry(1, 0x00000000, 0x100000-1, 0x9A, 0xCF);
+        set_gdt_entry(2, 0x00000000, 0x100000-1, 0x92, 0xCF);
+        set_gdt_entry(3, 0x00000000, MAX_ADDR, 0xFA, 0xCF);
+        set_gdt_entry(4, 0x00000000, MAX_ADDR, 0xF2, 0xCF);
+        set_tss_entry(5, (uint32_t)&tss, sizeof(tss) - 1, 0x89, 0x40);
         asm volatile("lgdt (%0)" : : "r" (&gdtp));
         asm volatile("ltr %w0" : : "r" ((uint16_t)0x28));
         asm volatile("movl $0x10, %%eax; \

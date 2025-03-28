@@ -468,7 +468,7 @@ int ftell(FILE *fp)
 
 extern void jump_usermode(int addr);
 
-int AppendTask(char * name, void (*start)(void));
+int AppendTaskRing0(char * name, void (*start)(void));
 int _ExecuteF(char *filename, int parentidx)
 {
         int idx = _Exists(filename, parentidx) - 1;
@@ -493,7 +493,7 @@ int _ExecuteF(char *filename, int parentidx)
         if (progh->Checksum == CHECKSUM && strncmp(progh->Sign,"OSAX",4)==0 && progh->Version == PHVERSION && progh->StartOffset>0)
         {
                 void (*func_ptr)() = (void (*)())progh->StartOffset+(int)buffer;
-                return AppendTask(filename,func_ptr);
+                return AppendTaskRing0(filename,func_ptr);
         }
         else
         {

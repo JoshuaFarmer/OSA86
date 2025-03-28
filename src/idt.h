@@ -407,13 +407,18 @@ void page_fault()
                 : "=r"(faulting_address)
         );
         send_eoi(0xE);
-        PANIC("Page Fault at address: %x\n", faulting_address);
+        PANIC("Page Fault @%x\n", faulting_address);
 }
 
-void general_protection_fault()
+void general_protection_fault(int ds, int ss, int es, int fs, int gs, int cs, int eip)
 {
         send_eoi(0xD);
-        PANIC("General Protection Fault!\nHalting...\n");
+        PANIC("Protection Fault @%X:%x\n\n",cs,eip)
+        {
+                printf("DS=%d\nSS=%d\nES=%d\nFS=%d\nGS=%d\n",ds,ss,es,fs,gs);
+                flush();
+                while(1);
+        }
 }
 
 int OSASyscallHandler(int eip, int cs, int flags, int op, int b)
@@ -425,8 +430,9 @@ int OSASyscallHandler(int eip, int cs, int flags, int op, int b)
         {
                 case 0:
                         MarkDead();
-                        LookForDead();
                         r=b;
+                        sti();
+                        while(1);
                         break;
                 case 1:
                         putc(b);

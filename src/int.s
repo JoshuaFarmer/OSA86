@@ -38,7 +38,7 @@
         TEMP_FLGS equ TEMP_REG+(15*4)
 
         ; stack during swapping program
-        TEMP_STCK  equ TEMP_REG-4
+        TEMP_STCK  equ TEMP_REG-16
         TEMP_STCKS equ 256
 LoadAndJump:
         mov esp,TEMP_STCK
@@ -93,6 +93,11 @@ invalid_opcode_handler:
         iret
 general_protection_fault_handler:
         cli
+        push ds
+        push ss
+        push es
+        push fs
+        push gs
         call general_protection_fault
         sti
         iret

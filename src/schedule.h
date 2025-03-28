@@ -15,6 +15,7 @@ typedef struct Task
         struct Task * next;
         bool running;
         char * name;
+        int ring0;
 } Task;
 
 Task RootTask,*ActiveTask;
@@ -24,12 +25,21 @@ volatile uint32_t *regs = (uint32_t *)0xFF00;
 void Int80(int,int);
 void SystemTick();
 
+void idk()
+{
+        while(true)
+        {
+                sti();
+        }
+}
+
 void init_scheduler()
 {
         memset(&RootTask, 0, sizeof(Task));
+        RootTask.ring0=true;
         RootTask.next=NULL;
         RootTask.running=true;
-        RootTask.eip=(uint32_t)init;
+        RootTask.eip=(uint32_t)idk;
         RootTask.cs=0x8;
         RootTask.ds=0x10;
         RootTask.ss=0x10;
@@ -61,33 +71,60 @@ Task *Tail()
         return curr;
 }
 
-int AppendTask(char * name, void (*start)(void))
+/* generic */
+Task *CreateTask(char *name,void (*start)(void))
 {
         static int pid=1;
-        if (!name || !start) return -1;
+        if (!name || !start) return NULL;
         Task * new = malloc(sizeof(Task));
         if (!new)
         {
                 printf("outta ram bitch\n");
-                return -1;
+                return NULL;
         }
         memset(new, 0, sizeof(Task));
         new->next=Tail()->next;
         Tail()->next=new;
+        new->ring0=false;
         new->name=strdup(name);
         new->start=(void*)start;
-        new->cs=0x8;
-        new->ds=0x10;
-        new->ss=0x10;
-        new->es=0x10;
-        new->fs=0x10;
-        new->gs=0x10;
         new->eflags=0x200;
         new->esp = (uint32_t)&new->stack[sizeof(new->stack) - 4];
         new->eip = (uint32_t)start;
-        new->running = true;
+        new->running = false;
         new->pid = pid++;
-        return new->pid;
+        return new;
+}
+
+/* ring 3 */
+int AppendTask(char * name, void (*start)(void))
+{
+        Task *tsk = CreateTask(name,start);
+        if (!tsk) return -1;
+        tsk->cs = 0x18|3;
+        tsk->ds = 0x20|3;
+        tsk->ss = 0x20|3;
+        tsk->es = 0x20|3;
+        tsk->fs = 0x20|3;
+        tsk->gs = 0x20|3;
+        tsk->running = true;
+        return tsk->pid;
+}
+
+/* ring 0 */
+int AppendTaskRing0(char * name, void (*start)(void))
+{
+        Task *tsk = CreateTask(name,start);
+        if (!tsk) return -1;
+        tsk->cs=0x8;
+        tsk->ds=0x10;
+        tsk->ss=0x10;
+        tsk->es=0x10;
+        tsk->fs=0x10;
+        tsk->gs=0x10;
+        tsk->ring0 = true;
+        tsk->running = true;
+        return tsk->pid;
 }
 
 int ScheduleLength()
@@ -120,9 +157,9 @@ void StackDump()
         asm ("addl $4,%eax"); 
         uint32_t esp; asm volatile ("movl %%eax, %0" : "=r" (esp)); 
         cli();
-        clearScreen(0x1F);
+        clearScreen(0x003F);
 
-        int Size=64;
+        int Size=32;
         uint32_t * data = (uint32_t*)esp;
         printf("ESP = %x\n", esp);
         printf("ESP -%w: ", (Size>>1));
@@ -130,7 +167,7 @@ void StackDump()
         {
                 int pos=i-(Size>>1);
                 PRINT_DWORD_NE(data[pos]); putc(' ');
-                if ((i % 4) == 0 && i < Size)
+                if ((i % 2) == 0 && i < Size)
                 {
                         putc('\n');
                         printf("ESP %c%w: ", pos > 0 ? '+' : (pos<0 ? '-' : ' '), abs(pos));

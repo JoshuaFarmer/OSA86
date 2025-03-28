@@ -255,8 +255,8 @@ void osa86()
 
         FILE *outf = fopen("out","r");
         fclose(outf);
-        AppendTask("shell",shell);
-        AppendTask("tty",refresh);
+        AppendTaskRing0("shell",shell);
+        AppendTaskRing0("tty",refresh);
         system("info");
 
         while (active)
