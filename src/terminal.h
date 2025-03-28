@@ -10,6 +10,14 @@
 #define TTY_TAB_WIDTH 8
 #define ifsw(a,b) if (a) switch (b)
 
+#define FONT_WIDTH 8
+#define FONT_HEIGHT 8
+#define FONT_ACTUAL_WIDTH 8
+#define FONT_ACTUAL_HEIGHT 8
+#define VGA_WIDTH 320
+#define VGA_HEIGHT 200
+#define FONT font_8x8
+
 typedef unsigned char uchar;
 
 int TTY_BUFFER[160*50];
@@ -19,15 +27,17 @@ int printf(const char *fmt, ...);
 
 #include "font.h"
 
+/* -1 (255) for transparent (background) */
 void drawcharacter(int ch, int x, int y, int bg, int fg)
 {
         char *buff = (char*)0xA0000;
-        for (int row = 0; row < 8; ++row)
+        for (int row = 0; row < FONT_ACTUAL_HEIGHT; ++row)
         {
-                int byte = font8x8_basic[ch][row];
-                for (int bit = 7; bit >= 0; --bit)
+                int byte = FONT[ch][row];
+                for (int bit = 0; bit < FONT_ACTUAL_WIDTH; ++bit)
                 {
-                        buff[(y + row) * 320 + x + bit] = ((byte >> bit) & 1) ? fg : bg;
+                        int index = (y + row) * VGA_WIDTH + x + (bit);
+                        buff[index] = ((byte >> bit) & 1) ? fg : (bg != 255) ? bg : buff[index];
                 }
         }
 }
@@ -35,12 +45,12 @@ void drawcharacter(int ch, int x, int y, int bg, int fg)
 void flush()
 {
         //memcpy((void*)0xB8000,TTY_BUFFER,160*50);
-        for (int y = 0; y < 25; ++y)
+        for (int y = 0; y < TTY_HEIGHT; ++y)
         {
-                for (int x = 0; x < 40; ++x)
+                for (int x = 0; x < TTY_WIDTH; ++x)
                 {
                         int col = TTY_BUFFER[(TTY_WIDTH * y + x) * 2 + 1];
-                        drawcharacter(TTY_BUFFER[(TTY_WIDTH * y + x) * 2],x*8,y*8,col >> 8,col & 255);
+                        drawcharacter(TTY_BUFFER[(TTY_WIDTH * y + x) * 2],x*FONT_WIDTH,y*FONT_HEIGHT,col >> 8,col & 255);
                 }
         }
 }
@@ -836,8 +846,8 @@ void init_tty()
 {
         /* set system defaults */
         TTY_COL    = 0x003F;
-        TTY_WIDTH  = 40;
-        TTY_HEIGHT = 25;
+        TTY_WIDTH  = VGA_WIDTH/FONT_WIDTH;
+        TTY_HEIGHT = VGA_HEIGHT/FONT_WIDTH;
         TTY_XS     = 1;
         TTY_YS     = 1;
         TTY_XE     = TTY_WIDTH-1;

@@ -289,7 +289,8 @@ uint32_t set_text_mode(int hi_res)
         }
         /* set font */
         if(ht >= 16)
-                write_font(g_8x16_font, 16);
+                //write_font(g_8x16_font, 16);
+                0;
         /* tell the BIOS what we've done, so BIOS text output works OK */
         pokew(0x40, 0x4A, cols);
         pokew(0x40, 0x4C, cols * rows * 2);
