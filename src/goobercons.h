@@ -377,7 +377,8 @@ const GooberCon gooberCons[GOOBER_COUNT] =
 void drawgoobercon(int goober, int x, int y, int bg, int fg)
 {
         bool flipped = (goober >> 7) & 1; /* bit 7 is used for direction */
-        goober &= 127;
+        bool invert  = (goober >> 6) & 1; /* bit 6 is used for inverting colour */
+        goober &= 31;
         char *buff = (char *)0xA0000;
         for (int row = 0; row < GOOBER_CON_HEIGHT; ++row)
         {
@@ -385,7 +386,7 @@ void drawgoobercon(int goober, int x, int y, int bg, int fg)
                 for (int bit = 0; bit < GOOBER_CON_WIDTH; ++bit)
                 {
                         int index = (y + row) * VGA_WIDTH + x + ((flipped) ? bit : ((GOOBER_CON_WIDTH-1) - (bit)));
-                        buff[index] = !((byte >> bit) & 1) ? fg : (bg != 255) ? bg
+                        buff[index] = (invert == ((byte >> bit) & 1)) ? fg : (bg != 255) ? bg
                                                                              : buff[index];
                 }
         }

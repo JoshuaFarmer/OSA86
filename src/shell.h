@@ -164,7 +164,22 @@ void system(char* sys)
         {
                 for (int k = 0; k < 31; ++k)
                 {
-                        printf("%c",k + 0x1000);
+                        printf("%c",k | 0x1000);
+                }
+                printf("\n");
+                for (int k = 0; k < 31; ++k)
+                {
+                        printf("%c",k | 0x1080);
+                }
+                printf("\n");
+                for (int k = 0; k < 31; ++k)
+                {
+                        printf("%c",k | 0x1040);
+                }
+                printf("\n");
+                for (int k = 0; k < 31; ++k)
+                {
+                        printf("%c",k | 0x10C0);
                 }
                 printf("\n");
         }
