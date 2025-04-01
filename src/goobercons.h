@@ -378,19 +378,13 @@ void drawgoobercon(int goober, int x, int y, int bg, int fg)
 {
         bool flipped = (goober >> 7) & 1; /* bit 7 is used for direction */
         goober &= 127;
-        if (goober > GOOBER_COUNT)
-        {
-                printf("Unsupported GooberCon: %x",goober);
-                return;
-        }
-
         char *buff = (char *)0xA0000;
         for (int row = 0; row < GOOBER_CON_HEIGHT; ++row)
         {
                 int byte = gooberCons[goober].bitmap[row];
                 for (int bit = 0; bit < GOOBER_CON_WIDTH; ++bit)
                 {
-                        int index = (y + row) * VGA_WIDTH + x + ((flipped) ? bit : (GOOBER_CON_WIDTH - (bit + 1)));
+                        int index = (y + row) * VGA_WIDTH + x + ((flipped) ? bit : ((GOOBER_CON_WIDTH-1) - (bit)));
                         buff[index] = !((byte >> bit) & 1) ? fg : (bg != 255) ? bg
                                                                              : buff[index];
                 }

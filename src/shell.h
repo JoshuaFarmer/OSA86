@@ -160,6 +160,18 @@ void system(char* sys)
         {
                 mlmon(cmd[1]);
         }
+        else if (strcmp(cmd[0], "goobers") == 0)
+        {
+                for (int k = 0; k < 31; ++k)
+                {
+                        printf("%c",k + 0x1000);
+                }
+                printf("\n");
+        }
+        else if (strcmp(cmd[0], "bob") == 0)
+        {
+                printf("%c\n%c\n",24|4096,30|4096);
+        }
         else if (strcmp(cmd[0], "time") == 0)
         {
                 rtc_get_time(&hour, &minute, &second);

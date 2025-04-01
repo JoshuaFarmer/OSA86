@@ -26,11 +26,16 @@ int TTY_WIDTH,TTY_HEIGHT,TTY_X,TTY_Y,TTY_COL,TTY_XS,TTY_YS,TTY_XE,TTY_YE;
 int printf(const char *fmt, ...);
 
 #include "font.h"
+#include "goobercons.h"
 
 /* -1 (255) for transparent (background) */
 void drawcharacter(int ch, int x, int y, int bg, int fg)
 {
         char *buff = (char*)0xA0000;
+        if (ch & 4096)
+        {
+                drawgoobercon(ch,x,y,0,63); return;
+        }
         for (int row = 0; row < FONT_ACTUAL_HEIGHT; ++row)
         {
                 int byte = FONT[ch][row];
@@ -353,7 +358,7 @@ void update_cursor(const int x, const int y)
         outb(0x3D5, (uint8_t) ((pos >> 8) & 0xFF));
 }
 
-void putc(char c)
+void putc(uint32_t c)
 {
         outb(0xE9,c);
         if (TTY_Y < TTY_XS) TTY_Y = TTY_XS;
@@ -732,7 +737,7 @@ int printf(const char *fmt, ...)
                         {
                                 case 'c':
                                 {
-                                        char c = (char) va_arg(args, int);
+                                        int c = va_arg(args, int);
                                         ++length;
                                         putc(c);
                                         break;
