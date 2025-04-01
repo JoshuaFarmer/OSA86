@@ -234,7 +234,7 @@ void osa86()
         init_pic();
         init_scheduler();
         init_fs();
-        init_pit(10000);
+        init_pit(1000);
         FILE *test0 = fopen("test.txt","w");
         Cd("test.txt");
         FILE *test1 = fopen("test2.txt","w");
