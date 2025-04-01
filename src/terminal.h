@@ -34,7 +34,7 @@ void drawcharacter(int ch, int x, int y, int bg, int fg)
         char *buff = (char*)0xA0000;
         if (ch & 4096)
         {
-                drawgoobercon(ch,x,y,0,63); return;
+                drawgoobercon(ch,x,y,bg,fg); return;
         }
         for (int row = 0; row < FONT_ACTUAL_HEIGHT; ++row)
         {
