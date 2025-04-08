@@ -103,7 +103,6 @@ bool active = true;
 #include "elf.h"
 #include "shell.h"
 #include "mlmon.h"
-#include "ahci.h"
 
 #define PAGE_SIZE 4096
 #define PAGE_TABLE_ENTRIES 1024
