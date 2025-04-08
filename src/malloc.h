@@ -13,24 +13,24 @@ uint32_t HEAP_BASE;
 #define ALIGN(size) (((size) + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1))
 
 static uint8_t *BITMAP = NULL;
-static size_t   BITMAP_SIZE = 0;
+static size_t BITMAP_SIZE = 0;
 
 typedef struct
 {
-        void    *d;
+        void *d;
         uint32_t sz;
 } MAPPED;
 
 void init_heap(void)
 {
-        if (MAX_ADDR > 8192*1024)
-                HEAP_SIZE = MAX_ADDR - (1024*2048);
+        if (MAX_ADDR > 8192 * 1024)
+                HEAP_SIZE = MAX_ADDR - (1024 * 2048);
         else
                 HEAP_SIZE = MAX_ADDR / 3;
-        HEAP_BASE   = MAX_ADDR - HEAP_SIZE;
+        HEAP_BASE = MAX_ADDR - HEAP_SIZE;
         BITMAP_SIZE = (HEAP_SIZE + ALIGNMENT - 1) / ALIGNMENT;
         BITMAP_SIZE = (BITMAP_SIZE + 7) & ~7;
-        BITMAP      = (uint8_t *)(HEAP_BASE - (BITMAP_SIZE / 8));
+        BITMAP = (uint8_t *)(HEAP_BASE - (BITMAP_SIZE / 8));
         memset((void *)HEAP_BASE, 0, HEAP_SIZE);
         memset((void *)BITMAP, 0, BITMAP_SIZE / 8);
         printf("HEAP Initialized\n");
@@ -38,15 +38,17 @@ void init_heap(void)
 
 MAPPED mmap(size_t size)
 {
-        MAPPED empty={0};
-        if (size == 0) return empty;
+        MAPPED empty = {0};
+        if (size == 0)
+                return empty;
 
         size_t aligned_size = ALIGN(size);
         size_t num_bits = aligned_size / ALIGNMENT;
 
         for (size_t i = 0; i < BITMAP_SIZE; i++)
         {
-                if ((BITMAP[i / 8] & (1 << (i % 8)))) continue;
+                if ((BITMAP[i / 8] & (1 << (i % 8))))
+                        continue;
 
                 bool found = true;
                 for (size_t j = 0; j < num_bits; j++)
@@ -65,7 +67,7 @@ MAPPED mmap(size_t size)
                                 BITMAP[(i + j) / 8] |= (1 << ((i + j) % 8));
                         }
 
-                        MAPPED map = {.d=(void *)(HEAP_BASE + i * ALIGNMENT),.sz=aligned_size};
+                        MAPPED map = {.d = (void *)(HEAP_BASE + i * ALIGNMENT), .sz = aligned_size};
                         return map;
                 }
         }
@@ -75,10 +77,11 @@ MAPPED mmap(size_t size)
 
 void umap(MAPPED map)
 {
-        if (!map.d) return;
+        if (!map.d)
+                return;
 
-        size_t index    = (int)((uint8_t *)map.d - HEAP_BASE) / ALIGNMENT;
-        size_t num_bits = map.sz/ALIGNMENT;
+        size_t index = (int)((uint8_t *)map.d - HEAP_BASE) / ALIGNMENT;
+        size_t num_bits = map.sz / ALIGNMENT;
 
         for (size_t i = 0; i < num_bits; i++)
         {
@@ -101,9 +104,11 @@ size_t remaining_heap_space(void)
 
 void *malloc(size_t sz)
 {
-        if (sz == 0) return NULL;
-        MAPPED map = mmap(sz+4);
-        if (!map.d)  return NULL;
+        if (sz == 0)
+                return NULL;
+        MAPPED map = mmap(sz + 4);
+        if (!map.d)
+                return NULL;
         *(uint32_t *)map.d = map.sz;
         map.d += 4;
         return map.d;
@@ -112,9 +117,32 @@ void *malloc(size_t sz)
 void free(void *d)
 {
         MAPPED map;
-        map.d  = (void *)((int)d-4);
+        map.d = (void *)((int)d - 4);
         map.sz = *(uint32_t *)map.d;
         umap(map);
+}
+
+#define ALIGN_UP(addr, align) (((addr) + (align) - 1) & ~((align) - 1))
+#define ALIGN_DOWN(addr, align) ((addr) & ~((align) - 1))
+
+void *malloc_aligned(size_t size, size_t alignment)
+{
+        void *ptr = malloc(size + alignment - 1 + sizeof(void *));
+        if (!ptr)
+                return NULL;
+
+        void *aligned_ptr = (void *)ALIGN_UP((uintptr_t)ptr + sizeof(void *), alignment);
+        *((void **)((uint8_t *)aligned_ptr - sizeof(void *))) = ptr; // Store original pointer
+
+        return aligned_ptr;
+}
+
+void free_aligned(void *aligned_ptr)
+{
+        if (!aligned_ptr)
+                return;
+        void *original_ptr = *((void **)((uint8_t *)aligned_ptr - sizeof(void *)));
+        free(original_ptr);
 }
 
 #endif

@@ -4,10 +4,10 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define	peekb(S,O)		*(unsigned char *)(16uL * (S) + (O))
-#define	pokeb(S,O,V)		*(unsigned char *)(16uL * (S) + (O)) = (V)
-#define	pokew(S,O,V)		*(unsigned short *)(16uL * (S) + (O)) = (V)
-#define	_vmemwr(DS,DO,S,N)	memcpy((char *)((DS) * 16 + (DO)), S, N)
+#define peekb(S, O) *(unsigned char *)(16uL * (S) + (O))
+#define pokeb(S, O, V) *(unsigned char *)(16uL * (S) + (O)) = (V)
+#define pokew(S, O, V) *(unsigned short *)(16uL * (S) + (O)) = (V)
+#define _vmemwr(DS, DO, S, N) memcpy((char *)((DS) * 16 + (DO)), S, N)
 
 uint16_t inw(uint16_t port)
 {
@@ -18,7 +18,7 @@ uint16_t inw(uint16_t port)
 
 void outw(uint16_t port, uint16_t value)
 {
-        asm volatile ("outw %0, %1" : : "a"(value), "Nd"(port));
+        asm volatile("outw %0, %1" : : "a"(value), "Nd"(port));
 }
 
 unsigned char inb(unsigned short port)
@@ -35,7 +35,19 @@ void outb(unsigned short port, unsigned char value)
 
 void insw(uint16_t port, void *addr, uint32_t count)
 {
-    asm volatile("rep insw" : "+D"(addr), "+c"(count) : "d"(port) : "memory");
+        asm volatile("rep insw" : "+D"(addr), "+c"(count) : "d"(port) : "memory");
+}
+
+void outl(uint16_t port, uint32_t value)
+{
+        asm volatile("outl %0, %1" : : "a"(value), "Nd"(port));
+}
+
+uint32_t inl(uint16_t port)
+{
+        uint32_t ret;
+        asm volatile("inl %1, %0" : "=a"(ret) : "Nd"(port));
+        return ret;
 }
 
 /* ata needs to be re done */

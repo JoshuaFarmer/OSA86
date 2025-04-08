@@ -103,6 +103,7 @@ bool active = true;
 #include "elf.h"
 #include "shell.h"
 #include "mlmon.h"
+#include "ahci.h"
 
 #define PAGE_SIZE 4096
 #define PAGE_TABLE_ENTRIES 1024
@@ -125,6 +126,32 @@ void* alloc_page()
         }
         return NULL;
 }
+
+void map_mmio(uint32_t phys_addr, uint32_t size)
+{
+        uint32_t start = phys_addr & 0xFFFFF000; // page-align start
+        uint32_t end = (phys_addr + size + PAGE_SIZE - 1) & 0xFFFFF000;
+
+        for (uint32_t addr = start; addr < end; addr += PAGE_SIZE)
+        {
+                uint32_t pd_index = addr >> 22;
+                uint32_t pt_index = (addr >> 12) & 0x3FF;
+
+                // Allocate page table if missing
+                if (!(page_directory[pd_index] & 1)) {
+                uint32_t *pt = (uint32_t*)alloc_page();
+                memset(pt, 0, PAGE_SIZE);
+                page_directory[pd_index] = ((uint32_t)pt) | 0x03;
+                }
+
+                uint32_t *pt = (uint32_t*)(page_directory[pd_index] & 0xFFFFF000);
+                pt[pt_index] = addr | 0x03; // Present | RW
+        }
+
+        // Flush TLB
+        asm volatile("mov %0, %%cr3" : : "r"(page_directory));
+}
+
 
 void setup_paging()
 {
@@ -223,6 +250,7 @@ void osa86()
 {
         cli();
         setup_paging();
+        map_mmio(0xFEBD5000, 0x1000);
         mode(0x00); /* 320x200x8bpp */
         memset((void*)0xA0000,0,320*200);
         init_tty();
@@ -257,7 +285,6 @@ void osa86()
         AppendTaskRing0("shell",shell);
         AppendTaskRing0("tty",refresh);
         system("info");
-
         while (active)
         {
                 /* Yes */

@@ -88,18 +88,19 @@ static void dump(uint8_t *regs, uint32_t count)
         }
 }
 
-static void set_plane(uint32_t p)
-{
-        uint8_t pmask;
+//static void set_plane(uint32_t p)
+//{
+//        uint8_t pmask;
+//
+//        p &= 3;
+//        pmask = 1 << p;
+//        outb(VGA_GC_INDEX, 4);
+//        outb(VGA_GC_DATA, p);
+//        outb(VGA_SEQ_INDEX, 2);
+//        outb(VGA_SEQ_DATA, pmask);
+//}
 
-        p &= 3;
-        pmask = 1 << p;
-        outb(VGA_GC_INDEX, 4);
-        outb(VGA_GC_DATA, p);
-        outb(VGA_SEQ_INDEX, 2);
-        outb(VGA_SEQ_DATA, pmask);
-}
-
+/*
 static uint32_t get_fb_seg(void)
 {
         uint32_t seg;
@@ -122,12 +123,12 @@ static uint32_t get_fb_seg(void)
                 break;
         }
         return seg;
-}
+}*/
 
-static void vmemwr(uint32_t dst_off, uint8_t *src, uint32_t count)
-{
-        _vmemwr(get_fb_seg(), dst_off, src, count);
-}
+//static void vmemwr(uint32_t dst_off, uint8_t *src, uint32_t count)
+//{
+//        _vmemwr(get_fb_seg(), dst_off, src, count);
+//}
 
 void dump_regs(uint8_t *regs)
 {
@@ -217,7 +218,7 @@ void write_regs(uint8_t *regs)
         outb(VGA_AC_INDEX, 0x20);
 }
 
-
+/*
 static void write_font(uint8_t *buf, uint32_t font_height)
 {
         uint8_t seq2, seq4, gc4, gc5, gc6;
@@ -257,7 +258,7 @@ static void write_font(uint8_t *buf, uint32_t font_height)
         outb(VGA_GC_INDEX, 6);
         outb(VGA_GC_DATA, gc6);
 }
-
+*/
 static void (*g_write_pixel)(uint32_t x, uint32_t y, uint32_t c);
 static uint32_t g_wd, g_ht;
 
