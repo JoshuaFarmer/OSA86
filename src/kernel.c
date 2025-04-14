@@ -59,9 +59,9 @@ void init(int memSize)
                 initputs("Please get more ram",(80-20)/2,11);
                 while(1);
         }
-        else if (MAX_ADDR >= (132*1024*1024))
+        else if (MAX_ADDR >= (237*1024*1024))
         {
-                MAX_ADDR = (132*1024*1024);
+                MAX_ADDR = (237*1024*1024);
         }
         osa86();
 }
@@ -108,7 +108,7 @@ bool active = true;
 #define PAGE_TABLE_ENTRIES 1024
 #define PAGE_DIRECTORY_ENTRIES 1024
 #define TOTAL_PAGES ((MAX_ADDR + 0x3FFFFF) / 0x400000)
-#define PAGES_BASE 0x40000
+#define PAGES_BASE 0x29000
 
 uint32_t page_directory[PAGE_DIRECTORY_ENTRIES] __attribute__((aligned(PAGE_SIZE)));
 uint8_t *bitmap;
@@ -137,10 +137,11 @@ void map_mmio(uint32_t phys_addr, uint32_t size)
                 uint32_t pt_index = (addr >> 12) & 0x3FF;
 
                 // Allocate page table if missing
-                if (!(page_directory[pd_index] & 1)) {
-                uint32_t *pt = (uint32_t*)alloc_page();
-                memset(pt, 0, PAGE_SIZE);
-                page_directory[pd_index] = ((uint32_t)pt) | 0x03;
+                if (!(page_directory[pd_index] & 1))
+                {
+                        uint32_t *pt = (uint32_t*)alloc_page();
+                        memset(pt, 0, PAGE_SIZE);
+                        page_directory[pd_index] = ((uint32_t)pt) | 0x03;
                 }
 
                 uint32_t *pt = (uint32_t*)(page_directory[pd_index] & 0xFFFFF000);
@@ -187,12 +188,12 @@ int ram_size(int off)
         int size = 0;
         while(1)
         {
-                if (size >= (132*1024*1024)) return (132*1024*1024);
+                //if (size >= (132*1024*1024)) return (132*1024*1024);
                 *addr = 0x69696969;
                 if (*addr == 0x69696969)
                 {
-                        addr += 1;
-                        size += 4;
+                        addr += 1024;
+                        size += 4096;
                         continue;
                 }
                 return size + 1024*1024;
