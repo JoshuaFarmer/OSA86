@@ -21,4 +21,4 @@ clang fstools/src/diskutil.c -o fstools/bin/diskutil -O3 -Wall
 clang fstools/src/osafs2.c -o fstools/bin/osafs -O3 -Wall
 ./fstools/bin/diskutil "bin/raw/OSA86.img" "bin/OSA86.img"
 
-qemu-system-i386 -m 237 -machine q35 -drive id=disk,file=bin/OSA86.img,format=raw,if=none -device ahci,id=ahci -device ide-hd,drive=disk,bus=ahci.0 -debugcon stdio
+qemu-system-i386 -m 256 -machine q35 -drive id=disk,file=bin/OSA86.img,format=raw,if=none -device ahci,id=ahci -device ide-hd,drive=disk,bus=ahci.0 -debugcon stdio
