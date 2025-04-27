@@ -8,7 +8,7 @@ typedef struct Task
         uint32_t eax,ecx,edx,ebx,esp,ebp,esi,edi,eip,psuedo_regs[64]; /*r0-r63*/
         uint16_t ds,es,fs,gs,cs,ss;
         uint32_t eflags;
-        uint8_t stack[8192*2];
+        uint8_t stack[8192];
         void * start;
         int tick;
         int pid;

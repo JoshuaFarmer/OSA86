@@ -50,6 +50,18 @@ uint32_t inl(uint16_t port)
         return ret;
 }
 
-/* ata needs to be re done */
+extern void ata_lba_read();
+
+void ata_read(int lba, uint8_t size, void *p)
+{
+        __asm__ volatile(
+            "mov %0, %%eax\n\t"
+            "mov %1, %%cl\n\t"
+            "mov %2, %%edi\n\t"
+            "call ata_lba_read"
+            :
+            : "r"(lba), "r"(size), "r"(p)
+            : "eax", "ecx", "edi", "memory");
+}
 
 #endif

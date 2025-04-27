@@ -257,6 +257,7 @@ void osa86()
         printf("please wait\n");
         flush();
         init_heap();
+        malloc(8192);
         init_gdt();
         init_idt();
         init_pic();
@@ -285,6 +286,7 @@ void osa86()
         AppendTaskRing0("shell",shell);
         AppendTaskRing0("tty",refresh);
         system("info");
+        sti();
         while (active)
         {
                 /* Yes */

@@ -61,10 +61,17 @@ typedef struct {
 FAE            *FAT0;
 FileDescriptor *FDS0;
 
+#define StartOfFS 128
+
 void init_fs()
 {
         FAT0 = malloc(sizeof(FAE)*MCC);
         FDS0 = malloc(sizeof(FileDescriptor)*MFC);
+        if (!FAT0 || !FDS0)
+        {
+                printf("failed to load fs");
+                return;
+        }
         memset(FAT0,0,sizeof(FAE)*MCC);
         memset(FDS0,0,sizeof(FileDescriptor)*MFC);
         printf("RAMFS Initialized\n");
