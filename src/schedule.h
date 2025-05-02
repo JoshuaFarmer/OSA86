@@ -1,6 +1,42 @@
 #ifndef SCHEDULE_H
 #define SCHEDULE_H
 
+enum FLAG
+{
+        CF,
+        A1,
+        PF,
+        RESERVED0,
+        AF,
+        RESERVED1,
+        ZF,
+        SF,
+        TF,
+        IF,
+        DF,
+        OF,
+};
+
+enum REG
+{
+        EAX,
+        EBX,
+        ECX,
+        EDX,
+        ESP,
+        EBP,
+        ESI,
+        EDI,
+        EIP,
+        CS,
+        DS,
+        ES,
+        SS,
+        FS,
+        GS,
+        EFLAGS,
+};
+
 typedef uint32_t REGS[16];
 
 typedef struct Task

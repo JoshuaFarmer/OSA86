@@ -38,7 +38,9 @@ void drawcharacter(int ch, int x, int y, int bg, int fg)
         }
         for (int row = 0; row < FONT_ACTUAL_HEIGHT; ++row)
         {
-                int byte = FONT[ch][row];
+                int byte = 0;
+                if (ch > 0x20)
+                        byte = FONT[ch-0x21][row];
                 for (int bit = 0; bit < FONT_ACTUAL_WIDTH; ++bit)
                 {
                         int index = (y + row) * VGA_WIDTH + x + (bit);
