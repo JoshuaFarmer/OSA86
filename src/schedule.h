@@ -20,7 +20,7 @@ typedef struct Task
 
 Task RootTask,*ActiveTask;
 
-volatile uint32_t *regs = (uint32_t *)0xFF00;
+volatile uint32_t *regs = (uint32_t *)0x1000;
 
 void Int80(int,int);
 void SystemTick();

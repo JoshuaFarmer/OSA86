@@ -2,7 +2,7 @@
         [bits 16]
 
         KERNEL_SIZE  equ 128
-        KERNEL_STACK equ 0xF000
+        KERNEL_STACK equ 0xFFFF-4
         jmp _start
         nop
 	sector_bytes: dw 512
@@ -31,7 +31,7 @@
 	sig: db 0x28
 	volume: dd 0
 	volume_name: db "OSA86"
-	sys: db "FAT32 "
+	sys: db "FAT32 " ; well thats a fucking lie
 _start:
 	cli
 	xor ax, ax
@@ -41,9 +41,6 @@ _start:
 	mov sp, 0x7C00
 	push dx
 	sti
-        ;mov ax,0x4F02
-        ;mov bx,256
-        ;int 0x10
 	mov ah, 2
 	mov al, KERNEL_SIZE
 	mov cx, 2

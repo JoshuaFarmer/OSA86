@@ -91,10 +91,10 @@ void init_gdt()
         gdtp.limit = (sizeof(struct gdt_entry) * GDT_SIZE) - 1;
         gdtp.base = (uint32_t)&gdt;
         set_gdt_entry(0, 0, 0, 0, 0);
-        set_gdt_entry(1, 0x00000000, 0x100000-1, 0x9A, 0xCF);
-        set_gdt_entry(2, 0x00000000, 0x100000-1, 0x92, 0xCF);
-        set_gdt_entry(3, 0x00000000, MAX_ADDR, 0xFA, 0xCF);
-        set_gdt_entry(4, 0x00000000, MAX_ADDR, 0xF2, 0xCF);
+        set_gdt_entry(1, 0x00000000, MAX_ADDR-1, 0x9A, 0xCF);
+        set_gdt_entry(2, 0x00000000, MAX_ADDR-1, 0x92, 0xCF);
+        //set_gdt_entry(3, 0x00000000, MAX_ADDR, 0xFA, 0xCF);
+        //set_gdt_entry(4, 0x00000000, MAX_ADDR, 0xF2, 0xCF);
         set_tss_entry(5, (uint32_t)&tss, sizeof(tss) - 1, 0x89, 0x40);
         asm volatile("lgdt (%0)" : : "r" (&gdtp));
         asm volatile("ltr %w0" : : "r" ((uint16_t)0x28));

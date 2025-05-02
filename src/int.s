@@ -6,6 +6,8 @@
         global keyboard_interrupt_handler
         global general_protection_fault_handler
         global page_fault_handler
+        global test_custom_opcodes
+        global LoadAndJump
         extern divide_by_zero
         extern Exception
         extern OSASyscallHandler
@@ -15,11 +17,9 @@
         extern general_protection_fault
         extern page_fault
         extern putc
-        global LoadAndJump
-        global test_custom_opcodes
 
         ; location of temporary registers
-        TEMP_REG  equ 0xFF00
+        TEMP_REG  equ 0x1000
         TEMP_EAX  equ TEMP_REG+(0*4)
         TEMP_EBX  equ TEMP_REG+(1*4)
         TEMP_ECX  equ TEMP_REG+(2*4)
@@ -36,59 +36,53 @@
         TEMP_FS   equ TEMP_REG+(13*4)
         TEMP_GS   equ TEMP_REG+(14*4)
         TEMP_FLGS equ TEMP_REG+(15*4)
-
-        ; stack during swapping program
-        TEMP_STCK  equ TEMP_REG-16
-        TEMP_STCKS equ 256
 LoadAndJump:
-        mov esp,TEMP_STCK
-        mov eax,[TEMP_FLGS]
-        and eax,~0x200
-        push eax
-
-        ; segments
+        ; Segments
         mov ax,[TEMP_DS]
         mov bx,[TEMP_SS]
         mov cx,[TEMP_ES]
         mov dx,[TEMP_FS]
+        mov si,[TEMP_GS]
         mov ds,ax
         mov ss,bx
         mov es,cx
         mov fs,dx
-        mov ax,[TEMP_GS]
-        mov gs,ax
+        mov gs,si
 
-        mov eax,[TEMP_EAX]
-        mov ebx,[TEMP_EBX]
-        mov ecx,[TEMP_ECX]
-        mov edx,[TEMP_EDX]
-        mov ebp,[TEMP_EBP]
-        mov esi,[TEMP_ESI]
-        mov edi,[TEMP_EDI]
+        ; Registers
+        mov eax,dword[TEMP_EAX]
+        mov ebx,dword[TEMP_EBX]
+        mov ecx,dword[TEMP_ECX]
+        mov edx,dword[TEMP_EDX]
+        mov ebp,dword[TEMP_EBP]
+        mov esi,dword[TEMP_ESI]
+        mov edi,dword[TEMP_EDI]
+        mov esp,dword[TEMP_ESP]
 
-        popf
-        cli
-        mov esp,[TEMP_ESP]
-        sti
-        jmp far [TEMP_EIP]
+        ; Interrupt Frame
+        or dword[TEMP_FLGS],0x200
+        push dword[TEMP_FLGS]
+        push dword[TEMP_CS]
+        push dword[TEMP_EIP]
+        iret
 invalid_opcode_handler:
         cli
-        mov [TEMP_EAX],eax
-        mov [TEMP_EBX],ebx
-        mov [TEMP_ECX],ecx
-        mov [TEMP_EDX],edx
-        mov [TEMP_ESI],esi
-        mov [TEMP_EDI],edi
-        mov [TEMP_EBP],ebp
+        mov dword[TEMP_EAX],eax
+        mov dword[TEMP_EBX],ebx
+        mov dword[TEMP_ECX],ecx
+        mov dword[TEMP_EDX],edx
+        mov dword[TEMP_ESI],esi
+        mov dword[TEMP_EDI],edi
+        mov dword[TEMP_EBP],ebp
         call invalid_opcode
-        mov [esp],eax
-        mov eax,[TEMP_EAX]
-        mov ebx,[TEMP_EBX]
-        mov ecx,[TEMP_ECX]
-        mov edx,[TEMP_EDX]
-        mov esi,[TEMP_ESI]
-        mov edi,[TEMP_EDI]
-        mov ebp,[TEMP_EBP]
+        mov dword[esp],eax
+        mov eax,dword[TEMP_EAX]
+        mov ebx,dword[TEMP_EBX]
+        mov ecx,dword[TEMP_ECX]
+        mov edx,dword[TEMP_EDX]
+        mov esi,dword[TEMP_ESI]
+        mov edi,dword[TEMP_EDI]
+        mov ebp,dword[TEMP_EBP]
         sti
         iret
 general_protection_fault_handler:
@@ -108,33 +102,30 @@ page_fault_handler:
         iret
 timer_interrupt_handler:
         cli
-        mov [TEMP_EAX],eax
-        pushf
-        pop eax
-        mov [TEMP_FLGS],eax
-        mov [TEMP_EBX],ebx
-        mov [TEMP_ECX],ecx
-        mov [TEMP_EDX],edx
-        mov ebx,esp
-        add ebx,4*3
-        mov [TEMP_ESP],ebx
-        mov [TEMP_EBP],ebp
-        mov [TEMP_ESI],esi
-        mov [TEMP_EDI],edi
-        pop eax
-        pop ebx
-        mov [TEMP_EIP],eax
-        mov [TEMP_CS],bx
+        ; Registers & CS
+        mov dword[TEMP_EAX],eax
+        mov dword[TEMP_EBX],ebx
+        mov dword[TEMP_ECX],ecx
+        mov dword[TEMP_EDX],edx
+        mov dword[TEMP_EBP],ebp
+        mov dword[TEMP_ESI],esi
+        mov dword[TEMP_EDI],edi
+        pop dword[TEMP_EIP]
+        pop dword[TEMP_CS]
+        pop dword[TEMP_FLGS]
+        mov dword[TEMP_ESP],esp
+
+        ; Segments
         mov ax,ds
-        mov [TEMP_DS],ax
-        mov ax,es
-        mov [TEMP_ES],ax
-        mov ax,ss
-        mov [TEMP_SS],ax
-        mov ax,fs
-        mov [TEMP_FS],ax
-        mov ax,gs
-        mov [TEMP_GS],ax
+        mov bx,es
+        mov cx,ss
+        mov dx,fs
+        mov si,gs
+        mov word[TEMP_DS],ax
+        mov word[TEMP_ES],bx
+        mov word[TEMP_SS],cx
+        mov word[TEMP_FS],dx
+        mov word[TEMP_GS],si
         mov ax,0x10
         mov ds,ax
         mov ss,ax
