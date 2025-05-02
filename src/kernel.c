@@ -251,7 +251,7 @@ void osa86()
         cli();
         setup_paging();
         map_mmio(0xFEBD5000, 0x1000);
-        mode(0x00); /* 320x200x8bpp */
+        mode(); /* 320x200x8bpp */
         memset((void*)0xA0000,0,320*200);
         init_tty();
         printf("please wait\n");
@@ -301,7 +301,7 @@ void osa86()
                 PKill(i);
         }
 
-        mode(0x2);
+        mode();
         clearScreen(TTY_COL);
         printf("\xff[20x11y]It is now safe to turn of your computer\n");
         flush();
