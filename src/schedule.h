@@ -224,7 +224,8 @@ void PKill(int id)
                         current->running=false;
                         if (current == ActiveTask)
                         {
-                                timer_interrupt_handler();
+                                sti();
+                                while(1);
                         }
                 }
         }
