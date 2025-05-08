@@ -142,9 +142,7 @@ keyboard_interrupt_handler:
         iret
 default_exception_handler:
 	cli
-        add esp,4
         call Exception
-        sub esp,4
         sti
 	iret
 divide_by_zero_handler:

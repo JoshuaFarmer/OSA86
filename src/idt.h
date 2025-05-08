@@ -73,9 +73,9 @@ enum INST
 idt_entry idt[256];
 void SystemTick();
 
-void Exception(unsigned int addr)
+void Exception(unsigned int cs, unsigned int addr)
 {
-        PANIC("Exception Error At: %x", addr);
+        PANIC("Exception Error At: %x:%x\nException in `%s`, PID=%d", addr,cs,ActiveTask->name,ActiveTask->pid);
 }
 
 void divide_by_zero()

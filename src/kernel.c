@@ -6,32 +6,11 @@
 #define _OSA86
 
 typedef uint8_t PALETTE16[16][3];
-
-//PALETTE16 PalExample =
-//{
-//        /*black*/  {23,24,33},
-//        /*blue*/   {1,100,188},
-//        /*green*/  {80,161,79},
-//        /*cyan*/   {9,151,179},
-//        /*red*/    {229,86,73},
-//        /*magent*/ {166,38,164},
-//        /*yellow*/ {192,131,1},
-//        /*white*/  {250,250,250},
-//        /*black*/  {23,24,33},
-//        /*blue*/   {1,100,188},
-//        /*green*/  {80,161,79},
-//        /*cyan*/   {9,151,179},
-//        /*red*/    {229,86,73},
-//        /*magent*/ {166,38,164},
-//        /*yellow*/ {192,131,1},
-//        /*white*/  {250,250,250},
-//};
-
 #pragma pack(1)
 
 #define NULL (void*)(0)
-#define cli() asm ("cli")
-#define sti() asm ("sti")
+#define cli() asm("cli")
+#define sti() asm("sti")
 #define __VER__ "0.4.2"
 
 void osa86();
@@ -293,14 +272,12 @@ void osa86()
                 sti();
         }
         cli();
-
         clearScreen(TTY_COL);
         IterateSchedule(i)
         {
                 printf("ending %s\n", current->name);
                 PKill(i);
         }
-
         mode();
         clearScreen(TTY_COL);
         printf("\xff[20x11y]It is now safe to turn of your computer\n");

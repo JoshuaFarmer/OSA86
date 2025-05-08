@@ -26,10 +26,7 @@ void mlmon(char * filename)
                 for (int i = 1; i <= 128; ++i)
                 {
                         PrintByte(mem[(i-1)+(128*page)]); putc(' ');
-                        if ((i % 8) == 0)
-                        {
-                                putc('\n');
-                        }
+                        (i % 8) == 0 ? putc('\n') : 0;
                 }
                 update_cursor(x*3,y+1);
                 switch (input)
