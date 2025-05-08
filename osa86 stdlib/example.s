@@ -102,7 +102,7 @@ main:                                   # @main
 .Lfunc_end4:
 	.size	main, .Lfunc_end4-main
                                         # -- End function
-	.ident	"Ubuntu clang version 14.0.0-1ubuntu1.1"
+	.ident	"Debian clang version 14.0.6"
 	.section	".note.GNU-stack","",@progbits
 	.addrsig
 	.addrsig_sym __Interrupt
